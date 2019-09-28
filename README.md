@@ -1,4 +1,7 @@
 # lol-tft-bot
+ :white_check_mark: := Done
+ :large_blue_circle: := Work in Progress
+ :red_circle: := Currently not started
 
 ## Content
 1. [Plan](#plan)
