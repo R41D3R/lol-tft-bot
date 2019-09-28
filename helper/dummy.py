@@ -4,6 +4,36 @@ import random
 from helper.pathfinding_helper import PriorityQueue
 from helper.dummy_vision_event import DummyEvent
 
+dmg_color = {
+    "physical": (255, 140, 0),
+    "magic": (226, 121, 252),
+    "true_damage": (255, 255, 255)
+}
+
+
+class DummyDamage:
+    def __init__(self, amount, stat_pos, kind: str):
+        self.color = dmg_color[kind]
+        self.amount = amount
+        self.create = pygame.time.get_ticks()
+        self.start_pos = stat_pos
+        self.font = pygame.font.SysFont("Comic Sans Ms", int(amount/10 * 5 + 20))
+        self.duration = int(self.amount / 10 * 1000)
+
+    def render(self, surface):
+        state = pygame.time.get_ticks() - self.create
+        text = self.font.render(str(self.amount), False, self.color)
+        surface.blit(text, (self.start_pos[0],
+                            int(self.start_pos[1] - (state / self.duration * 50))))
+
+    @property
+    def is_active(self):
+        state = pygame.time.get_ticks() - self.create
+        if state >= self.duration:
+            return False
+        else:
+            return True
+
 
 class DummyChamp:
     def __init__(self, init_pos, name):
@@ -18,13 +48,14 @@ class DummyChamp:
         self.aa_last = pygame.time.get_ticks()
         self.aa_cc = 1000
         self.range = 1
-
         self.mana = 0
         self.mana_on_aa = 10
         self.armor = 10
         self.mr = 20
         self.crit_chance = 0.25
         self.crit_multiplier = 1.5
+
+        self.damage_events = []
 
     def special_ability(self, fight):
         # nearby enemies get Mega Crit
@@ -43,13 +74,17 @@ class DummyChamp:
         else:
             return self.ad
 
-    def get_physical_damage(self, damage, map_):
-        self.health -= damage * (1 - (self.armor / 100))
+    def get_physical_damage(self, incoming_damage, map_):
+        real_damage = incoming_damage * (1 - (self.armor / 100))
+        self.health -= real_damage
+        self.damage_events.append(DummyDamage(real_damage, self.position(map_), "physical"))
         self.mana += self.mana_on_aa
         self.check_alive(map_)
 
-    def get_magic_damage(self, damage, map_):
-        self.health -= damage * (1 - (self.mr / 100))
+    def get_magic_damage(self, incoming_damage, map_):
+        real_damage = incoming_damage * (1 - (self.mr / 100))
+        self.health -= real_damage
+        self.damage_events.append(DummyDamage(real_damage, self.position(map_), "magic"))
         self.mana += self.mana_on_aa
         self.check_alive(map_)
 
@@ -102,6 +137,13 @@ class DummyChamp:
         # ----- name ------
         text = font.render(self.name, False, (0, 0, 0))
         surface.blit(text, (player_pos[0] - 30, player_pos[1] - 20))
+
+        # ----- damage -----
+        for dmg in self.damage_events:
+            if dmg.is_active:
+                dmg.render(surface)
+            else:
+                self.damage_events.remove(dmg)
 
     def position(self, map_):
         current_cell = map_.get_cell_from_id(self.pos)

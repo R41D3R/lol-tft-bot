@@ -1,7 +1,7 @@
 import pygame
 import random
 from fight import Fight, DummyChamp
-from testing import *  # only for test
+# from testing import *  # only for test
 import copy
 
 # realpython
