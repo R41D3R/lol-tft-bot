@@ -50,6 +50,7 @@ Do I need to include Champ Stats, Synergies ... ?
 - [ ] *Karusel Probabilities*
 - [ ] Drops (Items, Gold, Champs)
 - [ ] *Wich Players get matched?*
+- [ ] How much dmg does the winner on the opponent?
 
 
 ### Resourcen
