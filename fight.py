@@ -31,21 +31,19 @@ class Fight:
                 enemy_team = [enemy for enemy in self.champs_enemy_team(champ) if enemy.alive]
                 if len(enemy_team) == 0:
                     break
-                current_cell = self.map.get_cell_from_id(champ.pos)
 
-                enemys_around = [enemy for neighbor in current_cell.neighbors for enemy in enemy_team if
-                                 enemy.pos == neighbor.id]
+                enemies_in_range = champ.get_enemies_in_range(self)
 
                 if champ.mana >= 100:
                     champ.special_ability(self)
                     champ.mana = 0
-                elif now - champ.aa_last >= champ.aa_cc and len(enemys_around) > 0:
+                elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0:
                     print(f"{champ.name} attacks")
-                    target_enemy = random.choice(enemys_around)
+                    target_enemy = random.choice(enemies_in_range)
                     champ.aa_last = now
                     target_enemy.get_physical_damage(champ.aa_damage(), self.map)
                     champ.mana += champ.mana_on_aa
-                elif len(enemys_around) > 0:
+                elif len(enemies_in_range) > 0:
                     print(f"{champ.name} waits for next aa")
                     pass
                 else:
@@ -98,6 +96,10 @@ class Fight:
     def champions_alive(self):
         return [champ for champ in self.team_top + self.team_bot if champ.alive]
 
+    def enemy_champs_alive(self, champ):
+        enemy_team = self.champs_enemy_team(champ)
+        return [enemy for enemy in enemy_team if enemy.alive]
+
     def champs_enemy_team(self, champ):
         if champ in self.team_bot:
             return self.team_top
@@ -137,7 +139,7 @@ class Fight:
         # set positions for bot team
         print("Team BOT:")
         for champ in self.team_bot:
-            print(f"{champ.name} spawned on {champ.pos}")
+            print(f"{champ.name} spawned on {champ.pos} with range {champ.range}")
             if (champ.pos[1] % 2) == 0:
                 champ.pos = (champ.pos[0] * 2 + 1, champ.pos[1] + 3)
             else:
@@ -146,7 +148,7 @@ class Fight:
         # set positions for top team
         print("Team TOP:")
         for champ in self.team_top:
-            print(f"{champ.name} spawned on {champ.pos}")
+            print(f"{champ.name} spawned on {champ.pos} with range {champ.range}")
             cols = self.map.n_cols
             rows = int(self.map.n_rows / 2)
             if (champ.pos[1] % 2) == 0:

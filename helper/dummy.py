@@ -47,7 +47,7 @@ class DummyChamp:
         self.target_pos = None
         self.aa_last = pygame.time.get_ticks()
         self.aa_cc = 1000
-        self.range = 1
+        self.range = random.choices([1, 2, 3, 4], weights=[0.4, 0.3, 0.2, 0.1])[0]
         self.mana = 0
         self.mana_on_aa = 10
         self.armor = 10
@@ -56,6 +56,12 @@ class DummyChamp:
         self.crit_multiplier = 1.5
 
         self.damage_events = []
+
+    def get_enemies_in_range(self, fight):
+        current_cell = fight.map.get_cell_from_id(self.pos)
+        enemy_champs_alive = fight.enemy_champs_alive(self)
+        cell_ids_in_range = [cell.id for cell in fight.map.get_all_cells_in_range(current_cell, self.range)]
+        return [enemy for enemy in enemy_champs_alive if enemy.pos in cell_ids_in_range]
 
     def special_ability(self, fight):
         # nearby enemies get Mega Crit
