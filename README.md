@@ -36,6 +36,7 @@ Do I need to include Champ Stats, Synergies ... ?
 - [x] Move to closest enemy
 - [x] Autoattack if in Range
 - [x] Defensive Stats
+- [ ] Add ranges >1
 - [ ] smooth moving
 - [x] Use Abylities if Mana is enough
 - [x] Show damage numbers
