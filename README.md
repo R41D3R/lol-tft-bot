@@ -2,10 +2,10 @@
 
 ## Content
 1. [Plan](#plan)
-    * [Fight Simulaiton](#fight-simulation)
-    * [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
-    * [Game Info](#game-info)
-    * [Actions](#actions-in-game)
+    *  :large_blue_circle: [Fight Simulaiton](#fight-simulation)
+    *  :red_circle: [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
+    *  :red_circle: [Game Info](#game-info)
+    *  :red_circle: [Actions](#actions-in-game)
 2. [Resourcen](#resourcen)
 3. [Github Repos](#github-repos)
 
