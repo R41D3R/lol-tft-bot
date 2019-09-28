@@ -35,22 +35,27 @@ class DummyDamage:
             return True
 
 
+# @todo: get real mechanics from tft
+# @todo: merge DummyChamp with real Champ
+# @body: create 10 champs for testing purpose with real stats from lol
 class DummyChamp:
     def __init__(self, init_pos, name):
+        self.range = random.choices([1, 2, 3, 4], weights=[0.4, 0.3, 0.2, 0.1])[0]
         self.name = name
         self.alive = True
-        self.health = 100
-        self.ad = 5
+        self.max_health = 100 - (self.range * 5)
+        self.health = self.max_health
+        self.ad = 8 - (self.range/2)
         self.pos = init_pos
         self.next_pos = None
         self.move_progress = 0
         self.target_pos = None
         self.aa_last = pygame.time.get_ticks()
-        self.aa_cc = 1000
-        self.range = random.choices([1, 2, 3, 4], weights=[0.4, 0.3, 0.2, 0.1])[0]
-        self.mana = 0
-        self.mana_on_aa = 10
-        self.armor = 10
+        self.aa_cc = 800 + (self.range * 50)
+        self.max_mana = 100
+        self.mana = 60 - (self.range * 10)
+        self.mana_on_aa = 7 + self.range
+        self.armor = 20 - (self.range * 3)
         self.mr = 20
         self.crit_chance = 0.25
         self.crit_multiplier = 1.5
@@ -128,7 +133,7 @@ class DummyChamp:
         # health background bar
         pygame.draw.rect(surface, (0, 0, 0), (hb_x, hb_y, hb_width, hb_height))
         # health progress bar
-        pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.health / 100), hb_height))
+        pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.health / self.max_health), hb_height))
 
         # ----- mana bar -----
         mb_width = 60
@@ -138,7 +143,7 @@ class DummyChamp:
         # mana background bar
         pygame.draw.rect(surface, (0, 0, 0), (mb_x, mb_y, mb_width, mb_height))
         # mana progress bar
-        pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / 100), mb_height))
+        pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / self.max_mana), mb_height))
 
         # ----- name ------
         text = font.render(self.name, False, (0, 0, 0))
