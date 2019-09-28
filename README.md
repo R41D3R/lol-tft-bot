@@ -1,16 +1,15 @@
 # lol-tft-bot
- :white_check_mark: := Done
- :large_blue_circle: := Work in Progress
- :red_circle: := Currently not started
 
 ## Content
 1. [Plan](#plan)
-    *  :large_blue_circle: [Fight Simulaiton](#fight-simulation)
-    *  :red_circle: [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
-    *  :red_circle: [Game Info](#game-info)
-    *  :red_circle: [Actions](#actions-in-game)
+    *  :on: [Fight Simulaiton](#fight-simulation)
+    *  :soon: [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
+    *  :soon: [Game Info](#game-info)
+    *  :soon: [Actions](#actions-in-game)
 2. [Resourcen](#resourcen)
 3. [Github Repos](#github-repos)
+
+> [Emoji List](https://www.webfx.com/tools/emoji-cheat-sheet/)
 
 # Plan
 ### Fight Simulation
