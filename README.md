@@ -1,9 +1,9 @@
 # lol-tft-bot
 
 ### Content
-- [Plan](#plan)
-- [Resourcen](#resourcen)
-- [Github Repos](#github-repos)
+1. [Plan](#plan)
+2. [Resourcen](#resourcen)
+3. [Github Repos](#github-repos)
 
 ## Plan
 **Actions**
