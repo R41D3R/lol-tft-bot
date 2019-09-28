@@ -36,16 +36,22 @@ Do I need to include Champ Stats, Synergies ... ?
 - [x] Move to closest enemy
 - [x] Autoattack if in Range
 - [x] Defensive Stats
+- [ ] Add ranges >1
 - [ ] smooth moving
 - [x] Use Abylities if Mana is enough
-- [ ] Show Events like Abilitys or Item Activ/Passiv
+- [x] Show damage numbers
+- [x] Show Abilitys
 - [ ] Activate Item Passiv
+- [ ] Show Items (activ/passiv)
 - [ ] Get Synergies
-- [ ] ADD all Champs
-- [ ] ADD all Items
+- [ ] ADD all Champs (Stats)
+- [ ] ADD all Abilities to Champs
+- [ ] ADD all Items (Stats)
+- [ ] ADD Passiv for all Items
 - [ ] ADD all Synergies (Origins and Classes)
-- [ ] Update Database with Pathnotes
+- [ ] Update Database with Patchnotes
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)
+- [ ] **finally** remove pygame and for HPC
 
 **Game Mechanics (Gym)**
 - [ ] Reroll Probabilties (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
