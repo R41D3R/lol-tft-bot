@@ -13,6 +13,7 @@ class Fight:
         self.team_bot = team_bot
         self.team_top = team_top
         self.path = None
+        self.events = []
 
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_top)
@@ -75,6 +76,17 @@ class Fight:
         return [champ for champ in self.team_top if champ.alive is True], \
                [champ for champ in self.team_bot if champ.alive is True]
 
+    def draw_winner(self, surface):
+        team_top, team_bot = self.result
+        if len(team_top) > len(team_bot):
+            show = f"Team TOP won with: {len(team_top)} champs alive"
+        else:
+            show = f"Team BOT won with: {len(team_bot)} champs alive"
+
+        font = pygame.font.SysFont("Comic Sans Ms", 60)
+        text = font.render(show, False, (255, 0, 0))
+        surface.blit(text, (0, 0))
+
     def get_champ_from_cell(self, cell):
         for champ in self.team_top + self.team_bot:
             if champ.pos == cell.id:
@@ -94,11 +106,19 @@ class Fight:
 
     def render(self, surface):
         self.map.draw(surface)
+        for event in self.events:
+            if event.is_active:
+                event.draw(surface, self.map)
+            else:
+                self.events.remove(event)
+
         for top, bot in zip(self.team_top, self.team_bot):
             if bot.alive:
                 bot.draw(surface, self.map, "team_bot")
             if top.alive:
                 top.draw(surface, self.map, "team_top")
+        if self.game_over:
+            self.draw_winner(surface)
 
     def update_cell_status(self, champ, status):
         cell = self.map.get_cell_from_id(champ.pos)

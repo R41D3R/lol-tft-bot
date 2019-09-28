@@ -60,23 +60,15 @@ while running:
                 fight.place_champs()
 
     # pressed_keys_ = pygame.key.get_pressed()
-
-    if fight.game_over:
-        break
-
     screen.fill(BG_COLOR)
-    if not pause:
+
+    if not fight.game_over and not pause:
         fight.make_fight_step()
+
     fight.render(screen)
 
     pygame.display.flip()
     clock.tick(30)
 
-# show result
-team_top, team_bot = fight.result
-if len(team_top) > len(team_bot):
-    print(f"Team TOP won with: {len(team_top)} champs alive")
-else:
-    print(f"Team BOT won with: {len(team_bot)} champs alive")
 
 pygame.quit()

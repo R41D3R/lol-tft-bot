@@ -2,6 +2,7 @@ import pygame
 import random
 
 from helper.pathfinding_helper import PriorityQueue
+from helper.dummy_vision_event import DummyEvent
 
 
 class DummyChamp:
@@ -27,7 +28,9 @@ class DummyChamp:
 
     def special_ability(self, fight):
         # nearby enemies get Mega Crit
-        for n_cell in fight.map.get_cell_from_id(self.pos).neighbors:
+        effected_area = fight.map.get_cell_from_id(self.pos).neighbors
+        fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
+        for n_cell in effected_area:
             for enemy in [champ
                           for champ in fight.champs_enemy_team(self)
                           if champ.alive]:
@@ -42,10 +45,12 @@ class DummyChamp:
 
     def get_physical_damage(self, damage, map_):
         self.health -= damage * (1 - (self.armor / 100))
+        self.mana += self.mana_on_aa
         self.check_alive(map_)
 
     def get_magic_damage(self, damage, map_):
         self.health -= damage * (1 - (self.mr / 100))
+        self.mana += self.mana_on_aa
         self.check_alive(map_)
 
     def check_alive(self, map_):

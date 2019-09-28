@@ -102,19 +102,30 @@ class Hexagon:
                 return True
         return False
 
-    def draw(self, surface, c):
-        color = c if not self.taken else (200, 0, 0)
+    def draw(self, surface, c, alpha=None):
+        if alpha is not None:
+            color = (c[0], c[1], c[2], alpha)
+            s = pygame.Surface((800, 600), pygame.SRCALPHA)  # per-pixel alpha
+            self._draw_hexagon_on_surface(s, color)
+            # s.fill((255, 255, 255, alpha))  # notice the alpha value in the color
+            surface.blit(s, (0, 0))
+
+        else:
+            color = c if not self.taken else (200, 0, 0)
+            # draw tile
+            self._draw_hexagon_on_surface(surface, color)
+            # draw coordinates
+            text = self.font.render(str(self.id), False, (234, 23, 234))
+            surface.blit(text, self.pos)
+
+    def _draw_hexagon_on_surface(self, surface, color):
         n, r = 6, self.radius
         x, y = self.pos
-        # draw tile
         pygame.draw.polygon(surface, color, [
-            (x + r * math.cos(2 * math.pi * i / n + (1 / 6 * math.pi)),
-             y + r * math.sin(2 * math.pi * i / n + (1 / 6 * math.pi)))
-            for i in range(n)
+                (x + r * math.cos(2 * math.pi * i / n + (1 / 6 * math.pi)),
+                 y + r * math.sin(2 * math.pi * i / n + (1 / 6 * math.pi)))
+                for i in range(n)
         ])
-        # draw coordinates
-        text = self.font.render(str(self.id), False, (234, 23, 234))
-        surface.blit(text, self.pos)
 
     def draw_neighbors(self, surface, c):
         for n in self.neighbors:
