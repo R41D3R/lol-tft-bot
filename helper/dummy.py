@@ -16,9 +16,6 @@ class DummyChamp:
         self.aa_last = pygame.time.get_ticks()
         self.aa_cc = 1000
         self.range = 1
-        self.font = pygame.font.SysFont("Comic Sans Ms", 20)
-
-        print(f"Champ spawned on {self.pos}")
 
     @property
     def aa_damage(self):
@@ -34,6 +31,7 @@ class DummyChamp:
             map_.get_cell_from_id(self.next_pos).taken = False
 
     def draw(self, surface, map_, team):
+        font = pygame.font.SysFont("Comic Sans Ms", 20)
         player_pos = self.position(map_)
 
         # ----- player -----
@@ -57,7 +55,7 @@ class DummyChamp:
         pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.health / 100), hb_height))
 
         # ----- name ------
-        text = self.font.render(self.name, False, (0, 0, 0))
+        text = font.render(self.name, False, (0, 0, 0))
         surface.blit(text, (player_pos[0] - 30, player_pos[1] - 20))
 
     def position(self, map_):

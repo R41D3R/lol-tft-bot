@@ -113,14 +113,18 @@ class Fight:
 
     def place_champs(self):
         # set positions for bot team
+        print("Team BOT:")
         for champ in self.team_bot:
+            print(f"{champ.name} spawned on {champ.pos}")
             if (champ.pos[1] % 2) == 0:
                 champ.pos = (champ.pos[0] * 2 + 1, champ.pos[1] + 3)
             else:
                 champ.pos = (champ.pos[0] * 2, champ.pos[1] + 3)
 
         # set positions for top team
+        print("Team TOP:")
         for champ in self.team_top:
+            print(f"{champ.name} spawned on {champ.pos}")
             cols = self.map.n_cols
             rows = int(self.map.n_rows / 2)
             if (champ.pos[1] % 2) == 0:
