@@ -1,4 +1,5 @@
 import pygame
+import random
 
 from helper.pathfinding_helper import PriorityQueue
 
@@ -8,7 +9,7 @@ class DummyChamp:
         self.name = name
         self.alive = True
         self.health = 100
-        self.ad = 10
+        self.ad = 5
         self.pos = init_pos
         self.next_pos = None
         self.move_progress = 0
@@ -17,10 +18,39 @@ class DummyChamp:
         self.aa_cc = 1000
         self.range = 1
 
-    @property
-    def aa_damage(self):
-        print("aa")
-        return self.ad
+        self.mana = 0
+        self.mana_on_aa = 10
+        self.armor = 10
+        self.mr = 20
+        self.crit_chance = 0.25
+        self.crit_multiplier = 1.5
+
+    def special_ability(self, fight):
+        # nearby enemies get Mega Crit
+        for n_cell in fight.map.get_cell_from_id(self.pos).neighbors:
+            for enemy in [champ
+                          for champ in fight.champs_enemy_team(self)
+                          if champ.alive]:
+                if enemy.pos == n_cell.id:
+                    enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
+
+    def aa_damage(self, crit=False):
+        if crit or random.random() <= self.crit_chance:
+            return self.ad * self.crit_multiplier
+        else:
+            return self.ad
+
+    def get_physical_damage(self, damage, map_):
+        self.health -= damage * (1 - (self.armor / 100))
+        self.check_alive(map_)
+
+    def get_magic_damage(self, damage, map_):
+        self.health -= damage * (1 - (self.mr / 100))
+        self.check_alive(map_)
+
+    def check_alive(self, map_):
+        if self.health <= 0:
+            self.kill(map_)
 
     def kill(self, map_):
         print(f"Champ died on {self.pos}")
@@ -53,6 +83,16 @@ class DummyChamp:
         pygame.draw.rect(surface, (0, 0, 0), (hb_x, hb_y, hb_width, hb_height))
         # health progress bar
         pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.health / 100), hb_height))
+
+        # ----- mana bar -----
+        mb_width = 60
+        mb_height = 10
+        mb_x = player_pos[0] - (mb_width / 2)
+        mb_y = hb_y + mb_height
+        # mana background bar
+        pygame.draw.rect(surface, (0, 0, 0), (mb_x, mb_y, mb_width, mb_height))
+        # mana progress bar
+        pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / 100), mb_height))
 
         # ----- name ------
         text = font.render(self.name, False, (0, 0, 0))

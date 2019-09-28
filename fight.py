@@ -35,13 +35,15 @@ class Fight:
                 enemys_around = [enemy for neighbor in current_cell.neighbors for enemy in enemy_team if
                                  enemy.pos == neighbor.id]
 
-                if now - champ.aa_last >= champ.aa_cc and len(enemys_around) > 0:
+                if champ.mana >= 100:
+                    champ.special_ability(self)
+                    champ.mana = 0
+                elif now - champ.aa_last >= champ.aa_cc and len(enemys_around) > 0:
                     print(f"{champ.name} attacks")
                     target_enemy = random.choice(enemys_around)
                     champ.aa_last = now
-                    target_enemy.health -= champ.aa_damage
-                    if target_enemy.health <= 0:
-                        target_enemy.kill(self.map)
+                    target_enemy.get_physical_damage(champ.aa_damage(), self.map)
+                    champ.mana += champ.mana_on_aa
                 elif len(enemys_around) > 0:
                     print(f"{champ.name} waits for next aa")
                     pass
