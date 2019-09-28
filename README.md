@@ -2,8 +2,10 @@
 
 ## Content
 1. [Plan](#plan)
-    * [fight simulaiton](#fight-simulation)
+    * [Actions](#actions)
+    * [Fight Simulaiton](#fight-simulation)
     * [Game Info](#game-info)
+    * [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
 2. [Resourcen](#resourcen)
 3. [Github Repos](#github-repos)
 
@@ -17,7 +19,7 @@
 - [ ] Place Champs (Bank and Board)
 - [ ] Ready for Fight
 
-**Game Info**
+### Game Info
 - [ ] Champs to buy
 - [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
 - [ ] Karusel Champs with Items
@@ -66,7 +68,7 @@ Do I need to include Champ Stats, Synergies ... ?
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)
 - [ ] **finally** remove pygame and for HPC
 
-**Game Mechanics (Gym)**
+### Game Mechanics (Gym)
 - [ ] Reroll Probabilties (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
 - [ ] *Karusel Probabilities*
 - [ ] Drops (Items, Gold, Champs)
