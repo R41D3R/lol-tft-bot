@@ -33,8 +33,9 @@ Do I need to include Champ Stats, Synergies ... ?
 **Fight Simulation**
 - [x] Board with Cells (+ Neighbors)
 - [x] Place Champs on Board 
-- [ ] Move to closest enemy
-- [ ] Autoattack if in Range
+- [x] Move to closest enemy
+- [x] Autoattack if in Range
+- [ ] smooth moving
 - [ ] Use Abylities if Mana is enough
 - [ ] Activate Item Passiv
 - [ ] Get Synergies
