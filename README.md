@@ -35,8 +35,10 @@ Do I need to include Champ Stats, Synergies ... ?
 - [x] Place Champs on Board 
 - [x] Move to closest enemy
 - [x] Autoattack if in Range
+- [x] Defensive Stats
 - [ ] smooth moving
-- [ ] Use Abylities if Mana is enough
+- [x] Use Abylities if Mana is enough
+- [ ] Show Events like Abilitys or Item Activ/Passiv
 - [ ] Activate Item Passiv
 - [ ] Get Synergies
 - [ ] ADD all Champs
