@@ -1,71 +1,65 @@
-import pygame
 import random
+
+import pygame
 
 from helper.pathfinding_helper import PriorityQueue
 from helper.dummy_vision_event import DummyEvent
-
-dmg_color = {
-    "physical": (255, 140, 0),
-    "magic": (226, 121, 252),
-    "true_damage": (255, 255, 255)
-}
+from helper.damage_visualization import DummyDamage
 
 
-
-
-class DummyDamage:
-    def __init__(self, amount, stat_pos, kind: str):
-        self.color = dmg_color[kind]
-        self.amount = amount
-        self.create = pygame.time.get_ticks()
-        self.start_pos = stat_pos
-        self.font = pygame.font.SysFont("Comic Sans Ms", int(amount/10 * 5 + 20))
-        self.duration = int(self.amount / 10 * 1000)
-
-    def render(self, surface):
-        state = pygame.time.get_ticks() - self.create
-        text = self.font.render(str(self.amount), False, self.color)
-        surface.blit(text, (self.start_pos[0],
-                            int(self.start_pos[1] - (state / self.duration * 50))))
-
-    @property
-    def is_active(self):
-        state = pygame.time.get_ticks() - self.create
-        if state >= self.duration:
-            return False
-        else:
-            return True
-
-
-# @todo: get real mechanics from tft
-# @todo: merge DummyChamp with real Champ
-# @body: create 10 champs for testing purpose with real stats from lol
 class DummyChamp:
-    def __init__(self, init_pos, name):
-        self.range = random.choices([1, 2, 3, 4], weights=[0.4, 0.3, 0.2, 0.1])[0]
-        self.name = name
-        self.alive = True
-        self.max_health = 100 - (self.range * 5)
-        self.health = self.max_health
-        self.ad = 8 - (self.range/2)
+    def __init__(self, init_pos, champ_item, rank):
+        self.rank = rank
 
+        self.base_stats = champ_item[1]
+        # base stats
+        self.range = self.base_stats["range"]
+        self.name = champ_item[0]
+        self.base_health = self.base_stats["health"][rank - 1]
+        self.ad = self.base_stats["ad"][rank - 1]
+        self.aa_cc = int(1 / self.base_stats["attack_speed"] * 1000)
+        self.max_mana = self.base_stats["mana"]
+        self.mana = self.base_stats["starting_mana"]
+        self.armor = self.base_stats["armor"]
+        self.mr = self.base_stats["mr"]
+        self.crit_chance = self.base_stats["crit_chance"]
+        self.base_crit_bonus = 0.5
+
+        # positions
         self.pos = init_pos
-        # self.next_pos = None
         self.move_progress = 0
         self.start_pos = None
         self.target_pos = None
 
-        self.aa_last = pygame.time.get_ticks()
-        self.aa_cc = 800 + (self.range * 50)
-        self.max_mana = 100
-        self.mana = 60 - (self.range * 10)
-        self.mana_on_aa = 7 + self.range
-        self.armor = 20 - (self.range * 3)
-        self.mr = 20
-        self.crit_chance = 0.25
-        self.crit_multiplier = 1.5
-
+        self.alive = True
+        self.current_health = self.max_health
+        self.aa_last = 0  # pygame.time.get_ticks()
         self.damage_events = []
+        self.status_effects = []
+
+    @property
+    def max_health(self):
+        return self.base_health  # + items, ...
+
+    @property
+    def ability_power_multiplier(self):
+        # (ap from items + ninja bonus + sorcerer bonus) * (1 + (#of_rabadons * 0.5))
+        raise NotImplementedError()
+
+    @property
+    def mana_on_aa(self):
+        # sorcerer and elementalist gain 2x -> cap 20
+        if self.rank <= 1:  # how to handle 0-Star units that got downgraded?
+            return 6 + random.randint(1, 4)
+        else:
+            return 10
+
+    def downgrade_rank(self):
+        raise NotImplementedError()  # first add 0-Star Stats to base_stats
+        if self.rank > 0:
+            self.rank -= 1
+            self.max_health = self.base_stats["health"][self.rank]
+            self.ad = self.base_stats["ad"][self.rank]
 
     def get_enemies_in_range(self, fight):
         current_cell = fight.map.get_cell_from_id(self.pos)
@@ -84,6 +78,10 @@ class DummyChamp:
                 if enemy.pos == n_cell.id:
                     enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
 
+    @property
+    def crit_multiplier(self):
+        return 1 + self.base_crit_bonus  # + additional bonus with items, ...
+
     def aa_damage(self, crit=False):
         if crit or random.random() <= self.crit_chance:
             return self.ad * self.crit_multiplier
@@ -92,20 +90,20 @@ class DummyChamp:
 
     def get_physical_damage(self, incoming_damage, map_):
         real_damage = incoming_damage * (1 - (self.armor / 100))
-        self.health -= real_damage
+        self.current_health -= real_damage
         self.damage_events.append(DummyDamage(real_damage, self.position(map_), "physical"))
         self.mana += self.mana_on_aa
         self.check_alive(map_)
 
     def get_magic_damage(self, incoming_damage, map_):
         real_damage = incoming_damage * (1 - (self.mr / 100))
-        self.health -= real_damage
+        self.current_health -= real_damage
         self.damage_events.append(DummyDamage(real_damage, self.position(map_), "magic"))
         self.mana += self.mana_on_aa
         self.check_alive(map_)
 
     def check_alive(self, map_):
-        if self.health <= 0:
+        if self.current_health <= 0:
             self.kill(map_)
 
     def kill(self, map_):
@@ -140,7 +138,7 @@ class DummyChamp:
         # health background bar
         pygame.draw.rect(surface, (0, 0, 0), (hb_x, hb_y, hb_width, hb_height))
         # health progress bar
-        pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.health / self.max_health), hb_height))
+        pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.current_health / self.max_health), hb_height))
 
         # ----- mana bar -----
         mb_width = 60
@@ -153,7 +151,7 @@ class DummyChamp:
         pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / self.max_mana), mb_height))
 
         # ----- name ------
-        text = font.render(self.name, False, (0, 0, 0))
+        text = font.render(f"{self.name} [{self.rank}]", False, (0, 0, 0))
         surface.blit(text, (player_pos[0] - 30, player_pos[1] - 20))
 
         # ----- damage -----

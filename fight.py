@@ -34,7 +34,7 @@ class Fight:
 
                 enemies_in_range = champ.get_enemies_in_range(self)
 
-                if champ.mana >= 100 and champ.target_pos is None:
+                if champ.mana >= champ.max_mana and champ.target_pos is None:
                     champ.special_ability(self)
                     champ.mana = 0
                 elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0 and champ.target_pos is None:

@@ -20,23 +20,24 @@
 - [x] Defensive Stats
 - [x] Add ranges >1
 - [x] smooth moving
-- [x] Use Abylities if Mana is enough
+- [x] Use Abilities if Mana is enough
 - [x] Show damage numbers
-- [x] Show Abilitys
-- [ ] Merge DummyChamp with real one and get perfect game mechanic
-- [ ] ADD 10 sample champs with real stats
+- [x] Show Abilities
+- [x] ADD 10 sample champs with real stats
+- [ ] Improve Damage Reduction (Mr and Armor)
 - [ ] Add abilities for 10 sample champs
 > Perfect Champ mechanic's til this
 - [ ] ADD all Champs (Stats)
 - [ ] ADD all Abilities to Champs
+- [ ] ADD Status Effect to Champs
 ***
 - [ ] Add 10 Test Items and give them champs
 - [ ] Add Passive to Item
-- [ ] Activate Item Passiv
-- [ ] Show Items (activ/passiv)
+- [ ] Activate Item Passive
+- [ ] Show Items (active/passive)
 > Items should work perfectly til here
 - [ ] ADD all Items (Stats)
-- [ ] ADD Passiv for all Items
+- [ ] ADD Passive for all Items
 ***
 - [ ] Get Sample Synergies
 > Synergies should work properly
@@ -47,17 +48,17 @@
 - [ ] **finally** remove pygame for HPC
 
 ### Game Mechanics (Gym)
-- [ ] Reroll Probabilties (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
+- [ ] Reroll Probabilities (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
 - [ ] *Karusel Probabilities*
 - [ ] Drops (Items, Gold, Champs)
-- [ ] *Wich Players get matched?*
-- [ ] How much dmg does the winner on the opponent?
+- [ ] *Which Players get matched?*
+- [ ] How much dmg does the winner on the opponent? [Link](https://lolchess.gg/guide/damage)
 > same from in game actions
 - [ ] Reroll
 - [ ] Level Up
 - [ ] Buy Champ
 - [ ] Sell Champ
-- [ ] *Select best Champ from Karusel (with Item)*
+- [ ] *Select best Champ from Karussell (with Item)*
 - [ ] Place Champs (Bank and Board)
 - [ ] Ready for Fight
 > same from game info
@@ -65,14 +66,14 @@
 - [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
 - [ ] Karusel Champs with Items
 - [ ] Items in Bank
-- [ ] *Random View on enemys (Champs) each Round + Gold Pots, Level*
+- [ ] *Random View on enemies (Champs) each Round + Gold Pots, Level*
 - [ ] Gold
 - [ ] EXP
 - [ ] Level (Max Champs)
 - [ ] Health Bars from all Players
 - [ ] Round counter
 - [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
-- [ ] Win/ Loose Streek Counter
+- [ ] Win/ Loose Streak Counter
 Do I need to include Champ Stats, Synergies ... ?
 
 ### Game Info
@@ -80,14 +81,14 @@ Do I need to include Champ Stats, Synergies ... ?
 - [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
 - [ ] Karusel Champs with Items
 - [ ] Items in Bank
-- [ ] *Random View on enemys (Champs) each Round + Gold Pots, Level*
+- [ ] *Random View on enemies (Champs) each Round + Gold Pots, Level*
 - [ ] Gold
 - [ ] EXP
 - [ ] Level (Max Champs)
 - [ ] Health Bars from all Players
 - [ ] Round counter
 - [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
-- [ ] Win/ Loose Streek Counter
+- [ ] Win/ Loose Streak Counter
 Do I need to include Champ Stats, Synergies ... ?
 
 ### Actions in Game
