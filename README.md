@@ -39,7 +39,7 @@ Do I need to include Champ Stats, Synergies ... ?
 - [x] Autoattack if in Range
 - [x] Defensive Stats
 - [x] Add ranges >1
-- [ ] smooth moving
+- [x] smooth moving
 - [x] Use Abylities if Mana is enough
 - [x] Show damage numbers
 - [x] Show Abilitys

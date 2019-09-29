@@ -11,6 +11,8 @@ dmg_color = {
 }
 
 
+
+
 class DummyDamage:
     def __init__(self, amount, stat_pos, kind: str):
         self.color = dmg_color[kind]
@@ -46,10 +48,13 @@ class DummyChamp:
         self.max_health = 100 - (self.range * 5)
         self.health = self.max_health
         self.ad = 8 - (self.range/2)
+
         self.pos = init_pos
-        self.next_pos = None
+        # self.next_pos = None
         self.move_progress = 0
+        self.start_pos = None
         self.target_pos = None
+
         self.aa_last = pygame.time.get_ticks()
         self.aa_cc = 800 + (self.range * 50)
         self.max_mana = 100
@@ -108,8 +113,10 @@ class DummyChamp:
         self.alive = False
         if self.pos is not None:
             map_.get_cell_from_id(self.pos).taken = False
-        if self.next_pos is not None:
-            map_.get_cell_from_id(self.next_pos).taken = False
+        # if self.next_pos is not None:
+        #     map_.get_cell_from_id(self.next_pos).taken = False
+        if self.target_pos is not None:
+            map_.get_cell_from_id(self.target_pos).taken = False
 
     def draw(self, surface, map_, team):
         font = pygame.font.SysFont("Comic Sans Ms", 20)
@@ -158,8 +165,8 @@ class DummyChamp:
 
     def position(self, map_):
         current_cell = map_.get_cell_from_id(self.pos)
-        if self.next_pos:
-            next_cell = map_.get_cell_from_id(self.next_pos)
+        if self.target_pos:
+            next_cell = map_.get_cell_from_id(self.target_pos)
             return int(current_cell.center[0] + ((next_cell.center[0] - current_cell.center[0]) * self.move_progress)), int(current_cell.center[1] + ((next_cell.center[1] - current_cell.center[1]) * self.move_progress))
         return int(current_cell.center[0]), int(current_cell.center[1])
 

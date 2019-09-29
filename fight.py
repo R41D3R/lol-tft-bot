@@ -34,16 +34,16 @@ class Fight:
 
                 enemies_in_range = champ.get_enemies_in_range(self)
 
-                if champ.mana >= 100:
+                if champ.mana >= 100 and champ.target_pos is None:
                     champ.special_ability(self)
                     champ.mana = 0
-                elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0:
+                elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0 and champ.target_pos is None:
                     print(f"{champ.name} attacks")
                     target_enemy = random.choice(enemies_in_range)
                     champ.aa_last = now
                     target_enemy.get_physical_damage(champ.aa_damage(), self.map)
                     champ.mana += champ.mana_on_aa
-                elif len(enemies_in_range) > 0:
+                elif len(enemies_in_range) > 0 and champ.target_pos is None:
                     print(f"{champ.name} waits for next aa")
                     pass
                 else:
@@ -52,17 +52,30 @@ class Fight:
                         print(f"{champ.name} can not find a next_pos")
                         pass
                     else:
-                        print(f"{champ.name} moves")
-                        if new_next_pos != champ.next_pos:
-                            champ.next_pos = new_next_pos.id
-                        champ.move_progress += 0.03
-                        print(champ.move_progress)
-                        if champ.move_progress >= 0.5:
+                        print(new_next_pos, "next pos")
+                        if champ.target_pos is None:
+                            champ.start_pos = champ.pos
+                            champ.target_pos = new_next_pos.id
+                            self.map.get_cell_from_id(champ.target_pos).taken = True
+                        champ.move_progress += 0.05
+                        if champ.move_progress >= 1:
                             champ.move_progress = 0
-                            self.map.get_cell_from_id(champ.next_pos).taken = True
                             self.map.get_cell_from_id(champ.pos).taken = False
-                            champ.pos = champ.next_pos
-                            champ.next_pos = None
+                            champ.pos = champ.target_pos
+                            champ.start_pos = None
+                            champ.target_pos = None
+
+                        # print(f"{champ.name} moves")
+                        # if new_next_pos != champ.next_pos:
+                        #     champ.next_pos = new_next_pos.id
+                        # champ.move_progress += 0.03
+                        # print(champ.move_progress)
+                        # if champ.move_progress >= 0.5:
+                        #     champ.move_progress = 0
+                        #     self.map.get_cell_from_id(champ.next_pos).taken = True
+                        #     self.map.get_cell_from_id(champ.pos).taken = False
+                        #     champ.pos = champ.next_pos
+                        #     champ.next_pos = None
 
     @property
     def game_over(self):
