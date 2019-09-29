@@ -5,6 +5,7 @@ import pygame
 
 from board.map import Map
 from helper.dummy import DummyChamp
+from config import logger
 
 
 class Fight:
@@ -24,10 +25,8 @@ class Fight:
         random.shuffle(champs)
         for champ in champs:
             if champ.alive:
-                print(f"{champ.name} turn")
+                logger.debug(f"{champ.name} turn")
 
-                #       use ability if enemy_target in range
-                #       autoattack if enemy_target in range
                 enemy_team = [enemy for enemy in self.champs_enemy_team(champ) if enemy.alive]
                 if len(enemy_team) == 0:
                     break
@@ -38,44 +37,32 @@ class Fight:
                     champ.special_ability(self)
                     champ.mana = 0
                 elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0 and champ.target_pos is None:
-                    print(f"{champ.name} attacks")
+                    logger.debug(f"{champ.name} attacks")
                     target_enemy = random.choice(enemies_in_range)
                     champ.aa_last = now
                     target_enemy.get_physical_damage(champ.aa_damage(), self.map)
                     champ.mana += champ.mana_on_aa
                 elif len(enemies_in_range) > 0 and champ.target_pos is None:
-                    print(f"{champ.name} waits for next aa")
+                    logger.debug(f"{champ.name} waits for next aa")
                     pass
                 else:
                     new_next_pos = champ.get_move_to_closest_enemy(enemy_team, self.map)
                     if new_next_pos is None:
-                        print(f"{champ.name} can not find a next_pos")
+                        logger.debug(f"{champ.name} can not find a next_pos")
                         pass
                     else:
-                        print(new_next_pos, "next pos")
                         if champ.target_pos is None:
                             champ.start_pos = champ.pos
                             champ.target_pos = new_next_pos.id
                             self.map.get_cell_from_id(champ.target_pos).taken = True
                         champ.move_progress += 0.05
+                        logger.debug(f"{champ.name} moves")
                         if champ.move_progress >= 1:
                             champ.move_progress = 0
                             self.map.get_cell_from_id(champ.pos).taken = False
                             champ.pos = champ.target_pos
                             champ.start_pos = None
                             champ.target_pos = None
-
-                        # print(f"{champ.name} moves")
-                        # if new_next_pos != champ.next_pos:
-                        #     champ.next_pos = new_next_pos.id
-                        # champ.move_progress += 0.03
-                        # print(champ.move_progress)
-                        # if champ.move_progress >= 0.5:
-                        #     champ.move_progress = 0
-                        #     self.map.get_cell_from_id(champ.next_pos).taken = True
-                        #     self.map.get_cell_from_id(champ.pos).taken = False
-                        #     champ.pos = champ.next_pos
-                        #     champ.next_pos = None
 
     @property
     def game_over(self):
@@ -91,12 +78,23 @@ class Fight:
         team_top, team_bot = self.result
         if len(team_top) > len(team_bot):
             show = f"Team TOP won with: {len(team_top)} champs alive"
+
         else:
             show = f"Team BOT won with: {len(team_bot)} champs alive"
 
-        font = pygame.font.SysFont("Comic Sans Ms", 60)
+        font = pygame.font.SysFont("Comic Sans Ms", 40)
         text = font.render(show, False, (255, 0, 0))
         surface.blit(text, (0, 0))
+
+        team_font = pygame.font.SysFont("Comic Sans Ms", 30)
+        team = f"Champions alive:"
+        team_text = team_font.render(team, False, (0, 0, 0))
+        surface.blit(team_text, (0, 100))
+
+        for i, champ in enumerate(team_top + team_bot):
+            champ = f"{champ.name} [Rank {champ.rank}] with {int(champ.current_health)}/{int(champ.max_health)}"
+            champ_text = team_font.render(champ, False, (0, 0, 0))
+            surface.blit(champ_text, (0, 100 + ((i+1) * 25)))
 
     def get_champ_from_cell(self, cell):
         for champ in self.team_top + self.team_bot:
@@ -150,18 +148,18 @@ class Fight:
 
     def place_champs(self):
         # set positions for bot team
-        print("Team BOT:")
+        logger.info("Team BOT:")
         for champ in self.team_bot:
-            print(f"{champ.name} spawned on {champ.pos} with range {champ.range}")
+            logger.info(f"{champ.name} spawned on {champ.pos} with rank {champ.rank}")
             if (champ.pos[1] % 2) == 0:
                 champ.pos = (champ.pos[0] * 2 + 1, champ.pos[1] + 3)
             else:
                 champ.pos = (champ.pos[0] * 2, champ.pos[1] + 3)
 
         # set positions for top team
-        print("Team TOP:")
+        logger.info("Team TOP:")
         for champ in self.team_top:
-            print(f"{champ.name} spawned on {champ.pos} with range {champ.range}")
+            logger.info(f"{champ.name} spawned on {champ.pos} with rank {champ.rank}")
             cols = self.map.n_cols
             rows = int(self.map.n_rows / 2)
             if (champ.pos[1] % 2) == 0:
