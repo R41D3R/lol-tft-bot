@@ -2,36 +2,16 @@
 
 ## Content
 1. [Plan](#plan)
-    * [fight simulaiton](#fight-simulation)
-    * [Game Info](#game-info)
+    *  :on: [Fight Simulaiton](#fight-simulation)
+    *  :soon: [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
+    *  :soon: [Game Info](#game-info)
+    *  :soon: [Actions](#actions-in-game)
 2. [Resourcen](#resourcen)
 3. [Github Repos](#github-repos)
 
+> [Emoji List](https://www.webfx.com/tools/emoji-cheat-sheet/)
+
 # Plan
-### Actions
-- [ ] Reroll
-- [ ] Level Up
-- [ ] Buy Champ
-- [ ] Sell Champ
-- [ ] *Select best Champ from Karusel (with Item)*
-- [ ] Place Champs (Bank and Board)
-- [ ] Ready for Fight
-
-**Game Info**
-- [ ] Champs to buy
-- [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
-- [ ] Karusel Champs with Items
-- [ ] Items in Bank
-- [ ] *Random View on enemys (Champs) each Round + Gold Pots, Level*
-- [ ] Gold
-- [ ] EXP
-- [ ] Level (Max Champs)
-- [ ] Health Bars from all Players
-- [ ] Round counter
-- [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
-- [ ] Win/ Loose Streek Counter
-Do I need to include Champ Stats, Synergies ... ?
-
 ### Fight Simulation
 - [x] Board with Cells (+ Neighbors)
 - [x] Place Champs on Board 
@@ -64,14 +44,60 @@ Do I need to include Champ Stats, Synergies ... ?
 ***
 - [ ] Update Database with Patchnotes
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)
-- [ ] **finally** remove pygame and for HPC
+- [ ] **finally** remove pygame for HPC
 
-**Game Mechanics (Gym)**
+### Game Mechanics (Gym)
 - [ ] Reroll Probabilties (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
 - [ ] *Karusel Probabilities*
 - [ ] Drops (Items, Gold, Champs)
 - [ ] *Wich Players get matched?*
 - [ ] How much dmg does the winner on the opponent?
+> same from in game actions
+- [ ] Reroll
+- [ ] Level Up
+- [ ] Buy Champ
+- [ ] Sell Champ
+- [ ] *Select best Champ from Karusel (with Item)*
+- [ ] Place Champs (Bank and Board)
+- [ ] Ready for Fight
+> same from game info
+- [ ] Champs to buy
+- [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
+- [ ] Karusel Champs with Items
+- [ ] Items in Bank
+- [ ] *Random View on enemys (Champs) each Round + Gold Pots, Level*
+- [ ] Gold
+- [ ] EXP
+- [ ] Level (Max Champs)
+- [ ] Health Bars from all Players
+- [ ] Round counter
+- [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
+- [ ] Win/ Loose Streek Counter
+Do I need to include Champ Stats, Synergies ... ?
+
+### Game Info
+- [ ] Champs to buy
+- [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
+- [ ] Karusel Champs with Items
+- [ ] Items in Bank
+- [ ] *Random View on enemys (Champs) each Round + Gold Pots, Level*
+- [ ] Gold
+- [ ] EXP
+- [ ] Level (Max Champs)
+- [ ] Health Bars from all Players
+- [ ] Round counter
+- [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
+- [ ] Win/ Loose Streek Counter
+Do I need to include Champ Stats, Synergies ... ?
+
+### Actions in Game
+- [ ] Reroll
+- [ ] Level Up
+- [ ] Buy Champ
+- [ ] Sell Champ
+- [ ] *Select best Champ from Karusel (with Item)*
+- [ ] Place Champs (Bank and Board)
+- [ ] Ready for Fight
 
 
 ### Resourcen
@@ -80,7 +106,7 @@ Do I need to include Champ Stats, Synergies ... ?
 * [Champion Stats](https://rankedboost.com/league-of-legends/teamfight-tactics/akali/)
 * [Patchnotes](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:V9.18)
 
-
+> old
 * [lolchess.gg - champs, items, meta, synergies](https://lolchess.gg/champions/blitzcrank) -> nicht aktuell
 * [drop rates and other useful guides](https://www.rockpapershotgun.com/2019/08/02/teamfight-tactics-champions-hextech-new-tft-champions/#hextech)
 
