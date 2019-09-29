@@ -20,8 +20,8 @@ class DummyChamp:
         self.aa_cc = int(1 / self.base_stats["attack_speed"] * 1000)
         self.max_mana = self.base_stats["mana"]
         self.mana = self.base_stats["starting_mana"]
-        self.armor = self.base_stats["armor"]
-        self.mr = self.base_stats["mr"]
+        self.base_armor = self.base_stats["armor"]
+        self.base_mr = self.base_stats["mr"]
         self.crit_chance = self.base_stats["crit_chance"]
         self.base_crit_bonus = 0.5
 
@@ -40,6 +40,14 @@ class DummyChamp:
     @property
     def max_health(self):
         return self.base_health  # + items, ...
+
+    @property
+    def armor(self):
+        return self.base_armor  # + items,
+
+    @property
+    def mr(self):
+        return self.base_mr  # + items,
 
     @property
     def ability_power_multiplier(self):
@@ -89,14 +97,14 @@ class DummyChamp:
             return self.ad
 
     def get_physical_damage(self, incoming_damage, map_):
-        real_damage = incoming_damage * (1 - (self.armor / 100))
+        real_damage = incoming_damage * (100 / (self.armor + 100))
         self.current_health -= real_damage
         self.damage_events.append(DummyDamage(real_damage, self.position(map_), "physical"))
         self.mana += self.mana_on_aa
         self.check_alive(map_)
 
     def get_magic_damage(self, incoming_damage, map_):
-        real_damage = incoming_damage * (1 - (self.mr / 100))
+        real_damage = incoming_damage * (100 / (self.mr + 100))
         self.current_health -= real_damage
         self.damage_events.append(DummyDamage(real_damage, self.position(map_), "magic"))
         self.mana += self.mana_on_aa
