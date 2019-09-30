@@ -25,7 +25,7 @@
 - [x] Show Abilities
 - [x] ADD 10 sample champs with real stats
 - [x] Improve Damage Reduction (Mr and Armor)
-- [ ] Add abilities for 10 sample champs
+- [ ] Add abilities for 10 sample champs (3/10)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
 - [ ] ADD all Abilities to Champs
