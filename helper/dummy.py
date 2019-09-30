@@ -8,7 +8,11 @@ from helper.damage_visualization import DummyDamage
 
 
 class DummyChamp:
-    def __init__(self, init_pos, champ_item, rank):
+    def __init__(self, init_pos, champ_item, rank, items=None):
+        if items is None:
+            self.items = []
+        else:
+            self.items = items
         self.rank = rank
 
         self.base_stats = champ_item[1]
@@ -16,14 +20,15 @@ class DummyChamp:
         self.range = self.base_stats["range"]
         self.name = champ_item[0]
         self.base_health = self.base_stats["health"][rank - 1]
-        self.ad = self.base_stats["ad"][rank - 1]
-        self.aa_cc = int(1 / self.base_stats["attack_speed"] * 1000)
+        self.base_ad = self.base_stats["ad"][rank - 1]
+        self.base_aa_cc = self.base_stats["attack_speed"]
         self.max_mana = self.base_stats["mana"]
-        self.mana = self.base_stats["starting_mana"]
+        self.mana = self.base_stats["starting_mana"] + (20 * len([item for item in self.items if "mana" in item.attribute]))
         self.base_armor = self.base_stats["armor"]
         self.base_mr = self.base_stats["mr"]
-        self.crit_chance = self.base_stats["crit_chance"]
+        self.base_crit_chance = 0.25
         self.base_crit_bonus = 0.5
+        self.base_dodge_chance = 0
 
         # positions
         self.pos = init_pos
@@ -38,21 +43,40 @@ class DummyChamp:
         self.status_effects = []
 
     @property
+    def aa_cc(self):
+        return int(1 / (self.base_aa_cc + (0.2 * self.item_sum_from("attack_speed"))) * 1000)
+
+    @property
+    def ad(self):
+        return self.base_ad + (15 * self.item_sum_from("ad"))
+
+    @property
+    def dodge_chance(self):
+        return 0.1 * self.item_sum_from("dodge_chance")
+
+    @property
+    def crit_chance(self):
+        return self.base_crit_chance + (0.1 * self.item_sum_from("crit_chance"))
+
+    @property
     def max_health(self):
-        return self.base_health  # + items, ...
+        return self.base_health + (200 * self.item_sum_from("health"))
 
     @property
     def armor(self):
-        return self.base_armor  # + items,
+        return self.base_armor + (20 * self.item_sum_from("armor"))
 
     @property
     def mr(self):
-        return self.base_mr  # + items,
+        return self.base_mr + (20 * self.item_sum_from("mr"))
+
+    def item_sum_from(self, attribute):
+        return sum([item.get_attribute_counter(attribute) for item in self.items])
 
     @property
     def ability_power_multiplier(self):
-        # (ap from items + ninja bonus + sorcerer bonus) * (1 + (#of_rabadons * 0.5))
-        raise NotImplementedError()
+        # + ninja bonus + sorcerer bonus) * (1 + (#of_rabadons * 0.5))
+        return 1 + (0.2 * len([item for item in self.items if item.attribute == "ap"]))
 
     @property
     def mana_on_aa(self):
