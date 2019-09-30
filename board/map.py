@@ -60,6 +60,17 @@ class Map:
         return None
 
     @staticmethod
+    def distance(start, goal):
+        dx = abs(start.id[0] - goal.id[0])
+        dy = abs(start.id[1] - goal.id[1])
+        return dy + max([0, (dx - dy) / 2])
+
+        # function double_width_distance(a, b):
+        # var dx = abs(a.col - b.col)
+        # var dy = abs(a.row - b.row)
+        # return dy + max(0, (dx - dy) / 2)
+
+    @staticmethod
     def get_all_cells_in_range(self_cell, attack_range):
         cells_in_range = [self_cell]
         for _ in range(attack_range):

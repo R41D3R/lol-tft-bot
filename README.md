@@ -27,11 +27,24 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 - [ ] Add abilities for 10 sample champs
 > Perfect Champ mechanic's til this
-- [ ] ADD all Champs (Stats)
+- [x] ADD all Champs (Stats)
 - [ ] ADD all Abilities to Champs
-- [ ] ADD Status Effect to Champs
+- [x] ADD Status Effect to Champs
+    * Effect List
+    - [x] Mana-lock
+    - [x] banish
+    - [x] grievous wounds
+    - [x] disarm
+    - [x] stealth
+    - [x] shrink
+    - [x] Stun
+    - [x] Root
+    - [x] Airborne
+- [ ] Add displacement (Airborne, Knockback)
 ***
-- [ ] Add 10 Test Items and give them champs
+> dont forget to add status effect mechanics when implementing
+- [x] Add Base Items
+- [ ] Add all items (stats)
 - [ ] Add Passive to Item
 - [ ] Activate Item Passive
 - [ ] Show Items (active/passive)

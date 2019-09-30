@@ -5,6 +5,8 @@ import pygame
 from helper.pathfinding_helper import PriorityQueue
 from helper.dummy_vision_event import DummyEvent
 from helper.damage_visualization import DummyDamage
+from helper.status_effect import StatusEffect, GWounds, Channelling
+from config import logger
 
 
 class DummyChamp:
@@ -41,6 +43,35 @@ class DummyChamp:
         self.aa_last = 0  # pygame.time.get_ticks()
         self.damage_events = []
         self.status_effects = []
+        self.channelling = False
+        self.last_target = None
+
+    def autoattack(self, time, fight, enemies_in_range):
+        target = self.get_target(enemies_in_range)
+        self.aa_last = time
+        hitted = target.get_physical_damage(self.aa_damage(), fight.map)  # for on_hit items
+        if not self.has_effect("mana-lock"):
+            self.mana += self.mana_on_aa
+
+    def heal(self, amount):
+        if self.has_effect("gwound"):
+            amount *= 0.2
+        self.current_health += amount
+        if self.current_health > self.max_health:
+            self.current_health = self.max_health
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        # nearby enemies get Mega Crit
+        effected_area = fight.map.get_cell_from_id(self.pos).neighbors
+        fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
+        for n_cell in effected_area:
+            for enemy in [champ
+                          for champ in fight.champs_enemy_team(self)
+                          if champ.alive]:
+                if enemy.pos == n_cell.id:
+                    enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
+
+    # ----- Stat Properties ------
 
     @property
     def aa_cc(self):
@@ -86,30 +117,6 @@ class DummyChamp:
         else:
             return 10
 
-    def downgrade_rank(self):
-        raise NotImplementedError()  # first add 0-Star Stats to base_stats
-        if self.rank > 0:
-            self.rank -= 1
-            self.max_health = self.base_stats["health"][self.rank]
-            self.ad = self.base_stats["ad"][self.rank]
-
-    def get_enemies_in_range(self, fight):
-        current_cell = fight.map.get_cell_from_id(self.pos)
-        enemy_champs_alive = fight.enemy_champs_alive(self)
-        cell_ids_in_range = [cell.id for cell in fight.map.get_all_cells_in_range(current_cell, self.range)]
-        return [enemy for enemy in enemy_champs_alive if enemy.pos in cell_ids_in_range]
-
-    def special_ability(self, fight):
-        # nearby enemies get Mega Crit
-        effected_area = fight.map.get_cell_from_id(self.pos).neighbors
-        fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
-        for n_cell in effected_area:
-            for enemy in [champ
-                          for champ in fight.champs_enemy_team(self)
-                          if champ.alive]:
-                if enemy.pos == n_cell.id:
-                    enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
-
     @property
     def crit_multiplier(self):
         return 1 + self.base_crit_bonus  # + additional bonus with items, ...
@@ -120,26 +127,90 @@ class DummyChamp:
         else:
             return self.ad
 
+    # ----- Status Effects ------
+
+    def has_effect(self, effect):
+        for status_effect in self.status_effects:
+            if status_effect.has(effect):
+                return True
+        return False
+
+    def has_effect_with_name(self, name):
+        for status_effect in self.status_effects:
+            if status_effect.name == name:
+                return True
+        return False
+
+    def check_status_effects(self):
+        for status_effect in self.status_effects:
+            if not status_effect.is_active:
+                self.status_effects.remove(status_effect)
+
+    def mana_lock(self, map_):
+        self.status_effects.append(StatusEffect(map_, 3, "Hush", effects=["mana-lock"]))
+
+    def banish(self, map_):
+        self.status_effects.append(StatusEffect(map_, 6, "Zephyr", effects=["banish"]))
+
+    def gwounds(self, duration, map_, dot=False):
+        self.status_effects.append(GWounds(self, map_, duration, "Grievous Wounds", damage=dot))
+
+    def stealth(self, map_):
+        self.status_effects.append(StatusEffect(map_, 10**10, "Stealth", effects=["stealth"]))
+
+    def stun(self, duration, map_):
+        self.status_effects.append(StatusEffect(map_, duration, "Stun", effects=["stun"]))
+
+    def root(self, duration, map_):
+        self.status_effects.append(StatusEffect(map_, duration, "Root", effects=["root"]))
+
+    def airborne(self, duration, map_):
+        self.status_effects.append(StatusEffect(map_, duration, "Airborne", effects=["airborne"]))
+
+    def shrink(self):
+        if self.rank > 0:
+            self.rank -= 1
+            health_before = self.current_health
+            self.base_health = self.base_stats["health"][self.rank]
+            if health_before >= self.base_health:
+                self.current_health = self.max_health
+            self.base_ad = self.base_stats["ad"][self.rank]
+
+    def channeling(self, fight, duration, name, proc_interval=None):
+        self.status_effects.append(Channelling(self, fight, duration, name, proc_interval))
+
+    # ----- Get Damage and Alive -----
+
     def get_physical_damage(self, incoming_damage, map_):
-        real_damage = incoming_damage * (100 / (self.armor + 100))
-        self.current_health -= real_damage
-        self.damage_events.append(DummyDamage(real_damage, self.position(map_), "physical"))
-        self.mana += self.mana_on_aa
-        self.check_alive(map_)
+        return self.get_damage("physical", incoming_damage, map_)
+
+    def get_damage(self, type_, incoming_damage, map_):
+        types = {
+            "physical": self.armor,
+            "magic": self.mr,
+            "true": 0,
+        }
+        if random.random() >= self.dodge_chance:
+            resistance = types[type_]
+            damage_reduction = (100 / (resistance + 100))
+            real_damage = incoming_damage * damage_reduction
+            self.current_health -= real_damage
+            self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
+            self.mana += self.mana_on_aa
+            self.check_alive(map_)
+            return True
+        else:
+            return False
 
     def get_magic_damage(self, incoming_damage, map_):
-        real_damage = incoming_damage * (100 / (self.mr + 100))
-        self.current_health -= real_damage
-        self.damage_events.append(DummyDamage(real_damage, self.position(map_), "magic"))
-        self.mana += self.mana_on_aa
-        self.check_alive(map_)
+        return self.get_damage("magic", incoming_damage, map_)
 
     def check_alive(self, map_):
         if self.current_health <= 0:
             self.kill(map_)
 
     def kill(self, map_):
-        print(f"Champ died on {self.pos}")
+        logger.debug(f"Champ died on {self.pos}")
         self.alive = False
         if self.pos is not None:
             map_.get_cell_from_id(self.pos).taken = False
@@ -147,6 +218,25 @@ class DummyChamp:
         #     map_.get_cell_from_id(self.next_pos).taken = False
         if self.target_pos is not None:
             map_.get_cell_from_id(self.target_pos).taken = False
+
+    # ----- Helper -----
+
+    def get_enemies_in_range(self, fight):
+        current_cell = fight.map.get_cell_from_id(self.pos)
+        enemy_champs_visible = fight.enemy_team_visible(self)
+        cell_ids_in_range = [cell.id for cell in fight.map.get_all_cells_in_range(current_cell, self.range)]
+        return [enemy for enemy in enemy_champs_visible if enemy.pos in cell_ids_in_range]
+
+    def get_allies_around(self, fight):
+        current_cell_neighbors_ids = fight.map.get_cell_from_id(self.pos)
+        return [allie for allie in fight.champs_allie_team(self) if allie.pos in current_cell_neighbors_ids]
+
+    def get_target(self, enemies_in_range):
+        if self.last_target is None or self.last_target not in enemies_in_range:
+            self.last_target = random.choice(enemies_in_range)
+        return self.last_target
+
+    # ----- rendering -----
 
     def draw(self, surface, map_, team):
         font = pygame.font.SysFont("Comic Sans Ms", 20)
@@ -193,6 +283,8 @@ class DummyChamp:
             else:
                 self.damage_events.remove(dmg)
 
+    # ----- Positioning -----
+
     def position(self, map_):
         current_cell = map_.get_cell_from_id(self.pos)
         if self.target_pos:
@@ -204,6 +296,14 @@ class DummyChamp:
         # check if neighbor from current pos
         # move
         pass
+
+    def move_to(self, new_cell, fight):
+        fight.map.get_cell_from_id(self.pos).taken = False
+        self.start_pos = None
+        self.target_pos = None
+        self.move_progress = 0
+        self.pos = new_cell.id
+        new_cell.taken = True
 
     @staticmethod
     def reconstruct_path(came_from, start, goal):
@@ -222,7 +322,10 @@ class DummyChamp:
 
     def find_shortest_path_to_enemy(self, enemy, map_):
         start = map_.get_cell_from_id(self.pos)
-        goal_locations = map_.get_cell_from_id(enemy.pos).free_neighbors
+        if enemy.target_pos is None:
+            goal_locations = map_.get_cell_from_id(enemy.pos).free_neighbors
+        else:
+            goal_locations = map_.get_cell_from_id(enemy.target_pos).free_neighbors
         if len(goal_locations) == 0:
             return []
         best_came_from, best_cost = {}, 9999999
@@ -237,6 +340,7 @@ class DummyChamp:
 
         return self.reconstruct_path(best_came_from, start, best_goal)
 
+    # todo: Maybe replace pathfinding with best path for team
     def get_move_to_closest_enemy(self, enemy_team, map_):
         best_path = None
         for enemy in enemy_team:

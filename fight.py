@@ -24,38 +24,50 @@ class Fight:
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
         for champ in champs:
-            if champ.alive:
+            champ.check_status_effects()
+            if champ.alive and not champ.has_effect("airborne") and not champ.has_effect("stun") and not champ.has_effect("banish"):
                 logger.debug(f"{champ.name} turn")
 
-                enemy_team = [enemy for enemy in self.champs_enemy_team(champ) if enemy.alive]
-                if len(enemy_team) == 0:
+                enemies_alive = self.enemy_champs_alive(champ)
+                if len(enemies_alive) == 0:
                     break
+                enemy_team = self.enemy_team_visible(champ)
 
                 enemies_in_range = champ.get_enemies_in_range(self)
-
-                if champ.mana >= champ.max_mana and champ.target_pos is None:
-                    champ.special_ability(self)
+                if champ.has_effect("channeling"):
+                    effects = [effect for effect in champ.status_effects if effect.has("channeling")]
+                    for effect in effects:
+                        if effect.does_proc():
+                            champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive)
+                if champ.mana >= champ.max_mana:
+                    champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                     champ.mana = 0
-                elif now - champ.aa_last >= champ.aa_cc and len(enemies_in_range) > 0 and champ.target_pos is None:
-                    logger.debug(f"{champ.name} attacks")
-                    target_enemy = random.choice(enemies_in_range)
-                    champ.aa_last = now
-                    target_enemy.get_physical_damage(champ.aa_damage(), self.map)
-                    champ.mana += champ.mana_on_aa
+                elif len(enemies_in_range) > 0 and (champ.target_pos is None or champ.move_progress <= 0.33):
+                    champ.target_pos = None
+                    champ.start_pos = None
+                    champ.move_progress = 0
+                    if now - champ.aa_last >= champ.aa_cc:
+                        if not champ.has_effect("disarm"):
+                            logger.debug(f"{champ.name} attacks")
+                            champ.autoattack(now, self, enemies_in_range)
+                        else:
+                            logger.debug(f"{champ.name} is disarmed")
+                    else:
+                        logger.debug(f"{champ.name} aa is on cooldown")
                 elif len(enemies_in_range) > 0 and champ.target_pos is None:
                     logger.debug(f"{champ.name} waits for next aa")
                     pass
                 else:
                     new_next_pos = champ.get_move_to_closest_enemy(enemy_team, self.map)
-                    if new_next_pos is None:
-                        logger.debug(f"{champ.name} can not find a next_pos")
+                    if new_next_pos is None or champ.has_effect("root"):
+                        logger.debug(f"{champ.name} can not find a next_pos or is rooted")
                         pass
                     else:
                         if champ.target_pos is None:
                             champ.start_pos = champ.pos
                             champ.target_pos = new_next_pos.id
                             self.map.get_cell_from_id(champ.target_pos).taken = True
-                        champ.move_progress += 0.05
+                        champ.move_progress += 0.07
                         logger.debug(f"{champ.name} moves")
                         if champ.move_progress >= 1:
                             champ.move_progress = 0
@@ -111,8 +123,17 @@ class Fight:
         enemy_team = self.champs_enemy_team(champ)
         return [enemy for enemy in enemy_team if enemy.alive]
 
+    def enemy_team_visible(self, champ):
+        return [enemy for enemy in self.enemy_champs_alive(champ) if not enemy.has_effect("banish") and not enemy.has_effect("stealth")]
+
     def champs_enemy_team(self, champ):
         if champ in self.team_bot:
+            return self.team_top
+        else:
+            return self.team_bot
+
+    def champs_allie_team(self, champ):
+        if champ not in self.team_bot:
             return self.team_top
         else:
             return self.team_bot

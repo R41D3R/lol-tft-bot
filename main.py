@@ -3,7 +3,7 @@ import copy
 import pygame
 
 from fight import Fight
-from config import SCREEN_WIDTH, SCREEN_HEIGHT, BG_COLOR, get_team, logger
+from game_config import SCREEN_WIDTH, SCREEN_HEIGHT, BG_COLOR, get_team
 
 # @todo: replace print functions with logger
 
