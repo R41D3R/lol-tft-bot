@@ -48,9 +48,10 @@ class DummyChamp:
 
     def autoattack(self, time, fight, enemies_in_range):
         target = self.get_target(enemies_in_range)
-        self.aa_last = time
-        hitted = target.get_physical_damage(self.aa_damage(), fight.map)  # for on_hit items
-        self.get_mana("aa")
+        if target:
+            self.aa_last = time
+            hitted = target.get_physical_damage(self.aa_damage(), fight.map)  # for on_hit items
+            self.get_mana("aa")
 
     def heal(self, amount):
         if self.has_effect("gwound"):
@@ -191,7 +192,7 @@ class DummyChamp:
                 self.current_health = self.max_health
             self.base_ad = self.base_stats["ad"][self.rank]
 
-    def channeling(self, fight, duration, name, proc_interval=None, interruptable=True):
+    def channel(self, fight, duration, name, proc_interval=None, interruptable=True):
         self.status_effects.append(Channelling(self, fight, duration, name, proc_interval, interruptable))
 
     def interrupt(self):
@@ -234,6 +235,8 @@ class DummyChamp:
             "true": 0,
         }
         if random.random() >= self.dodge_chance or not self.has_effect("immune"):
+            if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
+                return False
             resistance = types[type_]
             damage_reduction = (100 / (resistance + 100))
             real_damage = incoming_damage * damage_reduction
@@ -284,6 +287,7 @@ class DummyChamp:
                 return self.last_target
             else:
                 return random.choice(priority_targets)
+        # @todo: priority for nearest enemy
         if self.last_target is None or self.last_target not in enemies_in_range:
             if len(enemies_in_range) == 0:
                 return None
@@ -292,7 +296,8 @@ class DummyChamp:
 
     # ----- rendering -----
 
-    def draw(self, surface, map_, team):
+    def draw(self, surface, fight, team):
+        map_ = fight.map
         font = pygame.font.SysFont("Comic Sans Ms", 20)
         player_pos = self.position(map_)
 
@@ -326,6 +331,26 @@ class DummyChamp:
         # mana progress bar
         pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / self.max_mana), mb_height))
 
+        # ----- channeling -----
+        cb_width = 60
+        cb_height = 3
+        cb_x = player_pos[0] - (cb_width / 2)
+        cb_y = mb_y + cb_height
+        if self.has_effect("channeling"):
+            effect = self.get_all_effects_with("channeling")[0]
+            pygame.draw.rect(surface, (0, 0, 0), (cb_x, cb_y, cb_width, cb_height))
+            pygame.draw.rect(surface, (255, 255, 255),
+                             (cb_x, cb_y, int(cb_width * (fight.now - effect.created) / effect.duration), cb_height))
+
+        # ----- status effects ------
+        effect_font = pygame.font.SysFont("Comic Sans Ms", 20)
+        effect_counter = 0
+        for status_effect in self.status_effects:
+            for effect in status_effect.effects:
+                effect_counter += 1
+                effect_text = effect_font.render(effect, False, (0, 0, 0))
+                surface.blit(effect_text, (player_pos[0] - 30, cb_y + effect_counter * 8))
+
         # ----- name ------
         text = font.render(f"{self.name} [{self.rank}]", False, (0, 0, 0))
         surface.blit(text, (player_pos[0] - 30, player_pos[1] - 20))
@@ -352,7 +377,7 @@ class DummyChamp:
         pass
 
     def stop_moving(self, fight):
-        if self.target_pos:
+        if self.target_pos and self.target_pos != self.pos:
             fight.map.get_cell_from_id(self.target_pos).taken = False
         self.start_pos = None
         self.target_pos = None
@@ -402,6 +427,7 @@ class DummyChamp:
         return self.reconstruct_path(best_came_from, start, best_goal)
 
     # todo: Maybe replace pathfinding with best path for team
+    # body: Also a option is to order champ turn after min move_distance_to_enemy, maybe predict if cell is free if you reach it, best intersection from enemy_and_my team and champ path,
     def get_move_to_closest_enemy(self, enemy_team, map_):
         best_path = None
         for enemy in enemy_team:

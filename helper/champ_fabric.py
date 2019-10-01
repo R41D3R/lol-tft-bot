@@ -40,6 +40,10 @@ class ChampionFabric:
             return Jayce(pos, champ_item, rank, items=items)
 
 
+# @todo: What should champ do if no enemy is in range for sa
+# @body: champs like kha, jayce, camille need a champ in range, currently wasting sa
+
+
 class Khazix(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
@@ -49,7 +53,7 @@ class Khazix(DummyChamp):
     def special_ability(self, fight, in_range, visible, alive, time):
         if len(in_range) > 0:
             target = random.choice(in_range)
-            effected_area = fight.map.get_cell_from_id(target.pos)
+            effected_area = [fight.map.get_cell_from_id(target.pos)]
             if len(target.get_allies_around(fight)) == 0:
                 target.get_damage("magic", self.sa_damage_alone[self.rank - 1], fight.map)
             else:
@@ -61,15 +65,20 @@ class Garen(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
         self.sa_damage = [40, 65, 90]
+        self.interval = 500
+        self.last_proc = None
 
     def special_ability(self, fight, in_range, visible, alive, time):
+        effected_area = fight.map.get_cell_from_id(self.pos).neighbors
+
         if self.has_effect_with_name("Judgement"):
+            # self.last_proc = time
             for enemy in in_range:
                 enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
-                effected_area = fight.map.get_cell_from_id(self.pos)
-                fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
-            else:
-                self.channelling(fight, 4, "Judgement", 0.5, False)
+            fight.events.append(DummyEvent(50, (36, 36, 36), effected_area))
+        else:
+            self.channel(fight, 4, "Judgement", 0.5, False)
+            self.status_effects.append(StatusEffect(fight.map, 4, "Judgement", effects=["immune_magic"]))
 
 
 class Lucian(DummyChamp):
@@ -85,6 +94,8 @@ class Lucian(DummyChamp):
             target_cell = fight.map.get_cell_from_id(target.pos)
             # find furthest spot from enemy where enemy is in self.enemies_in_range
             self_cell = fight.map.get_cell_from_id(self.pos)
+            # @todo: should be straight distance from lucian_cell
+            # @body: range is currently absolute cell_distance
             range_around_target = [cell for cell in fight.map.get_all_cells_in_range(target_cell, self.range) if not cell.taken]
             ranges = [(fight.map.distance(self_cell, goal), goal) for goal in range_around_target if fight.map.distance(self_cell, goal) <= 2]
             best_jump = None
@@ -108,7 +119,7 @@ class Fiora(DummyChamp):
         channel_duration = 1.5
         if self.sa_used is None:
             self.immune(1.5, fight)
-            self.channeling(fight, 1.5, "Riposte")
+            self.channel(fight, 1.5, "Riposte")
             self.sa_used = time
         elif time - self.sa_used >= channel_duration * 1000:
             target = self.get_target(in_range)
@@ -116,6 +127,8 @@ class Fiora(DummyChamp):
                 target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
                 stun = StatusEffect(fight.map, 1.5, "Stun", effects=["stun"])
                 target.get_spell_effect(stun, fight)
+                fight.events.append(DummyEvent(1000, (36, 36, 36), [fight.map.get_cell_from_id(target.pos)]))
+
             self.sa_used = None
         else:
             pass
@@ -143,14 +156,17 @@ class Camille(DummyChamp):
         # big damage on enemy
         # roots enemy + status_effect(allies prioritize target)
         target = self.get_target(in_range)
-        status_effect = StatusEffect(fight.map, self.sa_duration[self.rank - 1], "The Hextech Ultimatum", effects=["root", "priority"])
-        target.get_spell_effect(status_effect, fight)
+        if target:
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+            fight.events.append(DummyEvent(1000, (36, 36, 36), fight.map.get_cell_from_id(target.pos)))
+            status_effect = StatusEffect(fight.map, self.sa_duration[self.rank - 1], "The Hextech Ultimatum", effects=["root", "priority"])
+            target.get_spell_effect(status_effect, fight)
 
 
 class Jayce(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
-        self.sa_duration = [2.5, 4.25, 6]
+        self.sa_stun_duration = [2.5, 4.25, 6]
         self.sa_damage = [200, 350, 500]
         self.as_hit_duration = [3, 5, 7]
         self.as_increase = [1, 3, 5]
@@ -162,7 +178,8 @@ class Jayce(DummyChamp):
         target = self.get_target(in_range)
         if target:
             target.get_damage("magic", self.sa_damage[self.rank_on_use - 1], fight.map, origin="spell", originator=self)
-            target.get_spell_effect(StatusEffect(fight.map, self.sa_duration[self.rank_on_use - 1], "Mercury Cannon", effects=["stun"]), fight)
+            fight.events.append(DummyEvent(self.sa_stun_duration[self.rank_on_use - 1] * 1000, (36, 36, 36), fight.map.get_cell_from_id(target.pos)))
+            target.get_spell_effect(StatusEffect(fight.map, self.sa_stun_duration[self.rank_on_use - 1], "Mercury Cannon", effects=["stun"]), fight)
 
         # buffs
         buff_duration = 60
@@ -175,7 +192,7 @@ class Jayce(DummyChamp):
 
     def autoattack(self, time, fight, enemies_in_range):
         super().autoattack(time, fight, enemies_in_range)
-        if self.aa_counter_after_sa >= self.as_increase[self.rank_on_use - 1]:
+        if self.aa_counter_after_sa >= self.as_hit_duration[self.rank_on_use - 1]:
             effects = self.get_all_effects_with("jayce_as_boost")
             for effect in effects:
                 self.status_effects.remove(effect)

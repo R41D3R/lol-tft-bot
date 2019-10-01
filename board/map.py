@@ -83,7 +83,7 @@ class Map:
     def draw(self, surface):
         for row in self.cell_map:
             for cell in row:
-                cell.draw(surface, (0, 200, 0))
+                cell.draw(surface, (74, 181, 29))
 
         for _ in self.cell_map:
             for c in _:

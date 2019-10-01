@@ -54,6 +54,7 @@ class Channelling(StatusEffect):
 
     def does_proc(self, time):
         if self.last_proc is None or time - self.last_proc >= self.proc_interval:
+            self.last_proc = time
             return True
         else:
             return False

@@ -57,9 +57,9 @@ while running:
             elif event.key == K_SPACE:  # pause and resume the game
                 pause = not pause
             elif event.key == K_r:  # reset fight
-                bot_new_copy = copy.deepcopy(bottom_team)
-                top_new_copy = copy.deepcopy(top_team)
-                fight = Fight(team_bot=bot_new_copy, team_top=top_new_copy)
+                bot_t_copy = copy.deepcopy(bottom_team)
+                top_t_copy = copy.deepcopy(top_team)
+                fight = Fight(team_bot=bot_t_copy, team_top=top_t_copy)
                 fight.place_champs()
             elif event.key == K_n:  # create new fight
                 bottom_team = champ_fabric.get_team()
