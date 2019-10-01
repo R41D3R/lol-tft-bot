@@ -15,6 +15,7 @@ class Fight:
         self.team_top = team_top
         self.path = None
         self.events = []
+        self.aoe = []
 
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_top)
@@ -24,7 +25,7 @@ class Fight:
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
         for champ in champs:
-            champ.check_status_effects()
+            champ.check_status_effects(now)
             if champ.alive and not champ.has_effect("airborne") and not champ.has_effect("stun") and not champ.has_effect("banish"):
                 logger.debug(f"{champ.name} turn")
 
@@ -35,17 +36,17 @@ class Fight:
 
                 enemies_in_range = champ.get_enemies_in_range(self)
                 if champ.has_effect("channeling"):
+                    champ.stop_moving(self)
                     effects = [effect for effect in champ.status_effects if effect.has("channeling")]
                     for effect in effects:
-                        if effect.does_proc():
-                            champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive)
-                if champ.mana >= champ.max_mana:
+                        if effect.does_proc(now):
+                            champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
+                elif champ.mana >= champ.max_mana:
                     champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                     champ.mana = 0
-                elif len(enemies_in_range) > 0 and (champ.target_pos is None or champ.move_progress <= 0.33):
-                    champ.target_pos = None
-                    champ.start_pos = None
-                    champ.move_progress = 0
+                    champ.stop_moving(self)
+                elif len(enemies_in_range) > 0 and (champ.target_pos is None or champ.move_progress <= 0.49):
+                    champ.stop_moving(self)
                     if now - champ.aa_last >= champ.aa_cc:
                         if not champ.has_effect("disarm"):
                             logger.debug(f"{champ.name} attacks")
@@ -55,6 +56,7 @@ class Fight:
                     else:
                         logger.debug(f"{champ.name} aa is on cooldown")
                 elif len(enemies_in_range) > 0 and champ.target_pos is None:
+                    champ.stop_moving(self)
                     logger.debug(f"{champ.name} waits for next aa")
                     pass
                 else:
@@ -67,7 +69,7 @@ class Fight:
                             champ.start_pos = champ.pos
                             champ.target_pos = new_next_pos.id
                             self.map.get_cell_from_id(champ.target_pos).taken = True
-                        champ.move_progress += 0.07
+                        champ.move_progress += 0.05
                         logger.debug(f"{champ.name} moves")
                         if champ.move_progress >= 1:
                             champ.move_progress = 0
@@ -114,6 +116,14 @@ class Fight:
                 return champ
         else:
             return None
+
+    def champs_in_area(self, area, champs):
+        champs_in_area = []
+        area_ids = [cell.id for cell in area]
+        for champ in champs:
+            if champ.id in area_ids:
+                champs_in_area.append(champ)
+        return champs_in_area
 
     @property
     def champions_alive(self):

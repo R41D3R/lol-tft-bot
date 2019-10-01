@@ -19,7 +19,7 @@ class DummyChamp:
 
         self.base_stats = champ_item[1]
         # base stats
-        self.range = self.base_stats["range"]
+        self.base_range = self.base_stats["range"]
         self.name = champ_item[0]
         self.base_health = self.base_stats["health"][rank - 1]
         self.base_ad = self.base_stats["ad"][rank - 1]
@@ -50,8 +50,7 @@ class DummyChamp:
         target = self.get_target(enemies_in_range)
         self.aa_last = time
         hitted = target.get_physical_damage(self.aa_damage(), fight.map)  # for on_hit items
-        if not self.has_effect("mana-lock"):
-            self.mana += self.mana_on_aa
+        self.get_mana("aa")
 
     def heal(self, amount):
         if self.has_effect("gwound"):
@@ -72,6 +71,10 @@ class DummyChamp:
                     enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
 
     # ----- Stat Properties ------
+
+    @property
+    def range(self):
+        return self.base_range + len(self.get_all_effects_with("range_buff_+1"))
 
     @property
     def aa_cc(self):
@@ -128,6 +131,13 @@ class DummyChamp:
             return self.ad
 
     # ----- Status Effects ------
+    def get_spell_effect(self, status_effect, fight):
+        if not self.has_effect("immune"):
+            self.status_effects.append(status_effect)
+        else:
+            if status_effect.has("stun"):
+                self.stun(status_effect.duration, fight.map)
+            # immune visualization
 
     def has_effect(self, effect):
         for status_effect in self.status_effects:
@@ -141,13 +151,16 @@ class DummyChamp:
                 return True
         return False
 
-    def check_status_effects(self):
+    def check_status_effects(self, time):
         for status_effect in self.status_effects:
-            if not status_effect.is_active:
+            if not status_effect.is_active(time):
                 self.status_effects.remove(status_effect)
 
-    def mana_lock(self, map_):
-        self.status_effects.append(StatusEffect(map_, 3, "Hush", effects=["mana-lock"]))
+    def get_all_effects_with(self, attribute):
+        return [effect for effect in self.status_effects if effect.has(attribute)]
+
+    def mana_lock(self, map_, duration):
+        self.status_effects.append(StatusEffect(map_, duration, "Mana-loc", effects=["mana-lock"]))
 
     def banish(self, map_):
         self.status_effects.append(StatusEffect(map_, 6, "Zephyr", effects=["banish"]))
@@ -159,12 +172,14 @@ class DummyChamp:
         self.status_effects.append(StatusEffect(map_, 10**10, "Stealth", effects=["stealth"]))
 
     def stun(self, duration, map_):
+        self.interrupt()
         self.status_effects.append(StatusEffect(map_, duration, "Stun", effects=["stun"]))
 
     def root(self, duration, map_):
         self.status_effects.append(StatusEffect(map_, duration, "Root", effects=["root"]))
 
     def airborne(self, duration, map_):
+        self.interrupt()
         self.status_effects.append(StatusEffect(map_, duration, "Airborne", effects=["airborne"]))
 
     def shrink(self):
@@ -176,27 +191,55 @@ class DummyChamp:
                 self.current_health = self.max_health
             self.base_ad = self.base_stats["ad"][self.rank]
 
-    def channeling(self, fight, duration, name, proc_interval=None):
-        self.status_effects.append(Channelling(self, fight, duration, name, proc_interval))
+    def channeling(self, fight, duration, name, proc_interval=None, interruptable=True):
+        self.status_effects.append(Channelling(self, fight, duration, name, proc_interval, interruptable))
+
+    def interrupt(self):
+        channels = self.get_all_effects_with("channeling")
+        for effect in channels:
+            if effect.interruptable:
+                self.status_effects.remove(effect)
+
+    def immune(self, duration, fight):
+        self.status_effects.append(StatusEffect(fight.map, duration, "Immune", effects=["immune"]))
 
     # ----- Get Damage and Alive -----
-
+    
+    def get_mana(self, origin):
+        if not self.has_effect("mana-lock"):
+            if origin == "aa":
+                amount = self.mana_on_aa
+            elif origin == "damage":
+                amount = self.mana_on_aa
+            else:
+                amount = self.mana_on_aa
+            if self.mana + amount >= self.max_mana:
+                self.mana = self.max_mana
+            else:
+                self.mana += amount
+            
     def get_physical_damage(self, incoming_damage, map_):
         return self.get_damage("physical", incoming_damage, map_)
 
-    def get_damage(self, type_, incoming_damage, map_):
+    # @todo: replace old get_***_damage with new get_damage(...)
+    def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None):
+        if origin and originator:
+            if origin == "aa":
+                if self.has_effect("aa_dodge"):
+                    return False
+                # implement thornmail
         types = {
             "physical": self.armor,
             "magic": self.mr,
             "true": 0,
         }
-        if random.random() >= self.dodge_chance:
+        if random.random() >= self.dodge_chance or not self.has_effect("immune"):
             resistance = types[type_]
             damage_reduction = (100 / (resistance + 100))
             real_damage = incoming_damage * damage_reduction
             self.current_health -= real_damage
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
-            self.mana += self.mana_on_aa
+            self.get_mana("damage")
             self.check_alive(map_)
             return True
         else:
@@ -228,11 +271,20 @@ class DummyChamp:
         return [enemy for enemy in enemy_champs_visible if enemy.pos in cell_ids_in_range]
 
     def get_allies_around(self, fight):
-        current_cell_neighbors_ids = fight.map.get_cell_from_id(self.pos)
+        current_cell_neighbors_ids = [cell.id for cell in fight.map.get_cell_from_id(self.pos).neighbors]
         return [allie for allie in fight.champs_allie_team(self) if allie.pos in current_cell_neighbors_ids]
 
     def get_target(self, enemies_in_range):
+        # check if priority target is in range
+        priority_targets = [champ for champ in enemies_in_range if champ.has_effect("priority")]
+        if len(priority_targets) > 0:
+            if self.last_target in priority_targets:
+                return self.last_target
+            else:
+                return random.choice(priority_targets)
         if self.last_target is None or self.last_target not in enemies_in_range:
+            if len(enemies_in_range) == 0:
+                return None
             self.last_target = random.choice(enemies_in_range)
         return self.last_target
 
@@ -296,6 +348,13 @@ class DummyChamp:
         # check if neighbor from current pos
         # move
         pass
+
+    def stop_moving(self, fight):
+        if self.target_pos:
+            fight.map.get_cell_from_id(self.target_pos).taken = False
+        self.start_pos = None
+        self.target_pos = None
+        self.move_progress = 0
 
     def move_to(self, new_cell, fight):
         fight.map.get_cell_from_id(self.pos).taken = False

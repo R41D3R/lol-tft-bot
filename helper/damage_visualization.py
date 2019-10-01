@@ -22,9 +22,8 @@ class DummyDamage:
         surface.blit(text, (self.start_pos[0],
                             int(self.start_pos[1] - (state / self.duration * 50))))
 
-    @property
-    def is_active(self):
-        state = pygame.time.get_ticks() - self.create
+    def is_active(self, time):
+        state = time - self.create
         if state >= self.duration:
             return False
         else:
