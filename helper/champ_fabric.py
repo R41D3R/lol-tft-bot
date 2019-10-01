@@ -80,21 +80,22 @@ class Lucian(DummyChamp):
     # @todo: jump to furthest point from all enemies
     # @body: currently jumps to max(distance <= 2) from current position relative to the current target
     def special_ability(self, fight, in_range, visible, alive, time):
-        target = self.get_target(in_range)
-        target_cell = fight.map.get_cell_from_id(target.pos)
-        # find furthest spot from enemy where enemy is in self.enemies_in_range
-        self_cell = fight.map.get_cell_from_id(self.pos)
-        range_around_target = [cell for cell in fight.map.get_all_cells_in_range(target_cell, self.range) if not cell.taken]
-        ranges = [(fight.map.distance(self_cell, goal), goal) for goal in range_around_target if fight.map.distance(self_cell, goal) <= 2]
-        best_jump = None
-        best_range = 0
-        for item in ranges:
-            if item[0] >= best_range:
-                best_jump = item[1]
-                best_range = item[0]
-        self.move_to(best_jump, fight)
-        self.autoattack(time, fight, in_range)
-        target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+        target = self.get_target(self.get_enemies_in_range(fight, self.range + 2))
+        if target:
+            target_cell = fight.map.get_cell_from_id(target.pos)
+            # find furthest spot from enemy where enemy is in self.enemies_in_range
+            self_cell = fight.map.get_cell_from_id(self.pos)
+            range_around_target = [cell for cell in fight.map.get_all_cells_in_range(target_cell, self.range) if not cell.taken]
+            ranges = [(fight.map.distance(self_cell, goal), goal) for goal in range_around_target if fight.map.distance(self_cell, goal) <= 2]
+            best_jump = None
+            best_range = 0
+            for item in ranges:
+                if item[0] >= best_range:
+                    best_jump = item[1]
+                    best_range = item[0]
+            self.move_to(best_jump, fight)
+            self.autoattack(time, fight, in_range)
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
 
 
 class Fiora(DummyChamp):

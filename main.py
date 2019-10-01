@@ -62,8 +62,8 @@ while running:
                 fight = Fight(team_bot=bot_new_copy, team_top=top_new_copy)
                 fight.place_champs()
             elif event.key == K_n:  # create new fight
-                bot_t_copy = copy.deepcopy(bottom_team)
-                top_t_copy = copy.deepcopy(top_team)
+                bottom_team = champ_fabric.get_team()
+                top_team = champ_fabric.get_team()
                 bot_t_copy = copy.deepcopy(bottom_team)
                 top_t_copy = copy.deepcopy(top_team)
                 fight = Fight(team_bot=bot_t_copy, team_top=top_t_copy)

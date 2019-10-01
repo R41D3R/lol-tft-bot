@@ -264,10 +264,12 @@ class DummyChamp:
 
     # ----- Helper -----
 
-    def get_enemies_in_range(self, fight):
+    def get_enemies_in_range(self, fight, range_=None):
+        if range_ is None:
+            range_ = self.range
         current_cell = fight.map.get_cell_from_id(self.pos)
         enemy_champs_visible = fight.enemy_team_visible(self)
-        cell_ids_in_range = [cell.id for cell in fight.map.get_all_cells_in_range(current_cell, self.range)]
+        cell_ids_in_range = [cell.id for cell in fight.map.get_all_cells_in_range(current_cell, range_)]
         return [enemy for enemy in enemy_champs_visible if enemy.pos in cell_ids_in_range]
 
     def get_allies_around(self, fight):
