@@ -73,6 +73,9 @@ class DummyChamp:
 
     # ----- Stat Properties ------
 
+    def item_sum_from(self, attribute):
+        return sum([item.get_attribute_counter(attribute) for item in self.items])
+
     @property
     def range(self):
         return self.base_range + len(self.get_all_effects_with("range_buff_+1"))
@@ -104,9 +107,6 @@ class DummyChamp:
     @property
     def mr(self):
         return self.base_mr + (20 * self.item_sum_from("mr"))
-
-    def item_sum_from(self, attribute):
-        return sum([item.get_attribute_counter(attribute) for item in self.items])
 
     @property
     def ability_power_multiplier(self):
@@ -306,10 +306,7 @@ class DummyChamp:
             color = (67, 52, 235)
         else:
             color = (229, 235, 52)
-        pygame.draw.circle(surface,
-                           color,
-                           player_pos,
-                           30)
+        pygame.draw.circle(surface, color, player_pos, 30)
 
         # ----- health bar -----
         hb_width = 60
@@ -331,7 +328,8 @@ class DummyChamp:
         # mana progress bar
         pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / self.max_mana), mb_height))
 
-        # ----- channeling -----
+        # ----- status effects ------
+        # channeling
         cb_width = 60
         cb_height = 3
         cb_x = player_pos[0] - (cb_width / 2)
@@ -341,19 +339,26 @@ class DummyChamp:
             pygame.draw.rect(surface, (0, 0, 0), (cb_x, cb_y, cb_width, cb_height))
             pygame.draw.rect(surface, (255, 255, 255),
                              (cb_x, cb_y, int(cb_width * (fight.now - effect.created) / effect.duration), cb_height))
-
-        # ----- status effects ------
-        effect_font = pygame.font.SysFont("Comic Sans Ms", 20)
+        # effects
+        effect_font = pygame.font.SysFont("Comic Sans Ms", 15)
         effect_counter = 0
         for status_effect in self.status_effects:
             for effect in status_effect.effects:
                 effect_counter += 1
-                effect_text = effect_font.render(effect, False, (0, 0, 0))
+                effect_text = effect_font.render(effect, True, (0, 0, 0))
                 surface.blit(effect_text, (player_pos[0] - 30, cb_y + effect_counter * 8))
 
         # ----- name ------
-        text = font.render(f"{self.name} [{self.rank}]", False, (0, 0, 0))
+        text = font.render(f"{self.name} [{self.rank}]", True, (0, 0, 0))
         surface.blit(text, (player_pos[0] - 30, player_pos[1] - 20))
+
+        # ----- items -----
+        item_font = pygame.font.SysFont("Comic Sans Ms", 15)
+        item_counter = 0
+        for item in self.items:
+            item_counter += 1
+            item_name = item_font.render(item.name, True, (30, 30, 30))
+            surface.blit(item_name, (player_pos[0] - 30, player_pos[1] - 20 - int(item_counter * 10)))
 
         # ----- damage -----
         for dmg in self.damage_events:

@@ -13,7 +13,7 @@ class DummyDamage:
         self.amount = int(amount)
         self.create = pygame.time.get_ticks()
         self.start_pos = stat_pos
-        self.font = pygame.font.SysFont("Comic Sans Ms", 30)
+        self.font = pygame.font.SysFont("Comic Sans Ms", 25)
         self.duration = 2000
 
     def render(self, surface):

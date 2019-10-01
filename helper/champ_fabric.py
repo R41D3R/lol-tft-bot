@@ -8,6 +8,7 @@ from helper.status_effect import StatusEffect
 from helper.aoe import Aoe
 from config import logger
 from helper.champs import champs_dict
+from data.items_base_stats import Item, all_items
 
 
 class ChampionFabric:
@@ -23,7 +24,17 @@ class ChampionFabric:
         return [self.get_champ(pos, item, rank) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
 
     @staticmethod
-    def get_champ(pos, champ_item, rank, items=None):
+    def get_items():
+        items = []
+        n_items = random.choices([0, 1, 2, 3], weights=[0.5, 0.3, 0.1, 0.1])[0]
+        for i in range(n_items):
+            random_item = random.choice(list(all_items.items()))
+            items.append(Item(random_item[1]["attribute"], random_item[1]["name"]))
+        return items
+
+    def get_champ(self, pos, champ_item, rank, items=None):
+        if items is None:
+            items = self.get_items()
         if champ_item[0] == "Khazix":
             return Khazix(pos, champ_item, rank, items=items)
         if champ_item[0] == "Garen":
