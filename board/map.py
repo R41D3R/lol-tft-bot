@@ -14,6 +14,7 @@ class Map:
         self.color = color
         self.space = space
         self.offset = (cell_radius**2 - (cell_radius/2)**2)**.5 * 2
+        self.time = None
 
         # generate cells
         for i_row in range(n_rows):

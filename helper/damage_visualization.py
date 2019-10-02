@@ -3,7 +3,8 @@ import pygame
 dmg_color = {
     "physical": (255, 140, 0),
     "magic": (226, 121, 252),
-    "true_damage": (255, 255, 255)
+    "true_damage": (255, 255, 255),
+    "heal": (110, 255, 124),
 }
 
 
@@ -18,7 +19,7 @@ class DummyDamage:
 
     def render(self, surface):
         state = pygame.time.get_ticks() - self.create
-        text = self.font.render(str(self.amount), False, self.color)
+        text = self.font.render(str(self.amount), True, self.color)
         surface.blit(text, (self.start_pos[0],
                             int(self.start_pos[1] - (state / self.duration * 50))))
 

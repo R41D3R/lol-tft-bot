@@ -49,11 +49,11 @@ class Aoe:
                 if "heal" in self.effects:
                     champs_in_area = fight.champs_in_area(self.area, fight.champs_allie_team(self))
                     for champ in champs_in_area:
-                        champ.heal(self.amount)
+                        champ.heal(self.amount, fight.map)
                 if "damage" in self.effects:
                     champs_in_area = fight.champs_in_area(self.area, fight.champs_enemy_team(self))
                     for champ in champs_in_area:
-                        champ.get_damage(self.type, self.amount, fight.map)
+                        champ.get_damage(self.type, self.amount, fight.map, origin="spell", originator=self.user)
                 if "zone" in self.effects:
                     if self.team == "enemy_team":
                         champs_in_area = fight.champs_in_area(self.area, fight.champs_enemy_team(self))

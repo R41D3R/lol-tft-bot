@@ -25,10 +25,71 @@
 - [x] Show Abilities
 - [x] ADD 10 sample champs with real stats
 - [x] Improve Damage Reduction (Mr and Armor)
-- [ ] Add abilities for 10 sample champs (3/10)
 > Perfect Champ mechanic's til this
-- [x] ADD all Champs (Stats)
+- [ ] ADD all Champs (Stats)
 - [ ] ADD all Abilities to Champs
+- [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
+
+| Name | Stats | Ability |
+| ---- | ----- | ------- |
+| Aatrox | no | no |
+| Ahri | no | no
+| Akali | no | no |
+| Anivia | no | no |
+| Ashe | no | no |
+| Aurelion | no | no |
+| Blitzcrank | no | no |
+| Brand | no | no |
+| Braum | no | no |
+| Camille | no | no |
+| ChoGath | no | no |
+| Darius | no | no |
+| Draven | no | no |
+| Elise | no | no |
+| Evelynn | no | no |
+| Fiora | no | no |
+| Gangplank | no | no |
+| Garen | no | no |
+| Gnar | no | no |
+| Graves | no | no |
+| Jayce | no | no |
+| Jinx | no | no |
+| Kaisa | no | no |
+| Karthus | no | no |
+| Kassadin | no | no |
+| Kararina | no | no |
+| Kayle | no | no |
+| Kennen | no | no |
+| Khazix | no | no |
+| Leona | no | no |
+| Lissandra | no | no |
+| Lucian | no | no |
+| Lulu | no | no |
+| Miss Fortune | no | no |
+| Mordekaiser | no | no |
+| Morgana | no | no |
+| Nidalee | no | no |
+| Pantheon | no | no |
+| Poppy | no | no |
+| Pyke | no | no |
+| Reksai | no | no |
+| Rengar | no | no |
+| Sejuani | no | no |
+| Shen | no | no |
+| Shyvana | no | no |
+| Swain | no | no |
+| Tristana | no | no |
+| Twisted Fate | no | no |
+| Varus | no | no |
+| Vayne | no | no |
+| Veigar | no | no |
+| Vi | no | no |
+| Volibear | no | no |
+| Warwick | no | no |
+| Yasuo | no | no |
+| Zed | no | no |
+
+
 - [x] ADD Status Effect to Champs
     * Effect List
     - [x] Mana-lock
@@ -44,7 +105,67 @@
 ***
 > dont forget to add status effect mechanics when implementing
 - [x] Add Base Items
-- [ ] Add all items (stats)
+- [x] Add all items (stats)
+- [ ] Add Passive to Item
+- [x] Show Items
+- [ ] Show Item Effects
+
+| Name | Stats | Effect |
+| ---- | ----- | ------- |
+| B.F. Sword | yes | None |
+| Recursive Bow | yes | None |
+| Chain West | yes | None |
+| Negatron Cloak | yes | None |
+| Needlessly Large Rod | yes | None |
+| Tear of the Goddess | yes | None |
+| Giant's Belt | yes | None |
+| Spatula | yes | None |
+| Sparring Gloves | yes | None |
+| Deathblade | yes | yes |
+| Giant Slayer | yes | yes |
+| Hextech Gunblade | yes | yes |
+| Spear of Shojin | yes | yes |
+| Guardian Angel | yes | yes |
+| Bloodthirster | yes | yes |
+| Zeke's Herald | yes | yes |
+| Infinity Edge | yes | no |
+| Youmuu's Ghostblade | yes | yes |
+| Rapidfire Cannon | yes | yes |
+| Guinsoo's Rageblade | yes | yes |
+| Statikk Shiv | yes | need more info |
+| Phantom Dancer | yes | need more info |
+| Cursed Blade | yes | need shrink effect first |
+| Titanic Hydra | yes | no |
+| Repeating Crossbow | yes | no |
+| Blade of the Ruined Kind | yes | yes |
+| Rabadon's Deathcap | yes | no |
+| Locket of the Iron Solari | yes | no |
+| Ionic Spark | yes | no |
+| Morellonomicon | yes | no |
+| Jeweled Gauntlet | yes | no |
+| Yuumi | yes | yes |
+| Seraph's Embrace | yes | no |
+| Frozen Heart | yes | no |
+| Hush | yes | no |
+| Redemption | yes | no |
+| Hand of Justice | yes | no |
+| Darkin | yes | yes |
+| Thormail | yes | no |
+| Sword Breaker | yes | no |
+| Red Buff | yes | no |
+| Iceborn Gauntlet | yes | no |
+| Knight's Vow | yes | yes |
+| Dragons Claw | yes | no |
+| Zephyr | yes | no |
+| Quicksilver | yes | no |
+| Runaan's Hurrican | yes | no |
+| Warmog's Armor | yes | no |
+| Trap Claw | yes | no |
+| Frozen Mallet | yes | yes |
+| Thief's Gloves | yes | no |
+| Mittens | yes | yes |
+| Force of Nature | yes | no |
+
 - [ ] Add Passive to Item
 - [ ] Activate Item Passive
 - [ ] Show Items (active/passive)
@@ -52,9 +173,39 @@
 - [ ] ADD all Items (Stats)
 - [ ] ADD Passive for all Items
 ***
-- [ ] Get Sample Synergies
-> Synergies should work properly
 - [ ] ADD all Synergies (Origins and Classes)
+- [ ] Show Synergies
+| Origin | Implemented | 
+| ---- | ----- | 
+| Demon | no |
+| Dragon | no |
+| Exile | no |
+| Glacial | no |
+| Hextech | no |
+| Imperial | no |
+| Ninja | no |
+| Noble | no |
+| Phantom | no |
+| Pirate | no |
+| Robot | no |
+| Void | no |
+| Wild | no |
+| Yordle | no |
+
+
+| Class | Implemented |
+| ---- | ----- |
+| Assasin | no |
+| Blademaster | no |
+| Brawler | no |
+| Elementalist | no |
+| Guardian | no |
+| Gunslinger | no |
+| Knight | no |
+| Ranger | no |
+| Shapeshifter | no |
+| Sorcerer | no |
+> Synergies should work properly
 ***
 - [ ] Update Database with Patchnotes
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)

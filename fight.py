@@ -17,13 +17,39 @@ class Fight:
         self.events = []
         self.aoe = []
         self.now = None
+        self.start_of_combat = True
 
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_top)
 
+    def trigger_fight_start(self):
+        # check synergies
+        # disable items
+
+        # trigger items like: Zeke' Herald
+
+        # @item: Zeke's Herald
+        item_name = "Zeke's Herald"
+        for champ in self.team_top + self.team_bot:
+            if champ.item_count(item_name) > 0:
+                as_bonus = 0.15 * champ.item_count(item_name)
+                # give bonus to all champs in row_range <= 2
+                possible_positions = [(champ.pos[0] + 2, champ.pos[1]),
+                                      (champ.pos[0] - 4, champ.pos[1]),
+                                      (champ.pos[0] + 4, champ.pos[1]),
+                                      (champ.pos[0] - 2, champ.pos[1]),
+                                      champ.pos]
+                for allie in self.champs_allie_team(champ):
+                    if allie.pos in possible_positions:
+                        allie.base_aa_cc += as_bonus
+
     def make_fight_step(self):
         now = pygame.time.get_ticks()
         self.now = now
+        self.map.time = now
+        if self.start_of_combat:
+            self.start_of_combat = False
+            self.trigger_fight_start()
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
         for champ in champs:
@@ -47,6 +73,7 @@ class Fight:
                     if champ.mana >= champ.max_mana:
                         champ.stop_moving(self)
                         champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
+                        champ.sa_counter += 1
                         champ.mana = 0
                     elif len(enemies_in_range) > 0 and (champ.target_pos is None):
                         champ.stop_moving(self)

@@ -11,6 +11,8 @@ from helper.champs import champs_dict
 from data.items_base_stats import Item, all_items
 
 
+# @todo: Do checks before you place champs and assign champs + pos
+# @body: Spatula items (only on non class, unique), valid champ position, number of champs, number of same champs, ...
 class ChampionFabric:
     def __init__(self):
         self.possible_positions = [(x, y) for x in range(7) for y in range(3)]  # rows 0..2, cols 0..6
@@ -66,9 +68,9 @@ class Khazix(DummyChamp):
             target = random.choice(in_range)
             effected_area = [fight.map.get_cell_from_id(target.pos)]
             if len(target.get_allies_around(fight)) == 0:
-                target.get_damage("magic", self.sa_damage_alone[self.rank - 1], fight.map)
+                target.get_damage("magic", self.sa_damage_alone[self.rank - 1], fight.map, origin="spell", originator=self)
             else:
-                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
             fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
 
 
@@ -85,7 +87,7 @@ class Garen(DummyChamp):
         if self.has_effect_with_name("Judgement"):
             # self.last_proc = time
             for enemy in in_range:
-                enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+                enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
             fight.events.append(DummyEvent(50, (36, 36, 36), effected_area))
         else:
             self.channel(fight, 4, "Judgement", 0.5, False)
@@ -117,7 +119,7 @@ class Lucian(DummyChamp):
                     best_range = item[0]
             self.move_to(best_jump, fight)
             self.autoattack(time, fight, in_range)
-            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
 
 
 class Fiora(DummyChamp):
@@ -135,7 +137,7 @@ class Fiora(DummyChamp):
         elif time - self.sa_used >= channel_duration * 1000:
             target = self.get_target(in_range)
             if target:
-                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
                 stun = StatusEffect(fight.map, 1.5, "Stun", effects=["stun"])
                 target.get_spell_effect(stun, fight)
                 fight.events.append(DummyEvent(1000, (36, 36, 36), [fight.map.get_cell_from_id(target.pos)]))
@@ -168,7 +170,7 @@ class Camille(DummyChamp):
         # roots enemy + status_effect(allies prioritize target)
         target = self.get_target(in_range)
         if target:
-            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map)
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
             fight.events.append(DummyEvent(1000, (36, 36, 36), fight.map.get_cell_from_id(target.pos)))
             status_effect = StatusEffect(fight.map, self.sa_duration[self.rank - 1], "The Hextech Ultimatum", effects=["root", "priority"])
             target.get_spell_effect(status_effect, fight)

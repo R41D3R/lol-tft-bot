@@ -11,6 +11,16 @@ class StatusEffect:
         self.created = pygame.time.get_ticks()
         self.name = name
         self.map = map_
+        self.negative = False
+        if "stun" in self.effects \
+                or "gwound" in self.effects \
+                or "mana-lock" in self.effects \
+                or "root" in self.effects \
+                or "airborne" in self.effects \
+                or "shrink" in self.effects \
+                or "channeling" in self.effects \
+                or "banish" in self.effects:
+            self.negative = True
 
     def is_active(self, time):
         if time - self.created >= self.duration:
@@ -26,18 +36,19 @@ class StatusEffect:
 
 
 class GWounds(StatusEffect):
-    def __init__(self, champ, map_, duration, name, damage=False):
+    def __init__(self, champ, map_, duration, name, originator=None, damage=False):
         super().__init__(map_, duration, name, effects=["gwound"])
         self.damage = damage
         self.last_proc = None
         self.target = champ
         self.damage_interval = 1000
+        self.originator = originator
 
     def proc(self):
         if self.damage:
             now = pygame.time.get_ticks()
             if self.last_proc is None or now - self.last_proc >= self.damage_interval:
-                self.target.get_damage("true", self.target.max_health * 0.02, self.map)
+                self.target.get_damage("true", self.target.max_health * 0.02, self.map, origin="spell", originator=self.originator)
                 self.last_proc = now
 
 

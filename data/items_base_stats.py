@@ -3,6 +3,7 @@ class Item:
     def __init__(self, attribute, name):
         self.name = name
         self.attribute = attribute
+        self.last_proc = None
 
     def get_attribute_counter(self, attribute):
         counter = 0
@@ -214,22 +215,18 @@ all_items = {
         "attribute": ["health", "dodge_chance", "dodge_chance"],
     },
     50: {
-        "name": "Trap Claw",
-        "attribute": ["health", "dodge_chance", "dodge_chance"],
-    },
-    51: {
         "name": "Frozen Mallet",
         "attribute": ["health", "health"],
     },
-    52: {
+    51: {
         "name": "Thief's Gloves",
         "attribute": ["crit_chance", "crit_chance", "dodge_chance", "dodge_chance"],
     },
-    53: {
+    52: {
         "name": "Mittens",
         "attribute": ["crit_chance", "crit_chance", "dodge_chance", "dodge_chance"],
     },
-    54: {
+    53: {
         "name": "Force of Nature",
         "attribute": [],
     },

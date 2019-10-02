@@ -19,6 +19,12 @@ class DummyChamp:
 
         self.base_stats = champ_item[1]
         # base stats
+        # @todo: implement base_health and base_ad as multiple of base stat
+        # @body: include 0-Star stat
+        # 0-star: 70% of maximum health and attack damage.
+        # 1-star: 100% of maximum health and attack damage.
+        # 2-star: 180% of maximum health and attack damage.
+        # 3-star: 360% of maximum health and attack damage.
         self.base_range = self.base_stats["range"]
         self.name = champ_item[0]
         self.base_health = self.base_stats["health"][rank - 1]
@@ -31,6 +37,8 @@ class DummyChamp:
         self.base_crit_chance = 0.25
         self.base_crit_bonus = 0.5
         self.base_dodge_chance = 0
+        self.base_origin = self.base_stats["origin"]  # list
+        self.base_class = self.base_stats["class"]  # list
 
         # positions
         self.pos = init_pos
@@ -45,20 +53,93 @@ class DummyChamp:
         self.status_effects = []
         self.channelling = False
         self.last_target = None
+        self.got_damage_from = []
+        self.sa_counter = 0
+        self.aa_counter = 0
 
     def autoattack(self, time, fight, enemies_in_range):
         target = self.get_target(enemies_in_range)
+
         if target:
+            self.aa_counter += 1
             self.aa_last = time
-            hitted = target.get_physical_damage(self.aa_damage(), fight.map)  # for on_hit items
+            # @item: Guinsoo's Rageblade
+            item_name = "Guinsoo's Rageblade"
+            if self.item_count(item_name) > 0:
+                n_items = self.item_count(item_name)
+                self.base_aa_cc += 0.05 * n_items
+            damage = self.aa_damage()
+            hitted = target.get_damage("physical", damage, fight.map, origin="aa", originator=self)
+            # @item: Statikk Shiv
+            item_name = "Statik Shiv"  # is this also a onhit effect?
+            if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
+                n_items = self.item_count(item_name)
+                target.get_damage("magic", n_items * 100, fight.map, origin="on_hit", originator=self)
+                # ---- need to implement jumping damage -----
+                # Every third basic attack from the wearer deals 100
+                # magic damage to the target and 2 additional targets.
+                # Bounces 3 times? Range?
+            # @item: Titanic Hydra
+            item_name = "Titanic Hydra"
+            if self.item_count(item_name) > 0:
+                n_items = self.item_count(item_name)
+                # all target neighbors cell that are not in attackers.neighbors
+                cleave_area_id = []
+                attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
+                target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
+                for cell in target_neighbors:
+                    if cell not in attacker_neighbors:
+                        cleave_area_id.append(cell.id)
+                cleaved_enemies = []
+                for enemy in fight.champs_enemy_team(self):
+                    if enemy.pos in cleave_area_id:
+                        cleaved_enemies.append(enemy)
+                for enemy in cleaved_enemies:
+                    enemy.get_damage("physical", enemy.max_health)
+            # @item: Cursed Blade
+            item_name = "Cursed Blade"
+            if self.item_count(item_name) > 0:
+                n_items = self.item_count(item_name)
+                rnd_n = random.random()
+                if n_items == 1 and rnd_n <= 0.2:
+                    pass
+                    # -1 Star
+                elif n_items == 2:
+                    if 0.36 >= rnd_n > 0.04:
+                        pass
+                        # -1 Star
+                    elif rnd_n <= 0.04:
+                        pass
+                        # -2 Star
+                elif n_items == 3:
+                    if 0.488 >= rnd_n > 0.104:
+                        pass
+                        # -1 Star
+                    elif 0.104 >= rnd_n > 0.008:
+                        pass
+                        # -2 Star
+                    elif rnd_n <= 0.008:
+                        pass
+                        # -3 Star
+            # on_hit effects
+            if hitted:
+                # @item: Giant Slayer
+                item_name = "Giant Slayer"
+                if self.item_count(item_name) > 0:
+                    on_hit_damage = self.item_count(item_name) * target.max_healh * 0.05
+                    target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
             self.get_mana("aa")
 
-    def heal(self, amount):
+    def heal(self, amount, map_):
+        health_before = self.current_health
         if self.has_effect("gwound"):
             amount *= 0.2
         self.current_health += amount
         if self.current_health > self.max_health:
             self.current_health = self.max_health
+        health_after = self.current_health
+        healed = health_before - health_after
+        self.damage_events.append(DummyDamage(healed, self.position(map_), "heal"))
 
     def special_ability(self, fight, in_range, visible, alive, time):
         # nearby enemies get Mega Crit
@@ -69,23 +150,78 @@ class DummyChamp:
                           for champ in fight.champs_enemy_team(self)
                           if champ.alive]:
                 if enemy.pos == n_cell.id:
-                    enemy.get_magic_damage(self.aa_damage(crit=True) * 2, fight.map)
+                    enemy.get_damage("magic", self.aa_damage(crit=True) * 2, fight.map, origin="spell", originator=self)
 
     # ----- Stat Properties ------
+
+    @property
+    def origin(self):
+        item_origin = []
+        # @item: Darkin
+        item_name = "Darkin"
+        if self.item_count(item_name) > 0:
+            item_origin.append("Demon")
+        # @item: Frozen Mallet
+        item_name = "Frozen Mallet"
+        if self.item_count(item_name) > 0:
+            item_origin.append("Glacial")
+        # @item: Mittens
+        item_name = "Mittens"
+        if self.item_count(item_name) > 0:
+            item_origin.append("Yordle")
+
+        return self.base_origin + item_origin
+
+    @property
+    def class_(self):
+        item_class = []
+        # @item: Youmuu's Ghostblade
+        item_name = "Youmuu's Ghostblade"
+        if self.item_count(item_name) > 0:
+            item_class.append("Assassin")
+        # @item: Blade of the Ruined King
+        item_name = "Blade of the Ruined King"
+        if self.item_count(item_name) > 0:
+            item_class.append("Blademaster")
+        # @item: Yuumi
+        item_name = "Yuumi"
+        if self.item_count(item_name) > 0:
+            item_class.append("Sorcerer")
+        # @item: Knight's Vow
+        item_name = "Knight's Vow"
+        if self.item_count(item_name) > 0:
+            item_class.append("Knight")
+        # @item: Youmuu's Ghostblade
+        item_name = "Youmuu's Ghostblade"
+        if self.item_count(item_name) > 0:
+            item_class.append("Assassin")
+
+        return self.base_class + item_class
 
     def item_sum_from(self, attribute):
         return sum([item.get_attribute_counter(attribute) for item in self.items])
 
     @property
     def range(self):
+        range_ = self.base_range
+        # @item: Rapid Firecannon
+        item_name = "Rapid Firecannon"
+        if self.item_count(item_name) > 0:
+            n_items = self.item_count(item_name)
+            range_ *= 2**n_items
         return self.base_range + len(self.get_all_effects_with("range_buff_+1"))
 
     @property
     def aa_cc(self):
-        return int(1 / (self.base_aa_cc + (0.2 * self.item_sum_from("attack_speed"))) * 1000)
+        # @todo: respect rule: max_as = 5 also for override methods (jayce)
+        aa_cc = (self.base_aa_cc + (0.2 * self.item_sum_from("attack_speed")))
+        if aa_cc > 5:
+            aa_cc = 5
+        return int(1 / aa_cc * 1000)
 
     @property
     def ad(self):
+        # @todo: implement shrink effect with ad
         return self.base_ad + (15 * self.item_sum_from("ad"))
 
     @property
@@ -98,6 +234,7 @@ class DummyChamp:
 
     @property
     def max_health(self):
+        # @todo: implement shrink effect with max_health
         return self.base_health + (200 * self.item_sum_from("health"))
 
     @property
@@ -123,7 +260,13 @@ class DummyChamp:
 
     @property
     def crit_multiplier(self):
-        return 1 + self.base_crit_bonus  # + additional bonus with items, ...
+        item_bonus = 0
+        # @item: Infinity Edge
+        item_name = "Infinity Edge"
+        if self.item_count(item_name) > 0:
+            n_items = self.item_count(item_name)
+            item_bonus += 1.5 * n_items
+        return 1 + self.base_crit_bonus + item_bonus
 
     def aa_damage(self, crit=False):
         if crit or random.random() <= self.crit_chance:
@@ -131,7 +274,39 @@ class DummyChamp:
         else:
             return self.ad
 
+    # ----- Items -----
+
+    def has_item(self, item_name):
+        pass
+
+    def item_count(self, name):
+        item_count = 0
+        for item in self.items:
+            if item.name == name:
+                item_count += 1
+        return item_count
+    
+    def item_proc(self, name):
+        proc = None
+        for item in self.items:
+            if item.name == name:
+                if item.last_proc is not None:
+                    if proc is None or proc < item.last_proc:
+                        proc = item.last_proc
+        return proc
+    
+    def proc_item(self, name, time):
+        for item in self.items:
+            if item.name == name:
+                item.last_proc = time
+
     # ----- Status Effects ------
+    
+    def remove_negative_effects(self):
+        for effect in self.status_effects:
+            if effect.negative:
+                self.status_effects.remove(effect)
+    
     def get_spell_effect(self, status_effect, fight):
         if not self.has_effect("immune"):
             self.status_effects.append(status_effect)
@@ -166,8 +341,8 @@ class DummyChamp:
     def banish(self, map_):
         self.status_effects.append(StatusEffect(map_, 6, "Zephyr", effects=["banish"]))
 
-    def gwounds(self, duration, map_, dot=False):
-        self.status_effects.append(GWounds(self, map_, duration, "Grievous Wounds", damage=dot))
+    def gwounds(self, duration, map_, originator, dot=False):
+        self.status_effects.append(GWounds(self, map_, duration, "Grievous Wounds", originator=originator, damage=dot))
 
     def stealth(self, map_):
         self.status_effects.append(StatusEffect(map_, 10**10, "Stealth", effects=["stealth"]))
@@ -184,6 +359,7 @@ class DummyChamp:
         self.status_effects.append(StatusEffect(map_, duration, "Airborne", effects=["airborne"]))
 
     def shrink(self):
+        # @todo: implement shrink as status_effect and dont change rank, only health and ad
         if self.rank > 0:
             self.rank -= 1
             health_before = self.current_health
@@ -210,19 +386,21 @@ class DummyChamp:
         if not self.has_effect("mana-lock"):
             if origin == "aa":
                 amount = self.mana_on_aa
+                # @item: Spear of Shojin
+                item_name = "Spear of Shojin"
+                if self.item_count(item_name) > 0 and self.sa_counter > 0:
+                    amount += self.max_mana * 0.15 * self.item_count(item_name)
             elif origin == "damage":
                 amount = self.mana_on_aa
             else:
                 amount = self.mana_on_aa
+
+            # check if mana is full
             if self.mana + amount >= self.max_mana:
                 self.mana = self.max_mana
             else:
                 self.mana += amount
-            
-    def get_physical_damage(self, incoming_damage, map_):
-        return self.get_damage("physical", incoming_damage, map_)
 
-    # @todo: replace old get_***_damage with new get_damage(...)
     def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None):
         if origin and originator:
             if origin == "aa":
@@ -234,13 +412,29 @@ class DummyChamp:
             "magic": self.mr,
             "true": 0,
         }
-        if random.random() >= self.dodge_chance or not self.has_effect("immune"):
+        if (random.random() >= self.dodge_chance or origin == "on_hit") and not self.has_effect("immune"):
             if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
                 return False
             resistance = types[type_]
             damage_reduction = (100 / (resistance + 100))
             real_damage = incoming_damage * damage_reduction
+            if originator not in self.got_damage_from:
+                self.got_damage_from.append(originator)
             self.current_health -= real_damage
+            if origin == "aa" or origin == "sa":
+                if origin == "aa":
+                    # @item: Bloodthirster
+                    item_name = "Bloothirster"
+                    if originator.item_count(item_name) > 0:
+                        heal = real_damage * 0.4 * originator.item_count(item_name)
+                        originator.heal(heal, map_)
+                # @item: Hextech Gunblade
+                # @todo: Hextech multiple item healing is not tested
+                # @body: [Link to Stat Website](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Items)
+                item_name = "Hextech Gunblade"
+                if originator.item_count(item_name) > 0:
+                    hextech_healing = [0.25, 0.6506, 1.314]
+                    originator.heal(real_damage * hextech_healing[originator.item_count(item_name) - 1], map_)
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
             self.get_mana("damage")
             self.check_alive(map_)
@@ -248,14 +442,28 @@ class DummyChamp:
         else:
             return False
 
-    def get_magic_damage(self, incoming_damage, map_):
-        return self.get_damage("magic", incoming_damage, map_)
-
     def check_alive(self, map_):
         if self.current_health <= 0:
             self.kill(map_)
 
     def kill(self, map_):
+        # @item: Guradian Angel
+        item_name = "Guardian Angel"
+        if self.item_count(item_name) > 0 and self.item_proc(item_name) is None:
+            self.stop_moving(map_, map_=True)
+            self.proc_item(item_name, map_.time)
+            self.mana = 0
+            self.current_health = 500
+            self.status_effects.append(StatusEffect(map_, 2, "Guardian Angel", effects=["revive"]))
+            return False
+
+        # @item: Deathblade
+        item_name = "Deathblade"
+        for enemy in self.got_damage_from:
+            if enemy:
+                if enemy.item_count(item_name) > 0:
+                    enemy.base_ad += 15
+
         logger.debug(f"Champ died on {self.pos}")
         self.alive = False
         if self.pos is not None:
@@ -264,6 +472,7 @@ class DummyChamp:
         #     map_.get_cell_from_id(self.next_pos).taken = False
         if self.target_pos is not None:
             map_.get_cell_from_id(self.target_pos).taken = False
+        return True
 
     # ----- Helper -----
 
@@ -381,9 +590,12 @@ class DummyChamp:
         # move
         pass
 
-    def stop_moving(self, fight):
+    def stop_moving(self, fight, map_=False):
         if self.target_pos and self.target_pos != self.pos:
-            fight.map.get_cell_from_id(self.target_pos).taken = False
+            if map_:
+                fight.get_cell_from_id(self.target_pos).taken = False
+            else:
+                fight.map.get_cell_from_id(self.target_pos).taken = False
         self.start_pos = None
         self.target_pos = None
         self.move_progress = 0
