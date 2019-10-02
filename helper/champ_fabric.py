@@ -231,7 +231,142 @@ class Swain(DummyChamp):
         pass
 
 
+class Aatrox(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [700, 1260, 2520]
 
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Cleaves the area in front of him,
+        # dealing 300 / 600 / 900 magic damage to all enemies within.
+
+
+class Brand(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [250, 450, 650]
+        self.sa_bounces = [4, 6, 20]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Launches a bouncing fireball at an enemy.
+        # The fireball bounces to nearby enemies
+        # up to 4 / 6 / 20 times, dealing 250 / 450 / 650 magic damage
+        # with each bounce.
+
+
+class Elise(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_spiderlings = [1, 2, 4]
+        self.spider_lifesteal = [0.6, 0.9, 1.2]
+        self.spider_health = 500
+        self.spider_ad = 60
+        self.spider_atk_speed = 0.7
+        # create spider npc
+        # spider gets demon bonus
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Summons 1 / 2 / 4 Spiderlings and transforms
+        # to her Spider Form, becoming a Melee role melee attacker for 60 seconds.
+        # While in Spider Form, gains 60 / 90 / 120% life steal.
+        # Each Spiderling has 500 health, 60 attack damage
+        # and 0.7 attack speed, and can gain the Demon bonus.
+
+
+class Evelyn(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [200, 300, 400]
+        self.sa_damage_below_50 = [600, 1200, 2000]
+        self.sa_back_hexes = 3
+        # to 3 closest enemies
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Roots the 3 closest enemies for 0.35 seconds,
+        # after which deals 200 / 300 / 400 magic damage to
+        # the 3 closest enemies and blinks back 3 hexes.
+        # Damage is increased to 600 / 1200 / 2000 against enemies below 50% health
+
+
+class Morgana(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_delay = int(0.5 * 1000)
+        self.sa_range = 3
+        self.sa_damage = [175, 300, 425]
+        self.sa_second_delay = 3
+        self.sa_stun_duration = [2, 4, 6]  # damage again
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After a 0.5-second delay, fires chains to
+        # nearby enemies up to 3 hexes away, dealing 175 / 300 / 425 magic damage.
+        # After 3 seconds, all chained enemies still within her
+        # range are Stun icon stunned for 2 / 4 / 6 seconds and take
+        # the same magic damage.
+
+
+class Varus(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_channeltime = int(1.5 * 1000)
+        self.sa_range = 8
+        self.sa_damage = [300, 550, 800]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After channeling for 1.5 seconds, fires a piercing
+        # arrow up to 8 hexes away, dealing 300 / 550 / 800 magic damage
+        # to all enemies in its path.
+
+
+class AurelioSol(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_delay = int(0.35 * 1000)
+        self.sa_damage = [250, 500, 750]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After a 0.35-second delay, breathes fire in a line,
+        # dealing 250 / 500 / 750 magic damage to all enemies in the area.
+
+
+class Pantheon(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_stun_duration = int(2 * 1000)
+        self.sa_percent_damage = [0.1, 0.2, 0.3]
+        # grievous wounds 2% true damage for 10 sec.
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Leaps in the air, becoming untargetable, and crashes down
+        # towards the farthest enemy, Stun icon stunning them for 2 seconds.
+        # As he lands, deals 10 / 20 / 30% of their maximum health magic
+        # damage and applies a burn for 10 seconds, dealing 2% of target's
+        # maximum health true damage each second and applying Grievous Wounds
+        # for the duration, reducing healing on the target.
+
+
+class Shyvana(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_duration = int(60 * 1000)
+        self.sa_dragon_ad_increase = [100, 150, 200]
+        self.sa_dot_duration = int()
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Dashes away from her current target and transforms
+        # to her Dragon Form, becoming a Ranged role ranged attacker for 60 seconds.
+        # While in Dragon Form, gains 100 / 150 / 200 attack damage
+        # and basic attacks apply a burn on enemies hit for 3 seconds,
+        # dealing a total of 200 / 300 / 400 bonus magic damage.
 
 
 
