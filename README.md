@@ -30,6 +30,9 @@
 - [ ] ADD all Abilities to Champs
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
+<table>
+<tr><td>
+
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
 | Aatrox | no | no |
@@ -52,6 +55,13 @@
 | Garen | no | no |
 | Gnar | no | no |
 | Graves | no | no |
+
+
+
+</td><td>
+
+| Name | Stats | Ability |
+| ---- | ----- | ------- |
 | Jayce | no | no |
 | Jinx | no | no |
 | Kaisa | no | no |
@@ -60,7 +70,7 @@
 | Kararina | no | no |
 | Kayle | no | no |
 | Kennen | no | no |
-| Khazix | no | no |
+| Khazix | no | no 
 | Leona | no | no |
 | Lissandra | no | no |
 | Lucian | no | no |
@@ -71,6 +81,13 @@
 | Nidalee | no | no |
 | Pantheon | no | no |
 | Poppy | no | no |
+
+
+</td>
+<td>
+
+| Name | Stats | Ability |
+| ---- | ----- | ------- |
 | Pyke | no | no |
 | Reksai | no | no |
 | Rengar | no | no |
@@ -89,6 +106,9 @@
 | Yasuo | no | no |
 | Zed | no | no |
 
+
+</td></tr>
+</table>
 
 - [x] ADD Status Effect to Champs
     * Effect List
@@ -109,6 +129,11 @@
 - [ ] Add Passive to Item
 - [x] Show Items
 - [ ] Show Item Effects
+
+
+<table>
+<tr>
+<td>
 
 | Name | Stats | Effect |
 | ---- | ----- | ------- |
@@ -139,6 +164,11 @@
 | Repeating Crossbow | yes | no |
 | Blade of the Ruined Kind | yes | yes |
 | Rabadon's Deathcap | yes | no |
+
+</td><td>
+
+| Name | Stats | Effect |
+| ---- | ----- | ------- |
 | Locket of the Iron Solari | yes | no |
 | Ionic Spark | yes | no |
 | Morellonomicon | yes | no |
@@ -165,6 +195,9 @@
 | Thief's Gloves | yes | no |
 | Mittens | yes | yes |
 | Force of Nature | yes | no |
+</td>
+</tr>
+</table>
 
 - [ ] Add Passive to Item
 - [ ] Activate Item Passive
@@ -175,6 +208,9 @@
 ***
 - [ ] ADD all Synergies (Origins and Classes)
 - [ ] Show Synergies
+<table><tr>
+<td>
+
 | Origin | Implemented | 
 | ---- | ----- | 
 | Demon | no |
@@ -191,7 +227,7 @@
 | Void | no |
 | Wild | no |
 | Yordle | no |
-
+</td><td>
 
 | Class | Implemented |
 | ---- | ----- |
@@ -205,6 +241,9 @@
 | Ranger | no |
 | Shapeshifter | no |
 | Sorcerer | no |
+</td>
+</tr>
+</table>
 > Synergies should work properly
 ***
 - [ ] Update Database with Patchnotes
