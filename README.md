@@ -153,7 +153,7 @@
 | Guardian Angel | yes | yes |
 | Bloodthirster | yes | yes |
 | Zeke's Herald | yes | yes |
-| Infinity Edge | yes | no |
+| Infinity Edge | yes | yes |
 | Youmuu's Ghostblade | yes | yes |
 | Rapidfire Cannon | yes | yes |
 | Guinsoo's Rageblade | yes | yes |
@@ -245,8 +245,10 @@
 </td>
 </tr>
 </table>
+
 > Synergies should work properly
 ***
+
 - [ ] Update Database with Patchnotes
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)
 - [ ] **finally** remove pygame for HPC
