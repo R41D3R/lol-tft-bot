@@ -57,7 +57,15 @@ class DummyChamp:
         self.sa_counter = 0
         self.aa_counter = 0
         self.shield = 0
+        self.team_synergies = None
+        self.disables_items = None
+        self.imperial_buff = False
+        self.noble_buff = False
+        self.void_buff = False
+        self.fury_stacks = 0
 
+    # @todo: outsource target
+    # @body: if target none don't switch to next target, interesting for Blademaster
     def autoattack(self, time, fight, enemies_in_range):
         target = self.get_target(enemies_in_range)
 
@@ -66,15 +74,75 @@ class DummyChamp:
 
             self.aa_counter += 1
             self.aa_last = time
+
             # @item: Guinsoo's Rageblade
             item_name = "Guinsoo's Rageblade"
             if self.item_count(item_name) > 0:
                 n_items = self.item_count(item_name)
                 self.base_aa_cc += 0.05 * n_items
+
+            # @synergy: Wild
+            synergy_name = "Wild"
+            if synergy_name in self.team_synergies:
+                n_syn = self.team_synergies[synergy_name]
+                if n_syn >= 4:
+                    if self.fury_stacks < 5:
+                        self.fury_stacks += 1
+                elif n_syn >= 2 and synergy_name in self.origin:
+                    if self.fury_stacks < 5:
+                        self.fury_stacks += 1
+                    # @todo: Implement undodgeable aa's (maybe in self.dodge_chance)
+
             damage = self.aa_damage()
+            # @synergy: Imperial
+            if self.imperial_buff:
+                damage *= 2
+
             hitted = target.get_damage("physical", damage, fight.map, origin="aa", originator=self)
             if hitted:
                 possible_on_hit_targets.append(target)
+
+            # @item: Statikk Shiv
+            item_name = "Statik Shiv"
+            if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
+                n_items = self.item_count(item_name)
+                target.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
+                # ---- need to implement jumping damage -----
+                # Every third basic attack from the wearer deals 100
+                # magic damage to the target and 2 additional targets.
+                # Bounces 3 times? Range?
+
+            # @item: Titanic Hydra
+            item_name = "Titanic Hydra"
+            if self.item_count(item_name) > 0:
+                n_items = self.item_count(item_name)
+                # all target neighbors cell that are not in attackers.neighbors
+                cleave_area_id = []
+                attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
+                target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
+                for cell in target_neighbors:
+                    if cell not in attacker_neighbors:
+                        cleave_area_id.append(cell.id)
+                cleaved_enemies = []
+                for enemy in fight.champs_enemy_team(self):
+                    if enemy.pos in cleave_area_id:
+                        cleaved_enemies.append(enemy)
+                for enemy in cleaved_enemies:
+                    enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight.map, origin="on_hit_no_dodge",
+                                     originator=self)
+
+            # @synery: Blademaster
+            synergy_name = "Blademaster"
+            if synergy_name in self.team_synergies and synergy_name in self.class_ and random.random() <= 0.45:
+                n_syn = self.team_synergies[synergy_name]
+                if n_syn >= 9:
+                    for _ in range(4):
+                        self.autoattack(time, fight, enemies_in_range)
+                elif n_syn >= 6:
+                    for _ in range(2):
+                        self.autoattack(time, fight, enemies_in_range)
+                elif n_syn >= 3:
+                    self.autoattack(time, fight, enemies_in_range)
 
             # @item: Runaan's Hurricane
             item_name = "Runaan's Hurricane"
@@ -91,6 +159,35 @@ class DummyChamp:
 
             # on_hit effects
             for target in possible_on_hit_targets:
+                # @synergy: Noble
+                synergy_name = "Noble"
+                if self.noble_buff:
+                    self.heal(30, fight.map)
+
+                # @synergy: Demon
+                synergy_name = "Demon"
+                if synergy_name in self.team_synergies and synergy_name in self.origin and random.random() <= 0.4:
+                    n_syn = self.team_synergies[synergy_name]
+                    combo = 0
+                    if n_syn >= 6:
+                        combo = 3
+                    elif n_syn >= 4:
+                        combo = 2
+                    elif n_syn >= 2:
+                        combo = 1
+                    target.mana -= 20
+                    if target.mana < 0:
+                        target.mana = 0
+                    self.get_mana("Demon", 15 * combo)
+
+                # synergy: Glacial
+                synergy_name = "Glacial"
+                if synergy_name in self.team_synergies and synergy_name in self.origin:
+                    n_syn = self.team_synergies[synergy_name]
+                    rnd_n = random.random()
+                    if (n_syn >= 6 and rnd_n <= 0.5) or (n_syn >= 4 and rnd_n <= 0.33) or (n_syn >= 2 and rnd_n <= 0.2):
+                        target.stun(1.5, fight.map)
+
                 # @item: Sword Breaker
                 item_name = "Sword Breaker"
                 if self.item_count(item_name) > 0:
@@ -112,37 +209,13 @@ class DummyChamp:
                     rnd_n = random.random()
                     if (n_items == 1 and rnd_n <= 0.33) or (n_items == 2 and rnd_n <= 0.5511) or (n_items == 3 and rnd_n <= 0.699237):
                         target.mana_lock(fight.map, 4)
+
                 # @item: Giant Slayer
                 item_name = "Giant Slayer"
                 if self.item_count(item_name) > 0:
                     on_hit_damage = self.item_count(item_name) * target.max_healh * 0.05
                     target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
-                # @item: Statikk Shiv
-                item_name = "Statik Shiv"  # is this also a onhit effect?
-                if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
-                    n_items = self.item_count(item_name)
-                    target.get_damage("magic", n_items * 100, fight.map, origin="on_hit", originator=self)
-                    # ---- need to implement jumping damage -----
-                    # Every third basic attack from the wearer deals 100
-                    # magic damage to the target and 2 additional targets.
-                    # Bounces 3 times? Range?
-                # @item: Titanic Hydra
-                item_name = "Titanic Hydra"
-                if self.item_count(item_name) > 0:
-                    n_items = self.item_count(item_name)
-                    # all target neighbors cell that are not in attackers.neighbors
-                    cleave_area_id = []
-                    attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
-                    target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
-                    for cell in target_neighbors:
-                        if cell not in attacker_neighbors:
-                            cleave_area_id.append(cell.id)
-                    cleaved_enemies = []
-                    for enemy in fight.champs_enemy_team(self):
-                        if enemy.pos in cleave_area_id:
-                            cleaved_enemies.append(enemy)
-                    for enemy in cleaved_enemies:
-                        enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight.map, origin="on_hit", originator=self)
+
                 # @item: Cursed Blade
                 item_name = "Cursed Blade"
                 if self.item_count(item_name) > 0:
@@ -168,6 +241,7 @@ class DummyChamp:
                         elif rnd_n <= 0.008:
                             pass
                             # -3 Star
+
                 # @item: Red Buff
                 item_name = "Red Buff"
                 if self.item_count(item_name) > 0:
@@ -264,15 +338,24 @@ class DummyChamp:
     @property
     def aa_cc(self):
         # @todo: respect rule: max_as = 5 also for override methods (jayce)
-        aa_cc = self.base_aa_cc + self.base_aa_cc * 0.2 * self.item_sum_from("attack_speed")
+        item_bonus = 0
+        item_bonus += self.base_aa_cc * 0.2 * self.item_sum_from("attack_speed")
 
+        frozen_heart_debuff = 0
         # @item: Frozen Heart
         if self.has_effect("frozen_heart_1"):
-            aa_cc *= 0.35
+            frozen_heart_debuff = 0.35
         elif self.has_effect("frozen_heart_2"):
-            aa_cc *= 0.5775
+            frozen_heart_debuff = 0.5775
         elif self.has_effect("frozen_heart_3"):
-            aa_cc *= 0.35
+            frozen_heart_debuff = 0.725375
+
+        wild_bonus = 0
+        # @synergy: Wild
+        synergy_name = "Wild"
+        wild_bonus += self.base_aa_cc * self.fury_stacks * 0.15
+
+        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus) * frozen_heart_debuff
 
         if aa_cc > 5:
             aa_cc = 5
@@ -281,7 +364,17 @@ class DummyChamp:
     @property
     def ad(self):
         # @todo: implement shrink effect with ad
-        return self.base_ad + (15 * self.item_sum_from("ad"))
+
+        # @synergy: Ninja
+        ninja_bonus = 0
+        synergy_name = "Ninja"
+        if synergy_name in self.team_synergies:
+            if self.team_synergies[synergy_name] == 1:
+                ninja_bonus += 50
+            if self.team_synergies[synergy_name] == 4:
+                ninja_bonus += 80
+
+        return self.base_ad + (15 * self.item_sum_from("ad")) + ninja_bonus
 
     @property
     def dodge_chance(self):
@@ -289,7 +382,19 @@ class DummyChamp:
 
     @property
     def crit_chance(self):
-        return self.base_crit_chance + (0.1 * self.item_sum_from("crit_chance"))
+        assassin_bonus = 0
+        # @synergy: Assassin
+        synergy_name = "Assassin"
+        if synergy_name in self.team_synergies and synergy_name in self.class_:
+            n_syn = self.team_synergies[synergy_name]
+            if n_syn >= 9:
+                assassin_bonus += 0.3
+            elif n_syn >= 6:
+                assassin_bonus += 0.2
+            elif n_syn >= 3:
+                assassin_bonus += 0.1
+
+        return self.base_crit_chance + (0.1 * self.item_sum_from("crit_chance")) + assassin_bonus
 
     @property
     def max_health(self):
@@ -298,11 +403,21 @@ class DummyChamp:
 
     @property
     def armor(self):
-        return self.base_armor + (20 * self.item_sum_from("armor"))
+        noble_bonus = 0
+        # @synergy: Noble
+        synergy_name = "Noble"
+        if self.noble_buff:
+            noble_bonus += 50
+        return self.base_armor + (20 * self.item_sum_from("armor")) + noble_bonus
 
     @property
     def mr(self):
-        return self.base_mr + (20 * self.item_sum_from("mr"))
+        noble_bonus = 0
+        # @synergy: Noble
+        synergy_name = "Noble"
+        if self.noble_buff:
+            noble_bonus += 50
+        return self.base_mr + (20 * self.item_sum_from("mr")) + noble_bonus
 
     @property
     def ability_power_multiplier(self):
@@ -312,6 +427,19 @@ class DummyChamp:
         ninja_bonus = 0
         sorcerer_bonus = 0
         rabadon_bonus = 1
+        imperial_multiplier = 1
+
+        # @synergy: Ninja
+        synergy_name = "Ninja"
+        if synergy_name in self.team_synergies:
+            if self.team_synergies[synergy_name] == 1:
+                ninja_bonus += 0.5
+            if self.team_synergies[synergy_name] == 4:
+                ninja_bonus += 0.8
+
+        # @synergy: Imperial
+        if self.imperial_buff:
+            imperial_multiplier = 2
 
         # @item: Rabadon's Deathcap
         item_name = "Rabadon's Deathcap"
@@ -319,7 +447,7 @@ class DummyChamp:
             n_items = self.item_count(item_name)
             rabadon_bonus += 0.5 * n_items
 
-        return (1 + item_bonus) * rabadon_bonus
+        return (1 + item_bonus + ninja_bonus) * rabadon_bonus * imperial_multiplier
 
     @property
     def mana_on_aa(self):
@@ -332,12 +460,26 @@ class DummyChamp:
     @property
     def crit_multiplier(self):
         item_bonus = 0
+
         # @item: Infinity Edge
         item_name = "Infinity Edge"
         if self.item_count(item_name) > 0:
             n_items = self.item_count(item_name)
             item_bonus += 1.5 * n_items
-        return 1 + self.base_crit_bonus + item_bonus
+
+        assassin_bonus = 0
+        # @synergy: Assassin
+        synergy_name = "Assassin"
+        if synergy_name in self.team_synergies and synergy_name in self.class_:
+            n_syn = self.team_synergies[synergy_name]
+            if n_syn >= 9:
+                assassin_bonus += 2.25
+            elif n_syn >= 6:
+                assassin_bonus += 1.5
+            elif n_syn >= 3:
+                assassin_bonus += 0.75
+
+        return 1 + self.base_crit_bonus + item_bonus + assassin_bonus
 
     def aa_damage(self, crit=False):
         if crit or random.random() <= self.crit_chance:
@@ -461,6 +603,12 @@ class DummyChamp:
         if not self.has_effect("mana-lock"):
             if origin == "aa":
                 amount = self.mana_on_aa
+
+                # @synergy: Elementalist
+                synergy_name = "Elementalist"
+                if synergy_name in self.class_:
+                    amount *= 2
+
                 # @item: Spear of Shojin
                 item_name = "Spear of Shojin"
                 if self.item_count(item_name) > 0 and self.sa_counter > 0:
@@ -478,6 +626,10 @@ class DummyChamp:
                 self.mana += amount
 
     def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None, fight=None, crit=False):
+        # @synergy: Void
+        if originator.void_buff and (origin == "aa" or origin == "sa"):
+            type_ = "true"
+
         if origin and originator:
             if origin == "aa":
                 if self.has_effect("aa_dodge"):
@@ -488,7 +640,16 @@ class DummyChamp:
             "magic": self.mr,
             "true": 0,
         }
-        if (random.random() >= self.dodge_chance or origin == "on_hit") and not self.has_effect("immune"):
+        if (random.random() > self.dodge_chance or origin == "on_hit" or origin == "on_hit_no_dodge") and not self.has_effect("immune"):
+
+            # @synergy: Yordle
+            synergy_name = "Yordle"
+            if not origin == "on_hit_no_dodge" and synergy_name in self.team_synergies and synergy_name in self.origin:
+                n_syn = self.team_synergies[synergy_name]
+                rnd_n = random.random()
+                if (n_syn >= 9 and rnd_n <= 0.9) or (n_syn >= 6 and rnd_n <= 0.6) or (n_syn >= 3 and rnd_n <= 0.3):
+                    return False
+
             if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
                 return False
             resistance = types[type_]
@@ -505,6 +666,12 @@ class DummyChamp:
                     real_damage = incoming_damage * (1 - 0.9375)
                 elif n_items == 3:
                     real_damage = incoming_damage * (1 - 0.984375)
+
+            # @synergy: Dragon
+            synergy_name = "Dragon"
+            if synergy_name in self.team_synergies and synergy_name in self.origin and type_ == "magic":
+                if self.team_synergies[synergy_name] >= 2:
+                    real_damage *= (1 - 0.75)
 
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
@@ -537,7 +704,6 @@ class DummyChamp:
                             for effect in self.status_effects:
                                 if effect.name == item_name:
                                     effect.duration = 10
-
 
                     # @item: Luden's Echo
                     item_name = "Luden's Echo"

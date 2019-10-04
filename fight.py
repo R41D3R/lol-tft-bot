@@ -19,9 +19,31 @@ class Fight:
         self.aoe = []
         self.now = None
         self.start_of_combat = True
+        self.bot_synergy = {}
+        self.top_synergy = {}
+        self.hextech_tick = None
+        self.hextech_disabled_champs = []
 
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_top)
+
+    # @todo: Respect that every champ (name) contributes uniquely to synergy bonus
+    def set_team_synergies(self):
+        self.bot_synergy = {}
+
+        for champ in self.team_bot:
+            for type_ in champ.class_ + champ.origin:
+                if type_ not in self.bot_synergy:
+                    self.bot_synergy[type_] = 1
+                else:
+                    self.bot_synergy[type_] += 1
+
+        for champ in self.team_top:
+            for type_ in champ.class_ + champ.origin:
+                if type_ not in self.top_synergy:
+                    self.top_synergy[type_] = 1
+                else:
+                    self.top_synergy[type_] += 1
 
     def trigger_fight_start(self):
         # check synergies
@@ -31,6 +53,17 @@ class Fight:
         as_bonus = 1  # zekes
         shield_bonus = 0  # solari
         for champ in self.team_top + self.team_bot:
+            if champ in self.team_bot:
+                champ.team_synergies = self.bot_synergy
+            else:
+                champ.team_synergies = self.top_synergy
+
+            # @synergy: Exile
+            synergy_name = "Exile"
+            if synergy_name in champ.origin:
+                if len(self.adjacent_allies(champ)) == 0:
+                    champ.shield += champ.max_health
+
             # @todo: add combination list for Thiefs Glove
             # @body: see twitter link in [Link](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Thief%27s_Gloves#cite_note-0)
             # @item: Thief's Gloves
@@ -55,6 +88,8 @@ class Fight:
                                   (champ.pos[0] + 4, champ.pos[1]),
                                   (champ.pos[0] - 2, champ.pos[1]),
                                   champ.pos]
+
+            # @todo: change zekes effect apply to additional_aa_cc
             # @item: Zeke's Herald
             item_name = "Zeke's Herald"
             if champ.item_count(item_name) > 0:
@@ -77,6 +112,204 @@ class Fight:
                 mirror_posi = None
                 for enemy in self.enemy_champs_alive(champ):
                     enemy.banish(self.map)
+
+            # @synergy: Robot
+            synergy_name = "Robot"
+            if synergy_name in champ.origin:
+                champ.mana = champ.max_mana
+
+        # @synergy: Guradian
+        synergy_name = "Guardian"
+        if synergy_name in self.top_synergy:
+            n_syn = self.top_synergy[synergy_name]
+            if n_syn >= 2:
+                for champ in self.team_top:
+                    if synergy_name in champ.class_:
+                        for allie in self.adjacent_allies(champ):
+                            allie.base_armor += 35
+        if synergy_name in self.bot_synergy:
+            n_syn = self.bot_synergy[synergy_name]
+            if n_syn >= 2:
+                for champ in self.team_bot:
+                    if synergy_name in champ.class_:
+                        for allie in self.adjacent_allies(champ):
+                            allie.base_armor += 35
+
+        # @synergy: Phantom
+        synergy_name = "Phantom"
+        if synergy_name in self.bot_synergy:
+            if self.bot_synergy[synergy_name] >= 2:
+                random.choice(self.team_top).current_health = 100
+        elif synergy_name in self.top_synergy:
+            if self.top_synergy[synergy_name] >= 2:
+                random.choice(self.team_bot).current_health = 100
+
+        # @synergy: Imperial
+        synergy_name = "Imperial"
+        if synergy_name in self.bot_synergy:
+            imperial_champs = [champ for champ in self.team_bot if synergy_name in champ.origin]
+            n_syn = self.bot_synergy[synergy_name]
+            if n_syn >= 4:
+                for champ in imperial_champs:
+                    champ.imperial_buff = True
+            elif n_syn >= 2:
+                random.choice(imperial_champs).imperial_buff = True
+        elif synergy_name in self.top_synergy:
+            imperial_champs = [champ for champ in self.team_top if synergy_name in champ.origin]
+            n_syn = self.top_synergy[synergy_name]
+            if n_syn >= 4:
+                for champ in imperial_champs:
+                    champ.imperial_buff = True
+            elif n_syn >= 2:
+                random.choice(imperial_champs).imperial_buff = True
+
+        # @synergy: Noble
+        synergy_name = "Noble"
+        if synergy_name in self.bot_synergy:
+            noble_champs = [champ for champ in self.team_bot if synergy_name in champ.origin]
+            n_syn = self.bot_synergy[synergy_name]
+            if n_syn >= 6:
+                for champ in noble_champs:
+                    champ.noble_buff = True
+            elif n_syn >= 3:
+                random.choice(noble_champs).noble_buff = True
+        elif synergy_name in self.top_synergy:
+            noble_champs = [champ for champ in self.team_top if synergy_name in champ.origin]
+            n_syn = self.top_synergy[synergy_name]
+            if n_syn >= 6:
+                for champ in noble_champs:
+                    champ.noble_buff = True
+            elif n_syn >= 3:
+                random.choice(noble_champs).noble_buff = True
+
+        # @synergy: Void
+        synergy_name = "Void"
+        if synergy_name in self.bot_synergy:
+            void_champs = [champ for champ in self.team_bot if synergy_name in champ.origin]
+            n_syn = self.bot_synergy[synergy_name]
+            if n_syn >= 4:
+                for champ in void_champs:
+                    champ.void_buff = True
+            elif n_syn >= 2:
+                random.choice(void_champs).void_buff = True
+        elif synergy_name in self.top_synergy:
+            void_champs = [champ for champ in self.team_top if synergy_name in champ.origin]
+            n_syn = self.top_synergy[synergy_name]
+            if n_syn >= 4:
+                for champ in void_champs:
+                    champ.void_buff = True
+            elif n_syn >= 2:
+                random.choice(void_champs).void_buff = True
+
+        # @synergy: Brawler
+        synergy_name = "Brawler"
+        if synergy_name in self.bot_synergy:
+            n_syn = self.bot_synergy[synergy_name]
+            max_health_bonus = 0
+            if n_syn >= 6:
+                max_health_bonus += 900
+            elif n_syn >= 4:
+                max_health_bonus += 500
+            elif n_syn >= 2:
+                max_health_bonus += 250
+            for champ in self.team_bot:
+                if synergy_name in champ.class_:
+                    champ.base_health += max_health_bonus
+        elif synergy_name in self.top_synergy:
+            n_syn = self.top_synergy[synergy_name]
+            max_health_bonus = 0
+            if n_syn >= 6:
+                max_health_bonus += 900
+            elif n_syn >= 4:
+                max_health_bonus += 500
+            elif n_syn >= 2:
+                max_health_bonus += 250
+            for champ in self.team_top:
+                if synergy_name in champ.class_:
+                    champ.base_health += max_health_bonus
+
+        # @synergy: Hextech
+        synergy_name = "Hextech"
+        four_bonus = 2
+        two_bonus = 1
+        self.hextech_tick = self.now
+        if synergy_name in self.bot_synergy:
+            if self.bot_synergy[synergy_name] >= 4:
+                n_syn = four_bonus
+            elif self.bot_synergy[synergy_name] >= 2:
+                n_syn = two_bonus
+            else:
+                n_syn = 0
+            if n_syn > 0:
+                possible_bomb_targets = [enemy for enemy in self.team_top if len(enemy.items) > 0]
+                bomb_target = random.choice(possible_bomb_targets)
+                target_cell = self.map.get_cell_from_id(bomb_target.pos)
+                effected_area_ids = [cell.id for cell in self.map.get_all_cells_in_range(target_cell, n_syn)]
+                for enemy in self.team_top:
+                    if enemy.pos in effected_area_ids:
+                        enemy.disables_items = enemy.items
+                        enemy.items = []
+                        self.hextech_disabled_champs.append(enemy)
+        elif synergy_name in self.top_synergy:
+            if self.top_synergy[synergy_name] >= 4:
+                n_syn = four_bonus
+            elif self.top_synergy[synergy_name] >= 2:
+                n_syn = two_bonus
+            else:
+                n_syn = 0
+            if n_syn > 0:
+                possible_bomb_targets = [enemy for enemy in self.team_bot if len(enemy.items) > 0]
+                bomb_target = random.choice(possible_bomb_targets)
+                target_cell = self.map.get_cell_from_id(bomb_target.pos)
+                effected_area_ids = [cell.id for cell in self.map.get_all_cells_in_range(target_cell, n_syn)]
+                for enemy in self.team_bot:
+                    if enemy.pos in effected_area_ids:
+                        enemy.disables_items = enemy.items
+                        enemy.items = []
+                        self.hextech_disabled_champs.append(enemy)
+
+        # @synergy: Elementalist
+        synergy_name = "Elementalist"
+        if synergy_name in self.top_synergy:
+            if self.top_synergy[synergy_name] >= 3:
+                elementalists = [champ for champ in self.team_top if synergy_name in champ.class_]
+                summon_cell = None
+                summon_cell_dist = 9999999
+                for champ in elementalists:
+                    for cell in self.map.get_cell_from_id(champ.pos).free_neighbors:
+                        for enemy in self.team_bot:
+                            enemy_cell = self.map.get_cell_from_id(enemy.pos)
+                            dist = self.map.distance(cell, enemy_cell)
+                            if dist < summon_cell_dist:
+                                summon_cell = cell
+                if summon_cell:
+                    # summon golem with 2200 health, 100 ad, and 40 armor
+                    pass
+        elif synergy_name in self.bot_synergy:
+            if self.bot_synergy[synergy_name] >= 3:
+                elementalists = [champ for champ in self.team_bot if synergy_name in champ.class_]
+                summon_cell = None
+                summon_cell_dist = 9999999
+                for champ in elementalists:
+                    for cell in self.map.get_cell_from_id(champ.pos).free_neighbors:
+                        for enemy in self.team_top:
+                            enemy_cell = self.map.get_cell_from_id(enemy.pos)
+                            dist = self.map.distance(cell, enemy_cell)
+                            if dist < summon_cell_dist:
+                                summon_cell = cell
+                if summon_cell:
+                    # summon golem with 2200 health, 100 ad, and 40 armor
+                    pass
+
+        # ----- Fight Start -----
+
+        # @synergy: Assassin
+        synergy_name = "Assassin"
+        for champ in self.team_top + self.team_bot:
+            if synergy_name in champ.class_ and not champ.has_effect("banish"):
+                furthest_enemy = self.furthest_enemy_away(champ)
+                new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
+                champ.move_to(new_cell, self)
 
     def activate_aura(self, champ):
         # @item: Warmog's Armor
@@ -109,9 +342,20 @@ class Fight:
         self.map.time = now
         if self.start_of_combat:
             self.start_of_combat = False
+            self.set_team_synergies()
+
             self.trigger_fight_start()
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
+
+        # @synergy: Hextech
+        # enable items after 7 seconds
+        if self.hextech_tick:
+            if self.now - self.hextech_tick >= 7000:
+                self.hextech_tick = None
+                for champ in self.hextech_disabled_champs:
+                    champ.items += champ.disabled_items
+
         for champ in champs:
             self.activate_aura(champ)
             champ.check_status_effects(now)
@@ -259,6 +503,25 @@ class Fight:
             if enemy.pos in adjacent_ids:
                 adjacent_enemies.append(enemy)
         return adjacent_enemies
+
+    def adjacent_allies(self, champ):
+        adjacent_allies = []
+        neighbor_ids = [cell.id for cell in self.map.get_cell_from_id(champ).neighbors]
+        for allie in self.champs_allie_team(champ):
+            if allie.pos in neighbor_ids:
+                adjacent_allies.append(allie)
+        return adjacent_allies
+
+    def furthest_enemy_away(self, champ):
+        start_cell = self.map.get_cell_from_id(champ.pos)
+        furthest_enemy = None
+        furthest_enemy_dist = 0
+        for enemy in self.champs_enemy_team(champ):
+            goal_cell = self.map.get_cell_from_id(enemy.pos)
+            dist_to_enemy = self.map.distance(start_cell, goal_cell)
+            if furthest_enemy_dist < dist_to_enemy:
+                furthest_enemy = enemy
+        return furthest_enemy
 
     def enemy_team_item_count(self, champ, item_name):
         item_count = 0

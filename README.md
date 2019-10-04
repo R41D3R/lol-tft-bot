@@ -161,7 +161,7 @@
 | Phantom Dancer | yes | need more info |
 | Cursed Blade | yes | need shrink effect first |
 | Titanic Hydra | yes | yes |
-| Repeating Crossbow | yes | insert fight first in get_damage |
+| Repeating Crossbow | yes | insert fight first in get_damage, check if champ has 3 items |
 | Blade of the Ruined Kind | yes | yes |
 | Rabadon's Deathcap | yes | yes |
 
@@ -214,29 +214,29 @@
 
 | Origin | Implemented | 
 | ---- | ----- | 
-| Demon | no |
-| Dragon | no |
-| Exile | no |
-| Glacial | no |
-| Hextech | no |
-| Imperial | no |
-| Ninja | no |
-| Noble | no |
-| Phantom | no |
-| Pirate | no |
-| Robot | no |
-| Void | no |
-| Wild | no |
-| Yordle | no |
+| Demon | yes |
+| Dragon | yes |
+| Exile | yes |
+| Glacial | yes |
+| Hextech | yes |
+| Imperial | yes |
+| Ninja | yes |
+| Noble | yes |
+| Phantom | yes |
+| Pirate | implemented in game env |
+| Robot | yes |
+| Void | yes |
+| Wild | implement undodgeable aa |
+| Yordle | yes |
 </td><td>
 
 | Class | Implemented |
 | ---- | ----- |
-| Assasin | no |
-| Blademaster | no |
-| Brawler | no |
-| Elementalist | no |
-| Guardian | no |
+| Assasin | yes |
+| Blademaster | yes |
+| Brawler | yes |
+| Elementalist | implement golem + summon |
+| Guardian | yes |
 | Gunslinger | no |
 | Knight | no |
 | Ranger | no |
