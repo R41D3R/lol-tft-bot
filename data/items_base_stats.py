@@ -4,6 +4,7 @@ class Item:
         self.name = name
         self.attribute = attribute
         self.last_proc = None
+        self.proc_counter = 0
 
     def get_attribute_counter(self, attribute):
         counter = 0

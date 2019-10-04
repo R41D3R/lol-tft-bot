@@ -135,36 +135,37 @@
 | Statikk Shiv | yes | need more info |
 | Phantom Dancer | yes | need more info |
 | Cursed Blade | yes | need shrink effect first |
-| Titanic Hydra | yes | no |
-| Repeating Crossbow | yes | no |
+| Titanic Hydra | yes | yes |
+| Repeating Crossbow | yes | insert fight first in get_damage |
 | Blade of the Ruined Kind | yes | yes |
-| Rabadon's Deathcap | yes | no |
-| Locket of the Iron Solari | yes | no |
-| Ionic Spark | yes | no |
-| Morellonomicon | yes | no |
-| Jeweled Gauntlet | yes | no |
+| Rabadon's Deathcap | yes | yes |
+| Luden' Echo | yes | insert fight first in get_damage |
+| Locket of the Iron Solari | yes | implement shield_effect first |
+| Ionic Spark | yes | yes |
+| Morellonomicon | yes | yes |
+| Jeweled Gauntlet | yes | yes |
 | Yuumi | yes | yes |
-| Seraph's Embrace | yes | no |
-| Frozen Heart | yes | no |
-| Hush | yes | no |
-| Redemption | yes | no |
-| Hand of Justice | yes | no |
+| Seraph's Embrace | yes | yes |
+| Frozen Heart | yes | yes |
+| Hush | yes | yes |
+| Redemption | yes | implement aoe first |
+| Hand of Justice | yes | need more info (heal part done) |
 | Darkin | yes | yes |
 | Thormail | yes | no |
-| Sword Breaker | yes | no |
-| Red Buff | yes | no |
-| Iceborn Gauntlet | yes | no |
+| Sword Breaker | yes | yes |
+| Red Buff | yes | yes |
+| Iceborn Gauntlet | yes | first implement Aoe |
 | Knight's Vow | yes | yes |
-| Dragons Claw | yes | no |
-| Zephyr | yes | no |
-| Quicksilver | yes | no |
-| Runaan's Hurrican | yes | no |
-| Warmog's Armor | yes | no |
-| Trap Claw | yes | no |
+| Dragons Claw | yes | yes |
+| Zephyr | yes | need mirror position info |
+| Quicksilver | yes | need to refactor to dummy.get_cc() |
+| Runaan's Hurrican | yes | need more info on item interaction |
+| Warmog's Armor | yes | yes |
+| Trap Claw | yes | need to refactor to dummy.get_cc() |
 | Frozen Mallet | yes | yes |
-| Thief's Gloves | yes | no |
+| Thief's Gloves | yes | need tier list first |
 | Mittens | yes | yes |
-| Force of Nature | yes | no |
+| Force of Nature | yes | implemented in game env |
 
 - [ ] Add Passive to Item
 - [ ] Activate Item Passive

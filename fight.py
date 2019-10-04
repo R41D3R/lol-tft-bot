@@ -5,6 +5,7 @@ import pygame
 
 from board.map import Map
 from helper.dummy import DummyChamp
+from helper.status_effect import StatusEffect
 from config import logger
 
 
@@ -27,21 +28,80 @@ class Fight:
         # disable items
 
         # trigger items like: Zeke' Herald
-
-        # @item: Zeke's Herald
-        item_name = "Zeke's Herald"
+        as_bonus = 1  # zekes
+        shield_bonus = 0  # solari
         for champ in self.team_top + self.team_bot:
+            # @todo: add combination list for Thiefs Glove
+            # @body: see twitter link in [Link](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Thief%27s_Gloves#cite_note-0)
+            # @item: Thief's Gloves
+            item_name = "Thief's Gloves"
             if champ.item_count(item_name) > 0:
-                as_bonus = 0.15 * champ.item_count(item_name)
-                # give bonus to all champs in row_range <= 2
-                possible_positions = [(champ.pos[0] + 2, champ.pos[1]),
-                                      (champ.pos[0] - 4, champ.pos[1]),
-                                      (champ.pos[0] + 4, champ.pos[1]),
-                                      (champ.pos[0] - 2, champ.pos[1]),
-                                      champ.pos]
-                for allie in self.champs_allie_team(champ):
-                    if allie.pos in possible_positions:
-                        allie.base_aa_cc += as_bonus
+                # tier rises with level
+                random_items = None
+                champ.items.extend(random_items)
+
+            # @item: Hand of Justice
+            item_name = "Hand of Justice"
+            if champ.item_count(item_name) > 0:
+                n_item = champ.item_count(item_name)
+                for item in champ.items:
+                    if random.random() <= 0.5:  # get aa and sa increase by 40%
+                        item.name = "Hand of Justice damage"
+                    else:  # aa heal 40 onhit
+                        item.name = "Hand of Justice heal"
+
+            possible_positions = [(champ.pos[0] + 2, champ.pos[1]),
+                                  (champ.pos[0] - 4, champ.pos[1]),
+                                  (champ.pos[0] + 4, champ.pos[1]),
+                                  (champ.pos[0] - 2, champ.pos[1]),
+                                  champ.pos]
+            # @item: Zeke's Herald
+            item_name = "Zeke's Herald"
+            if champ.item_count(item_name) > 0:
+                as_bonus += 0.15 * champ.item_count(item_name)
+            # @item: Locket of the Iron Solari
+            item_name = "Locket of the Iron Solari"
+            if champ.item_count(item_name) > 0:
+                shield_bonus += 300 * champ.item_count(item_name)
+
+            for allie in self.champs_allie_team(champ):
+                if allie.pos in possible_positions:
+                    # give bonus to all champs in row_range <= 2
+                    allie.base_aa_cc *= as_bonus
+                    # give shield for 7 seconds to all in row_range <= 2
+
+            # @item: Zephyr
+            item_name = "Zephyr"
+            if champ.item_count(item_name) > 0:
+                # @todo: Need mirror position info for implementation
+                mirror_posi = None
+                for enemy in self.enemy_champs_alive(champ):
+                    enemy.banish(self.map)
+
+    def activate_aura(self, champ):
+        # @item: Warmog's Armor
+        item_name = "Warmog's Armor"
+        if champ.item_count(item_name) > 0:
+            regeneration = 0
+            for item in champ.items:
+                if item.name == item_name and self.now - item.last_proc >= 1000:
+                    item.last_proc = self.now
+                    regeneration += 0.06 * (champ.max_health - champ.current_health)
+            if regeneration > 400:
+                regeneration = 400
+            if regeneration > 0:
+                champ.heal(regeneration, self.map)
+
+        # @item: Frozen Heart
+        item_name = "Frozen Heart"
+        if champ.item_count(item_name) > 0:
+            n_items = champ.item_count(item_name)
+            for enemy in self.adjacent_enemies(champ):
+                if enemy.has_effect_with_name(item_name):
+                    for effect in enemy.status_effects:
+                        if effect.name == item_name:
+                            enemy.status_effects.remove(effect)
+                enemy.status_effects.append(StatusEffect(self.map, 4, item_name, effects=["frozen_heart_" + str(n_items)]))
 
     def make_fight_step(self):
         now = pygame.time.get_ticks()
@@ -53,6 +113,7 @@ class Fight:
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
         for champ in champs:
+            self.activate_aura(champ)
             champ.check_status_effects(now)
             if champ.alive and not champ.has_effect("banish"):
                 logger.debug(f"{champ.name} turn")
@@ -72,9 +133,23 @@ class Fight:
                 elif not champ.has_effect("airborne") and not champ.has_effect("stun"):
                     if champ.mana >= champ.max_mana:
                         champ.stop_moving(self)
+
+                        # @item: Ionic Spark
+                        item_name = "Ionic Spark"
+                        n_items_enemy_team = self.enemy_team_item_count(champ, item_name)
+                        if n_items_enemy_team > 0:
+                            champ.get_damage("true", 125 * n_items_enemy_team, self.map, origin="item", originator=champ)
+
                         champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                         champ.sa_counter += 1
                         champ.mana = 0
+
+                        # @item: Seraph's Embrace
+                        item_name = "Seraph's Embrace"
+                        if champ.item_count(item_name) > 0:
+                            n_items = champ.item_count(item_name)
+                            champ.get_mana(item_name, 20 * n_items)
+
                     elif len(enemies_in_range) > 0 and (champ.target_pos is None):
                         champ.stop_moving(self)
                         if now - champ.aa_last >= champ.aa_cc:
@@ -176,6 +251,20 @@ class Fight:
             return self.team_top
         else:
             return self.team_bot
+
+    def adjacent_enemies(self, champ):
+        adjacent_enemies = []
+        adjacent_ids = [cell.id for cell in self.map.get_cell_from_id(champ.pos)]
+        for enemy in self.enemy_champs_alive(champ):
+            if enemy.pos in adjacent_ids:
+                adjacent_enemies.append(enemy)
+        return adjacent_enemies
+
+    def enemy_team_item_count(self, champ, item_name):
+        item_count = 0
+        for enemy in self.champs_enemy_team(champ):
+            item_count += enemy.item_count(item_name)
+        return item_count
 
     def render(self, surface):
         self.map.draw(surface)
