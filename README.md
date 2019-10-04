@@ -30,6 +30,9 @@
 - [ ] ADD all Abilities to Champs
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
+<table>
+<tr><td>
+
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
 | Aatrox | no | no |
@@ -52,6 +55,13 @@
 | Garen | no | no |
 | Gnar | no | no |
 | Graves | no | no |
+
+
+
+</td><td>
+
+| Name | Stats | Ability |
+| ---- | ----- | ------- |
 | Jayce | no | no |
 | Jinx | no | no |
 | Kaisa | no | no |
@@ -71,6 +81,13 @@
 | Nidalee | no | no |
 | Pantheon | no | no |
 | Poppy | no | no |
+
+
+</td>
+<td>
+
+| Name | Stats | Ability |
+| ---- | ----- | ------- |
 | Pyke | no | no |
 | Reksai | no | no |
 | Rengar | no | no |
@@ -89,6 +106,9 @@
 | Yasuo | no | no |
 | Zed | no | no |
 
+
+</td></tr>
+</table>
 
 - [x] ADD Status Effect to Champs
     * Effect List
@@ -109,6 +129,11 @@
 - [ ] Add Passive to Item
 - [x] Show Items
 - [ ] Show Item Effects
+
+
+<table>
+<tr>
+<td>
 
 | Name | Stats | Effect |
 | ---- | ----- | ------- |
@@ -139,6 +164,11 @@
 | Repeating Crossbow | yes | insert fight first in get_damage |
 | Blade of the Ruined Kind | yes | yes |
 | Rabadon's Deathcap | yes | yes |
+
+</td><td>
+
+| Name | Stats | Effect |
+| ---- | ----- | ------- |
 | Luden' Echo | yes | insert fight first in get_damage |
 | Locket of the Iron Solari | yes | implement shield_effect first |
 | Ionic Spark | yes | yes |
@@ -151,7 +181,7 @@
 | Redemption | yes | implement aoe first |
 | Hand of Justice | yes | need more info (heal part done) |
 | Darkin | yes | yes |
-| Thormail | yes | no |
+| Thormail | yes | yes |
 | Sword Breaker | yes | yes |
 | Red Buff | yes | yes |
 | Iceborn Gauntlet | yes | first implement Aoe |
@@ -166,6 +196,9 @@
 | Thief's Gloves | yes | need tier list first |
 | Mittens | yes | yes |
 | Force of Nature | yes | implemented in game env |
+</td>
+</tr>
+</table>
 
 - [ ] Add Passive to Item
 - [ ] Activate Item Passive
@@ -176,6 +209,9 @@
 ***
 - [ ] ADD all Synergies (Origins and Classes)
 - [ ] Show Synergies
+<table><tr>
+<td>
+
 | Origin | Implemented | 
 | ---- | ----- | 
 | Demon | no |
@@ -192,7 +228,7 @@
 | Void | no |
 | Wild | no |
 | Yordle | no |
-
+</td><td>
 
 | Class | Implemented |
 | ---- | ----- |
@@ -206,6 +242,9 @@
 | Ranger | no |
 | Shapeshifter | no |
 | Sorcerer | no |
+</td>
+</tr>
+</table>
 > Synergies should work properly
 ***
 - [ ] Update Database with Patchnotes
