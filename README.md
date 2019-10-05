@@ -1,17 +1,18 @@
 # lol-tft-bot
+[Trello open questions](https://trello.com/b/PiM2IKjo/team-fight-tactics-fragen)
+and
+[invite Link](https://trello.com/invite/b/PiM2IKjo/81dc0be800a58f3bba8084d4e450206a/team-fight-tactics-fragen)
 
 ## Content
 1. [Plan](#plan)
-    *  :on: [Fight Simulaiton](#fight-simulation)
-    *  :soon: [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
-    *  :soon: [Game Info](#game-info)
-    *  :soon: [Actions](#actions-in-game)
+    * [Fight Simulaiton](#fight-simulation)
+    * [Game Mechanics (Gym)](#Game-Mechanics-(Gym))
+    * [Game Info](#game-info)
+    * [Actions](#actions-in-game)
 2. [Resourcen](#resourcen)
 3. [Github Repos](#github-repos)
 
-> [Emoji List](https://www.webfx.com/tools/emoji-cheat-sheet/)
-
-# Plan
+## Plan
 ### Fight Simulation
 - [x] Board with Cells (+ Neighbors)
 - [x] Place Champs on Board 
@@ -26,7 +27,7 @@
 - [x] ADD 10 sample champs with real stats
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
-- [ ] ADD all Champs (Stats)
+- [x] ADD all Champs (Stats)
 - [ ] ADD all Abilities to Champs
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
@@ -118,18 +119,17 @@
     - [x] grievous wounds
     - [x] disarm
     - [x] stealth
-    - [x] shrink
+    - [ ] shrink
     - [x] Stun
     - [x] Root
     - [x] Airborne
 - [ ] Add displacement (Airborne, Knockback)
 ***
-> dont forget to add status effect mechanics when implementing
 - [x] Add Base Items
 - [x] Add all items (stats)
-- [ ] Add Passive to Item
+- [x] Add Passive to Item
 - [x] Show Items
-- [ ] Show Item Effects
+- [ ] Show Item Effects (Visual)
 
 
 <table>
@@ -201,14 +201,8 @@
 </tr>
 </table>
 
-- [ ] Add Passive to Item
-- [ ] Activate Item Passive
-- [ ] Show Items (active/passive)
-> Items should work perfectly til here
-- [ ] ADD all Items (Stats)
-- [ ] ADD Passive for all Items
 ***
-- [ ] ADD all Synergies (Origins and Classes)
+- [ ] ADD all Synergies 20/24
 - [ ] Show Synergies
 <table><tr>
 <td>
@@ -247,9 +241,8 @@
 </tr>
 </table>
 
-> Synergies should work properly
 ***
-
+- [ ] Does Pathfinding work properly?
 - [ ] Update Database with Patchnotes
 - [ ] Test Simulation with Game Info (Win Loose from Positions with all Variables(Champ, Item, Rank, ...)
 - [ ] **finally** remove pygame for HPC
@@ -309,7 +302,13 @@ Do I need to include Champ Stats, Synergies ... ?
 
 
 ### Resourcen
-* [Champion Mechanics](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Champions)
+**Other Stuff**
+* [Coordinate System](https://www.redblobgames.com/grids/hexagons/#coordinates)
+* [PyGame Primer](https://realpython.com/pygame-a-primer/)
+* [PyGame Drawing](https://sites.cs.ucsb.edu/~pconrad/cs5nm/topics/pygame/drawing/)
+
+**TFT**
+* [Champion Mechanics (__best site__)](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Champions)
 * [Rolling, Rounds, Database](https://tftactics.gg/db/rolling)
 * [Champion Stats](https://rankedboost.com/league-of-legends/teamfight-tactics/akali/)
 * [Patchnotes](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:V9.18)
