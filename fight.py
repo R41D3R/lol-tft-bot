@@ -96,7 +96,7 @@ class Fight:
             item_name = "Thief's Gloves"
             if champ.item_count(item_name) > 0:
                 # tier rises with level
-                random_items = None
+                random_items = []
                 champ.items.extend(random_items)
 
             # @item: Hand of Justice
@@ -343,7 +343,7 @@ class Fight:
         if champ.item_count(item_name) > 0:
             regeneration = 0
             for item in champ.items:
-                if item.name == item_name and self.now - item.last_proc >= 1000:
+                if item.last_proc is None or self.now - item.last_proc >= 1000 and item.name == item_name:
                     item.last_proc = self.now
                     regeneration += 0.06 * (champ.max_health - champ.current_health)
             if regeneration > 400:
@@ -569,7 +569,7 @@ class Fight:
 
     def adjacent_enemies(self, champ):
         adjacent_enemies = []
-        adjacent_ids = [cell.id for cell in self.map.get_cell_from_id(champ.pos)]
+        adjacent_ids = [cell.id for cell in self.map.get_cell_from_id(champ.pos).neighbors]
         for enemy in self.enemy_champs_alive(champ):
             if enemy.pos in adjacent_ids:
                 adjacent_enemies.append(enemy)
@@ -577,7 +577,7 @@ class Fight:
 
     def adjacent_allies(self, champ):
         adjacent_allies = []
-        neighbor_ids = [cell.id for cell in self.map.get_cell_from_id(champ).neighbors]
+        neighbor_ids = [cell.id for cell in self.map.get_cell_from_id(champ.pos).neighbors]
         for allie in self.champs_allie_team(champ):
             if allie.pos in neighbor_ids:
                 adjacent_allies.append(allie)

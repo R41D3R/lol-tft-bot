@@ -28,7 +28,7 @@ class Aoe:
     @property
     def area(self):
         if self.effected_area == "around_user":
-            if self.user.is_alive:
+            if self.user.alive:
                 return self.user.neighbors
             else:
                 return []

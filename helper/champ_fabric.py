@@ -1,13 +1,13 @@
 import random
 
 import pygame
+import pandas as pd
 
 from helper.dummy import DummyChamp
 from helper.dummy_vision_event import DummyEvent
 from helper.status_effect import StatusEffect
 from helper.aoe import Aoe
 from config import logger
-from helper.champs import champs_dict
 from data.items_base_stats import Item, all_items
 
 
@@ -16,14 +16,20 @@ from data.items_base_stats import Item, all_items
 class ChampionFabric:
     def __init__(self):
         self.possible_positions = [(x, y) for x in range(7) for y in range(3)]  # rows 0..2, cols 0..6
+        file = "data/champ_database.csv"
+        champs = pd.read_csv(file, index_col="name")
+        self.champ_dict = champs.to_dict("index")
 
     def get_team(self):
         logger.info("Team gets initialized.")
         k = 3
-        k_picks = random.sample(list(champs_dict.items()), k)
+        k_picks = random.sample(list(self.champ_dict.items()), k)
         k_pos = random.sample(self.possible_positions, k)
         k_ranks = [random.choices([1, 2, 3], weights=[0.85, 0.1, 0.05])[0] for i in range(k)]
-        return [self.get_champ(pos, item, rank) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
+        champs = [self.get_champ(pos, item, rank) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
+        for champ in champs:
+            print(champ.name)
+        return champs
 
     @staticmethod
     def get_items():
@@ -47,7 +53,7 @@ class ChampionFabric:
             return Anivia(pos, champ_item, rank, items=items)
         if champ_item[0] == "Ashe":
             return Ashe(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Aurelion Sol":
+        if champ_item[0] == "Aurelion-Sol":
             return AurelionSol(pos, champ_item, rank, items=items)
         if champ_item[0] == "Blitzcrank":
             return Blitzcrank(pos, champ_item, rank, items=items)
@@ -57,57 +63,55 @@ class ChampionFabric:
             return Braum(pos, champ_item, rank, items=items)
         if champ_item[0] == "Camille":
             return Camille(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Cho'gath":  # check name
+        if champ_item[0] == "ChoGath":
             return ChoGath(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Darius":  # check name
+        if champ_item[0] == "Darius":
             return Darius(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Draven":  # check name
+        if champ_item[0] == "Draven":
             return Draven(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Elise":  # check name
+        if champ_item[0] == "Elise":
             return Elise(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Evelynn":  # check name
+        if champ_item[0] == "Evelynn":
             return Evelyn(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Fiora":  # check name
+        if champ_item[0] == "Fiora":
             return Fiora(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Gangplank":  # check name
+        if champ_item[0] == "Gangplank":
             return Gangplank(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Garen":  # check name
+        if champ_item[0] == "Garen":
             return Garen(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Gnar":  # check name
+        if champ_item[0] == "Gnar":
             return Gnar(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Graves":  # check name
+        if champ_item[0] == "Graves":
             return Graves(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Jayce":  # check name
+        if champ_item[0] == "Jayce":
             return Jayce(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Jinx":  # check name
+        if champ_item[0] == "Jinx":
             return Jinx(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kaisa":  # check name
+        if champ_item[0] == "KaiSa":
             return Kaisa(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Karthus":  # check name
+        if champ_item[0] == "Karthus":
             return Karthus(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kassadin":  # check name
+        if champ_item[0] == "Kassadin":
             return Kassadin(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Katarina":  # check name
+        if champ_item[0] == "Katarina":
             return Kataring(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kayle":  # check name
+        if champ_item[0] == "Kayle":
             return Kayle(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kennen":  # check name
+        if champ_item[0] == "Kennen":
             return Kennen(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kha'zix":  # check name
+        if champ_item[0] == "KhaZix":
             return Khazix(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Kindred":  # check name
+        if champ_item[0] == "Kindred":
             return Kindred(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Leona":  # check name
+        if champ_item[0] == "Leona":
             return Leona(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Lissandra":  # check name
+        if champ_item[0] == "Lissandra":
             return Lissandra(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Lucian":  # check name
+        if champ_item[0] == "Lucian":
             return Lucian(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Lulu":  # check name
+        if champ_item[0] == "Lulu":
             return Lulu(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Lucian":  # check name
-            return Lucian(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Miss Fortune":  # check name
+        if champ_item[0] == "Miss-Fortune":  # check name
             return MissFortune(pos, champ_item, rank, items=items)
         if champ_item[0] == "Mordekaiser":  # check name
             return Mordekaiser(pos, champ_item, rank, items=items)
@@ -121,7 +125,7 @@ class ChampionFabric:
             return Poppy(pos, champ_item, rank, items=items)
         if champ_item[0] == "Pyke":  # check name
             return Pyke(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Rek'sai":  # check name
+        if champ_item[0] == "RekSai":  # check name
             return Reksai(pos, champ_item, rank, items=items)
         if champ_item[0] == "Rengar":  # check name
             return Rengar(pos, champ_item, rank, items=items)
@@ -135,7 +139,7 @@ class ChampionFabric:
             return Swain(pos, champ_item, rank, items=items)
         if champ_item[0] == "Tristana":  # check name
             return Tristana(pos, champ_item, rank, items=items)
-        if champ_item[0] == "Twisted Fate":  # check name
+        if champ_item[0] == "Twisted-Fate":  # check name
             return TwistedFate(pos, champ_item, rank, items=items)
         if champ_item[0] == "Varus":  # check name
             return Varus(pos, champ_item, rank, items=items)
@@ -153,6 +157,7 @@ class ChampionFabric:
             return Yasuo(pos, champ_item, rank, items=items)
         if champ_item[0] == "Zed":  # check name
             return Zed(pos, champ_item, rank, items=items)
+        print(champ_item[0])
 
 
 # @todo: What should champ do if no enemy is in range for sa
@@ -898,9 +903,10 @@ class Shen(DummyChamp):
 
     def special_ability(self, fight, in_range, visible, alive, time):
         # creates zone around self.pos
-        effect = StatusEffect(fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
-        aoe = Aoe(time, self.sa_duration[self.rank - 1], 0, "around_user", "allie_team", "zone", self, fight, 0, status_effetct=effect)
-        fight.aoe.append(aoe)
+        # effect = StatusEffect(fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
+        # aoe = Aoe(time, self.sa_duration[self.rank - 1], 0, "around_user", "allie_team", "zone", self, fight, 0, status_effetct=effect)
+        # fight.aoe.append(aoe)
+        pass
 
 
 class Shyvana(DummyChamp):

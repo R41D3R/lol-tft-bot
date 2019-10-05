@@ -18,6 +18,7 @@ class DummyChamp:
         self.rank = rank
 
         self.base_stats = champ_item[1]
+        print(self.base_stats)
         # base stats
         # @todo: implement base_health and base_ad as multiple of base stat
         # @body: include 0-Star stat
@@ -25,20 +26,20 @@ class DummyChamp:
         # 1-star: 100% of maximum health and attack damage.
         # 2-star: 180% of maximum health and attack damage.
         # 3-star: 360% of maximum health and attack damage.
-        self.base_range = self.base_stats["range"]
+        self.base_range = int(self.base_stats["range"])
         self.name = champ_item[0]
-        self.base_health = self.base_stats["health"][rank - 1]
-        self.base_ad = self.base_stats["ad"][rank - 1]
-        self.base_aa_cc = self.base_stats["attack_speed"]
-        self.max_mana = self.base_stats["mana"]
-        self.mana = self.base_stats["starting_mana"] + (20 * len([item for item in self.items if "mana" in item.attribute]))
-        self.base_armor = self.base_stats["armor"]
-        self.base_mr = self.base_stats["mr"]
+        self.base_health = [int(e) for e in self.base_stats["hp"].split(" / ")][rank - 1]
+        self.base_ad = [int(e) for e in self.base_stats["dmg"].split(" / ")][rank - 1]
+        self.base_aa_cc = float(self.base_stats["atk_speed"])
+        self.max_mana = int(self.base_stats["mana"])
+        self.mana = int(self.base_stats["starting_mana"]) + (20 * len([item for item in self.items if "mana" in item.attribute]))
+        self.base_armor = int(self.base_stats["armor"])
+        self.base_mr = int(self.base_stats["mr"])
         self.base_crit_chance = 0.25
         self.base_crit_bonus = 0.5
         self.base_dodge_chance = 0
-        self.base_origin = self.base_stats["origin"]  # list
-        self.base_class = self.base_stats["class"]  # list
+        self.base_origin = self.base_stats["origin"].split()  # list
+        self.base_class = self.base_stats["class"].split()  # list
 
         # positions
         self.pos = init_pos
@@ -238,7 +239,7 @@ class DummyChamp:
             # @item: Giant Slayer
             item_name = "Giant Slayer"
             if self.item_count(item_name) > 0:
-                on_hit_damage = self.item_count(item_name) * target.max_healh * 0.05
+                on_hit_damage = self.item_count(item_name) * target.max_health * 0.05
                 target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
 
             # @item: Cursed Blade
@@ -364,7 +365,7 @@ class DummyChamp:
         item_bonus = 0
         item_bonus += self.base_aa_cc * 0.2 * self.item_sum_from("attack_speed")
 
-        frozen_heart_debuff = 0
+        frozen_heart_debuff = 1
         # @item: Frozen Heart
         if self.has_effect("frozen_heart_1"):
             frozen_heart_debuff = 0.35
@@ -803,7 +804,7 @@ class DummyChamp:
         if self.item_count(item_name) > 0:
             for item in self.items:
                 if item.name == item_name:
-                    item.attribute.append("crit_chance", "crit_chance", "attack_speed")
+                    item.attribute.extend(["crit_chance", "crit_chance", "attack_speed"])
                     # @todo: give Repeating Crossbow to other champ (first replace map_)
                     # @body: give item to other random alive champ in allie team (also npc)
         # @item: Deathblade
@@ -884,7 +885,7 @@ class DummyChamp:
         # mana background bar
         pygame.draw.rect(surface, (0, 0, 0), (mb_x, mb_y, mb_width, mb_height))
         # mana progress bar
-        pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * self.mana / self.max_mana), mb_height))
+        pygame.draw.rect(surface, (52, 219, 235), (mb_x, mb_y, int(mb_width * (self.mana / (self.max_mana + 0.01))), mb_height))
 
         # ----- status effects ------
         # channeling
@@ -920,8 +921,8 @@ class DummyChamp:
 
         # ----- damage -----
         for dmg in self.damage_events:
-            if dmg.is_active:
-                dmg.render(surface)
+            if dmg.is_active(fight.now):
+                dmg.render(surface, fight.now)
             else:
                 self.damage_events.remove(dmg)
 
@@ -1003,6 +1004,8 @@ class DummyChamp:
                     best_path = path
             else:
                 best_path = path
+        if best_path is None:
+            return None
         if len(best_path) == 0:
             return None
         # print(best_path)
