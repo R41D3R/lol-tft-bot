@@ -22,6 +22,7 @@ class Fight:
         self.bot_synergy = {}
         self.top_synergy = {}
         self.hextech_tick = None
+        self.ranger_tick = None
         self.hextech_disabled_champs = []
 
         self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
@@ -57,6 +58,31 @@ class Fight:
                 champ.team_synergies = self.bot_synergy
             else:
                 champ.team_synergies = self.top_synergy
+
+            # @synergy: Sorcerer
+            synergy_name = "Sorcerer"
+            if synergy_name in self.top_synergy:
+                n_syn = self.top_synergy[synergy_name]
+                ap_bonus = 0
+                if n_syn >= 9:
+                    ap_bonus += 175
+                elif n_syn >= 6:
+                    ap_bonus += 100
+                elif n_syn >= 3:
+                    ap_bonus += 40
+                for allie in self.team_top:
+                    allie.start_ap_bonus += ap_bonus
+            elif synergy_name in self.bot_synergy:
+                n_syn = self.bot_synergy[synergy_name]
+                ap_bonus = 0
+                if n_syn >= 9:
+                    ap_bonus += 175
+                elif n_syn >= 6:
+                    ap_bonus += 100
+                elif n_syn >= 3:
+                    ap_bonus += 40
+                for allie in self.team_bot:
+                    allie.start_ap_bonus += ap_bonus
 
             # @synergy: Exile
             synergy_name = "Exile"
@@ -345,6 +371,7 @@ class Fight:
             self.set_team_synergies()
 
             self.trigger_fight_start()
+            self.ranger_tick = self.now
         champs = [champ for champ in self.team_bot + self.team_top if champ.alive]
         random.shuffle(champs)
 
@@ -355,6 +382,24 @@ class Fight:
                 self.hextech_tick = None
                 for champ in self.hextech_disabled_champs:
                     champ.items += champ.disabled_items
+
+        # @synergy: Ranger
+        synergy_name = "Ranger"
+        if self.now - self.ranger_tick >= 3000:
+            self.ranger_tick = self.now
+            rnd_n = random.random()
+            if synergy_name in self.bot_synergy:
+                n_syn = self.bot_synergy[synergy_name]
+                if (n_syn >= 4 and rnd_n <= 0.7) or (n_syn >= 2 and rnd_n <= 0.25):
+                    for champ in self.team_bot:
+                        if synergy_name in champ.class_:
+                            champ.status_effects.append(StatusEffect(self.map, 3, "Ranger", effects=["double_attack_speed"]))
+            elif synergy_name in self.top_synergy:
+                n_syn = self.top_synergy[synergy_name]
+                if (n_syn >= 4 and rnd_n <= 0.7) or (n_syn >= 2 and rnd_n <= 0.25):
+                    for champ in self.team_top:
+                        if synergy_name in champ.class_:
+                            champ.status_effects.append(StatusEffect(self.map, 3, "Ranger", effects=["double_attack_speed"]))
 
         for champ in champs:
             self.activate_aura(champ)
@@ -387,6 +432,32 @@ class Fight:
                         champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                         champ.sa_counter += 1
                         champ.mana = 0
+
+                        # @synergy: Shapeshifter
+                        synergy_name = "Shapeshifter"
+                        if champ.sa_counter == 1:
+                            if synergy_name in self.top_synergy and synergy_name in champ.class_:
+                                n_syn = self.top_synergy[synergy_name]
+                                health_bonus = 0
+                                if n_syn >= 6:
+                                    health_bonus = 1
+                                elif n_syn >= 3:
+                                    health_bonus = 0.6
+                                if health_bonus > 0:
+                                    bonus = health_bonus * champ.max_health
+                                    champ.base_health += bonus
+                                    champ.heal(bonus, self.map)
+                            elif synergy_name in self.bot_synergy and synergy_name in champ.class_:
+                                n_syn = self.bot_synergy[synergy_name]
+                                health_bonus = 0
+                                if n_syn >= 6:
+                                    health_bonus = 1
+                                elif n_syn >= 3:
+                                    health_bonus = 0.6
+                                if health_bonus > 0:
+                                    bonus = health_bonus * champ.max_health
+                                    champ.base_health += bonus
+                                    champ.heal(bonus, self.map)
 
                         # @item: Seraph's Embrace
                         item_name = "Seraph's Embrace"

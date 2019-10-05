@@ -35,26 +35,26 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Aatrox | no | no |
-| Ahri | no | no
-| Akali | no | no |
-| Anivia | no | no |
-| Ashe | no | no |
-| Aurelion | no | no |
-| Blitzcrank | no | no |
-| Brand | no | no |
-| Braum | no | no |
-| Camille | no | no |
-| ChoGath | no | no |
-| Darius | no | no |
-| Draven | no | no |
-| Elise | no | no |
-| Evelynn | no | no |
-| Fiora | no | no |
-| Gangplank | no | no |
-| Garen | no | no |
-| Gnar | no | no |
-| Graves | no | no |
+| Aatrox | yes | no |
+| Ahri | yes | no |
+| Akali | yes | no |
+| Anivia | yes | no |
+| Ashe | yes | no |
+| Aurelion | yes | no |
+| Blitzcrank | yes | no |
+| Brand | yes | no |
+| Braum | yes | no |
+| Camille | yes | no |
+| ChoGath | yes | no |
+| Darius | yes | no |
+| Draven | yes | no |
+| Elise | yes | no |
+| Evelynn | yes | no |
+| Fiora | yes | no |
+| Gangplank | yes | no |
+| Garen | yes | no |
+| Gnar | yes | no |
+| Graves | yes | no |
 
 
 
@@ -62,15 +62,15 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Jayce | no | no |
-| Jinx | no | no |
-| Kaisa | no | no |
-| Karthus | no | no |
-| Kassadin | no | no |
-| Kararina | no | no |
-| Kayle | no | no |
-| Kennen | no | no |
-| Khazix | no | no |
+| Jayce | yes | no |
+| Jinx | yes | no |
+| Kaisa | yes | no |
+| Karthus | yes | no |
+| Kassadin | yes | no |
+| Kararina | yes | no |
+| Kayle | yes | no |
+| Kennen | yes | no |
+| Khazix | yes | no |
 | Leona | no | no |
 | Lissandra | no | no |
 | Lucian | no | no |
@@ -219,7 +219,7 @@
 | Exile | yes |
 | Glacial | yes |
 | Hextech | yes |
-| Imperial | yes |
+| Imperial | refactor to deal damage |
 | Ninja | yes |
 | Noble | yes |
 | Phantom | yes |
@@ -237,11 +237,11 @@
 | Brawler | yes |
 | Elementalist | implement golem + summon |
 | Guardian | yes |
-| Gunslinger | no |
-| Knight | no |
-| Ranger | no |
-| Shapeshifter | no |
-| Sorcerer | no |
+| Gunslinger | yes |
+| Knight | yes |
+| Ranger | yes |
+| Shapeshifter | yes |
+| Sorcerer | yes |
 </td>
 </tr>
 </table>
