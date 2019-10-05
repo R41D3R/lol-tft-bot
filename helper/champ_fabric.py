@@ -95,6 +95,64 @@ class ChampionFabric:
             return Kennen(pos, champ_item, rank, items=items)
         if champ_item[0] == "Kha'zix":  # check name
             return Khazix(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Kindred":  # check name
+            return Kindred(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Leona":  # check name
+            return Leona(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Lissandra":  # check name
+            return Lissandra(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Lucian":  # check name
+            return Lucian(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Lulu":  # check name
+            return Lulu(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Lucian":  # check name
+            return Lucian(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Miss Fortune":  # check name
+            return MissFortune(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Mordekaiser":  # check name
+            return Mordekaiser(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Morgana":  # check name
+            return Morgana(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Nidalee":  # check name
+            return Nidalee(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Pantheon":  # check name
+            return Pantheon(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Poppy":  # check name
+            return Poppy(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Pyke":  # check name
+            return Pyke(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Rek'sai":  # check name
+            return Reksai(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Rengar":  # check name
+            return Rengar(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Sejuani":  # check name
+            return Sejuani(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Shen":  # check name
+            return Shen(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Shyvana":  # check name
+            return Shyvana(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Swain":  # check name
+            return Swain(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Tristana":  # check name
+            return Tristana(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Twisted Fate":  # check name
+            return TwistedFate(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Varus":  # check name
+            return Varus(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Vayne":  # check name
+            return Vayne(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Veigar":  # check name
+            return Veigar(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Vi":  # check name
+            return Vi(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Volibear":  # check name
+            return Volibear(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Warwick":  # check name
+            return Warwick(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Yasuo":  # check name
+            return Yasuo(pos, champ_item, rank, items=items)
+        if champ_item[0] == "Zed":  # check name
+            return Zed(pos, champ_item, rank, items=items)
 
 
 # @todo: What should champ do if no enemy is in range for sa
@@ -451,6 +509,16 @@ class Jayce(DummyChamp):
             for effect in effects:
                 self.status_effects.remove(effect)
 
+    @property
+    def aa_cc(self):
+        if self.rank_on_use:
+            rank = self.rank_on_use
+        else:
+            rank = self.rank
+        super_aa_cc = 1 / super().aa_cc / 1000
+        return int(
+            1 / (super_aa_cc + self.as_increase[rank - 1] * len(self.get_all_effects_with("jayce_as_boost"))) * 1000)
+
 
 class Jinx(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
@@ -572,7 +640,50 @@ class Khazix(DummyChamp):
             fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
 
 
+class Kindred(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_duration = [3, 4, 5]
+        self.sa_health_drop = [300, 600, 900]
 
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Creates a zone around themselves
+        # for 3 / 4 / 5 seconds that prevents allies
+        # within from dropping below 300 / 600 / 900
+        # health or dying.
+
+
+class Leona(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [175, 250, 325]
+        self.sa_stun_duration = [5, 7, 9]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After a 0.625-second delay, calls down
+        # a solar ray in a 3x3 area, dealing 175 / 250 / 325
+        # magic damage to all enemies within and Stun icon
+        # stunning the enemy in the center for 5 / 7 / 9
+        # seconds.
+
+
+class Lissandra(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [175, 325, 475]
+        self.sa_stun_duration = 1.5
+        self.sa_untargetable_duration = 2
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Encases an enemy in ice, Stun icon
+        # stunning them for 1.5 seconds and dealing 175 / 325 / 475
+        # magic damage to all enemies in the surrounding area.
+        # If she is below 50% health, instead encases herself,
+        # becoming untargetable for 2 seconds and dealing the
+        # same magic damage to all enemies in the surrounding area.
 
 
 class Lucian(DummyChamp):
@@ -603,47 +714,46 @@ class Lucian(DummyChamp):
             target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
 
 
-
-
-
-class Shen(DummyChamp):
+class Lulu(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
-        self.sa_duration = [3, 4, 5]
-
-    def special_ability(self, fight, in_range, visible, alive, time):
-        # creates zone around self.pos
-        effect = StatusEffect(fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
-        aoe = Aoe(time, self.sa_duration[self.rank - 1], 0, "around_user", "allie_team", "zone", self, fight, 0, status_effetct=effect)
-        fight.aoe.append(aoe)
-
-
-
-
-
-
-
-    @property
-    def aa_cc(self):
-        if self.rank_on_use:
-            rank = self.rank_on_use
-        else:
-            rank = self.rank
-        super_aa_cc = 1 / super().aa_cc / 1000
-        return int(1 / (super_aa_cc + self.as_increase[rank - 1] * len(self.get_all_effects_with("jayce_as_boost"))) * 1000)
-
-
-class Swain(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
-        self.sa_duration = 6
-        self.sa_damage = [40, 80, 120]
-        self.interval = 0.5 * 1000
-        self.sa_healing = [30, 60, 90]
-        self.sa_end_damage = [300, 600, 900]
+        self.sa_bonus_health = [300, 400, 500]
+        self.sa_bonus_health_duration = 6
+        self.sa_knockup_duration = 1.25
+        self.sa_allies = [1, 2, 3]
 
     def special_ability(self, fight, in_range, visible, alive, time):
         pass
+        # Active: Grants 1 / 2 / 3 allies 300 / 400 / 500
+        # bonus health for 6 seconds, Airborne icon knocking
+        # up adjacent enemies near them for 1.25 seconds.
+
+
+class MissFortune(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_duration = 3
+        self.sa_tick_damage = [1300 / 14, 2000 / 14, 2700 / 14]
+        self.sa_tick_interval = 3 / 14
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Channels and fires 14 waves of bullets in
+        # a cone for 3 seconds, dealing a total of
+        # 1300 / 2000 / 2700 magic damage to all enemies
+        # within over the duration.
+
+
+class Mordekaiser(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [250, 500, 750]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Slams his mace on two spaces in front of
+        # him, dealing 250 / 500 / 750 magic damage to enemies
+        # within.
 
 
 class Morgana(DummyChamp):
@@ -664,30 +774,23 @@ class Morgana(DummyChamp):
         # the same magic damage.
 
 
-class Varus(DummyChamp):
+class Nidalee(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
-        self.sa_channeltime = int(1.5 * 1000)
-        self.sa_range = 8
-        self.sa_damage = [300, 550, 800]
+        self.sa_delay = 0.5
+        self.sa_heal_duration = 6
+        self.sa_heal_tick = [150 / 6, 375 / 6, 600 / 6]
+        self.sa_cat_duration = 60
+        self.sa_cat_ad_bonus = [20, 70, 120]
 
     def special_ability(self, fight, in_range, visible, alive, time):
         pass
-        # Active: After channeling for 1.5 seconds, fires a piercing
-        # arrow up to 8 hexes away, dealing 300 / 550 / 800 magic damage
-        # to all enemies in its path.
-
-
-class AurelioSol(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
-        self.sa_delay = int(0.35 * 1000)
-        self.sa_damage = [250, 500, 750]
-
-    def special_ability(self, fight, in_range, visible, alive, time):
-        pass
-        # Active: After a 0.35-second delay, breathes fire in a line,
-        # dealing 250 / 500 / 750 magic damage to all enemies in the area.
+        # Active: After a 0.5-second delay, heals herself and
+        # the weakest ally over 6 seconds, healing them for
+        # a total of 150 / 375 / 600 health, then transforms
+        # to her Cat Form, becoming a Melee role melee attacker
+        # for 60 seconds.
+        # While in Cat Form, gains 20 / 70 / 120 attack damage.
 
 
 class Pantheon(DummyChamp):
@@ -707,6 +810,99 @@ class Pantheon(DummyChamp):
         # for the duration, reducing healing on the target.
 
 
+class Poppy(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_charge_duration = 0.75
+        self.sa_enemies = [1, 2, 3]
+        self.sa_damage = [300, 500, 700]
+        self.sa_airborne_duration = 1
+        self.sa_stun_duration = [2, 3, 4]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After charging for 0.75 seconds, creates a
+        # shockwave in a line that can hit up to 1 / 2 / 3
+        # enemies, dealing 300 / 500 / 700 magic damage,
+        # Airborne icon knocking up for 1 second and Stun icon
+        # stunning them for 2 / 3 / 4 seconds.
+
+
+class Pyke(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_image_return = 1
+        self.sa_damage = [150, 200, 250]
+        self.sa_stun_duration = [1.5, 2, 2.5]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Leaves an afterimage at his location,
+        # then dashes behind the farthest enemy. After 1 second,
+        # his afterimage returns to him, dealing 150 / 200 / 250
+        # magic damage to all enemies it passes through and
+        # and Stun icon stunning them for 1.5 / 2 / 2.5 seconds.
+
+
+class Reksai(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_untargetable_duration = 1
+        self.sa_healing_per_half_second = [150, 300, 450]
+        self.sa_damage = [200, 350, 500]
+        self.sa_airborne_duration = 1.75
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Burrows, becoming untargetable for 1 second
+        # while healing each 0.5 seconds for 150 / 300 / 450 health
+        # in total. She then emerges at her target, dealing 200 / 350 / 500
+        # magic damage and Airborne icon knocking them up for 1.75 seconds.
+
+
+class Rengar(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_percent_ad_damage = [2, 3, 4]
+        self.sa_duration = 6
+        self.sa_crit_chance_increase = 0.25
+        self.sa_attack_speed_bonus_total = [0.3, 0.5, 0.7]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Leaps to and stabs the weakest enemy,
+        # dealing 200 / 300 / 400% AD physical damage and applying
+        # on-hit effects to his target. After this leap, for the next
+        # 6 seconds, gains 25% critical strike chance and increases his
+        # total attack speed by 30 / 50 / 70%.
+
+
+class Sejuani(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_delay = 2
+        self.sa_damage = [100, 175, 250]
+        self.sa_stun_duration = [2, 3.5, 5]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After a 2 second delay, creates a glacial prison
+        # on an enemy, dealing 100 / 175 / 250 magic damage to all
+        # nearby enemies and Stun icon stunning them for 2 / 3.5 / 5 seconds.
+
+
+class Shen(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_duration = [3, 4, 5]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        # creates zone around self.pos
+        effect = StatusEffect(fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
+        aoe = Aoe(time, self.sa_duration[self.rank - 1], 0, "around_user", "allie_team", "zone", self, fight, 0, status_effetct=effect)
+        fight.aoe.append(aoe)
+
+
 class Shyvana(DummyChamp):
     def __init__(self, pos, champ_item, rank, items=None):
         super().__init__(pos, champ_item, rank, items=items)
@@ -723,4 +919,175 @@ class Shyvana(DummyChamp):
         # dealing a total of 200 / 300 / 400 bonus magic damage.
 
 
+class Swain(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_duration = 6
+        self.sa_damage = [40, 80, 120]
+        self.interval = 0.5 * 1000
+        self.sa_healing = [30, 60, 90]
+        self.sa_end_damage = [300, 600, 900]
 
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Transforms to his Demon Form for 6 seconds.
+        # While in Demon Form, drains health from nearby enemies,
+        # dealing 40 / 80 / 120 magic damage and healing himself
+        # for 30 / 60 / 90 each 0.5 seconds for each enemy in range.
+        # At the end of the transformation, sends out a Soul Flare,
+        # dealing 300 / 600 / 900 magic damage to all nearby enemies.
+        # In total, for each enemy, the drain can deal 480 / 960 / 1440
+        # magic damage and heal for 360 / 720 / 1080 health.
+
+
+class Tristana(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_detonation_delay_time = 4
+        self.sa_detonation_delay_aa = 3
+        self.sa_damage = [70, 110, 150]
+        self.sa_damage_increase_per_aa = 1.5
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Places a bomb on her current target that detonates
+        # after 4 seconds or 3 basic attacks, dealing 70 / 110 / 150
+        # magic damage to all nearby enemies within 2 hexes. The damage
+        # is increased by 50% with each basic attack on the target,
+        # dealing up to 175 / 275 / 375 magic damage.
+
+
+class TwistedFate(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_aa_additional_damage = [150, 250, 350]
+        self.sa_blue_mana = [30, 50, 70]
+        self.sa_gold_stun_duration = [2, 3, 4]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After a small delay, randomly selects one of three cards,
+        # enhancing his next basic attack to deal 150 / 250 / 350 bonus
+        # magic damage and apply an additional effect:
+        #
+        # Blue Card Blue Card: Restores 30 / 50 / 70 mana to himself and
+        # adjacent allies.
+        #
+        # Red Card Red Card: Deals the same magic damage to enemies adjacent
+        # to the target.
+        #
+        # Gold Card Gold Card: Stun icon Stuns the target
+        # for 2 / 3 / 4 seconds.
+
+
+class Varus(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_channeltime = int(1.5 * 1000)
+        self.sa_range = 8
+        self.sa_damage = [300, 550, 800]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: After channeling for 1.5 seconds, fires a piercing
+        # arrow up to 8 hexes away, dealing 300 / 550 / 800 magic damage
+        # to all enemies in its path.
+
+
+class Vayne(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_third_stack_damage = [0.08, 0.12, 0.16]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Passive: Basic attacks apply a Silver Bolts stack.
+        # Attacking a new enemy removes all her stacks from the
+        # previous target.
+        # The third stack consumes them all to deal 8 / 12 / 16%
+        # of target's maximum health bonus true damage.
+
+
+class Veigar(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [350, 650, 950]
+        self.sa_damage_higher_level = 19999
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Blasts an enemy with magical energy,
+        # dealing 350 / 650 / 950 magic damage to the target enemy.
+        # If Veigar is a higher star level than his target, the
+        # damage is increased to 19999.
+
+
+class Vi(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [300, 500, 700]
+        self.sa_airborne = [2, 2.5, 3]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Charges at the farthest enemy, dealing 300 / 500 / 700
+        # magic damage and Airborne icon knocking aside all enemies along
+        # the way. Upon reaching her target, deals the same magic damage
+        # and Airborne icon knocks them up for 2 / 2.5 / 3 seconds.
+
+
+class Volibear(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_empower_duration = 20
+        self.sa_chain_enemies = [2, 3, 4]
+        self.sa_ad_percent_damage = [0.8, 0.9, 1]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Empowers his basic attacks for the next 20 seconds,
+        # causing them to chain up to 2 / 3 / 4 enemies 1 hex away,
+        # dealing 80 / 90 / 100% AD physical damage to secondary targets
+        # and applying on-hit effects.
+
+
+class Warwick(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_stun_duration = 1.5
+        self.sa_strikes = 3
+        self.sa_strike_damage = [150 / 3, 225 / 3, 300 / 3]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Pounces on the weakest enemy, Stun icon stunning them
+        # for 1.5 seconds and striking them 3 times, dealing a total
+        # of 150 / 225 / 300 magic damage. Each strike triggers on-hit
+        # effects and heals for all the damage dealt.
+
+
+class Yasuo(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [150, 350, 550]
+        self.sa_tornado_airborne_duration = 1.5
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Stabs his sword into the two spaces in front of him,
+        # dealing 150 / 350 / 550 magic damage and applying on-hit effects
+        # to enemies within.
+        # Every third cast, instead throws a tornado in a line that
+        # travels 6 hexes, dealing the same magic damage and additionally
+        # Airborne icon knocking enemies up for 1.5 seconds.
+
+
+class Zed(DummyChamp):
+    def __init__(self, pos, champ_item, rank, items=None):
+        super().__init__(pos, champ_item, rank, items=items)
+        self.sa_damage = [200, 350, 500]
+
+    def special_ability(self, fight, in_range, visible, alive, time):
+        pass
+        # Active: Throws a shuriken in a 4-hex line, dealing
+        # 200 / 350 / 500 magic damage to all enemies in its path.

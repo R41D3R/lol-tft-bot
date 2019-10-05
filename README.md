@@ -71,16 +71,17 @@
 | Kayle | yes | no |
 | Kennen | yes | no |
 | Khazix | yes | no |
-| Leona | no | no |
-| Lissandra | no | no |
-| Lucian | no | no |
-| Lulu | no | no |
-| Miss Fortune | no | no |
-| Mordekaiser | no | no |
-| Morgana | no | no |
-| Nidalee | no | no |
-| Pantheon | no | no |
-| Poppy | no | no |
+| Kindred | yes | no |
+| Leona | yes | no |
+| Lissandra | yes | no |
+| Lucian | yes | no |
+| Lulu | yes | no |
+| Miss Fortune | yes | no |
+| Mordekaiser | yes | no |
+| Morgana | yes | no |
+| Nidalee | yes | no |
+| Pantheon | yes | no |
+| Poppy | yes | no |
 
 
 </td>
@@ -88,23 +89,23 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Pyke | no | no |
-| Reksai | no | no |
-| Rengar | no | no |
-| Sejuani | no | no |
-| Shen | no | no |
-| Shyvana | no | no |
-| Swain | no | no |
-| Tristana | no | no |
-| Twisted Fate | no | no |
-| Varus | no | no |
-| Vayne | no | no |
-| Veigar | no | no |
-| Vi | no | no |
-| Volibear | no | no |
-| Warwick | no | no |
-| Yasuo | no | no |
-| Zed | no | no |
+| Pyke | yes | no |
+| Reksai | yes | no |
+| Rengar | yes | no |
+| Sejuani | yes | no |
+| Shen | yes | no |
+| Shyvana | yes | no |
+| Swain | yes | no |
+| Tristana | yes | no |
+| Twisted Fate | yes | no |
+| Varus | yes | no |
+| Vayne | yes | no |
+| Veigar | yes | no |
+| Vi | yes | no |
+| Volibear | yes | no |
+| Warwick | yes | no |
+| Yasuo | yes | no |
+| Zed | yes | no |
 
 
 </td></tr>

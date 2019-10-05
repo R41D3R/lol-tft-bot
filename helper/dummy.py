@@ -69,6 +69,7 @@ class DummyChamp:
     # @todo: outsource target
     # @body: if target none don't switch to next target, interesting for Blademaster
     def autoattack(self, time, fight, enemies_in_range):
+        # @todo: split onhit and autoattack
         targets = [self.get_target(enemies_in_range)]
         if len(targets) > 0:
             self.aa_counter += 1
