@@ -1,7 +1,27 @@
 # lol-tft-bot
-[Trello open questions](https://trello.com/b/PiM2IKjo/team-fight-tactics-fragen)
-and
-[invite Link](https://trello.com/invite/b/PiM2IKjo/81dc0be800a58f3bba8084d4e450206a/team-fight-tactics-fragen)
+
+
+### Get started
+* Download [PyCharm](https://www.jetbrains.com/pycharm/) or other IDE
+
+***
+* clone repository
+* `pip install pygame` or `pip install -r requirements.txt`
+* install `beautifulsoup4`, `requests` and `pandas` if they are not already installed
+* run `champ_base_stats.py` to scrape champion base stats
+* run the `main.py` to test the fight (visually)
+***
+* if you have questions about the game that can't be solved on your own fell free to create a card in the [Trello board](https://trello.com/b/PiM2IKjo/team-fight-tactics-fragen) ([invite Link](https://trello.com/invite/b/PiM2IKjo/81dc0be800a58f3bba8084d4e450206a/team-fight-tactics-fragen), you can invite friends that want to contribute with their knowledge)
+
+* The Project can split in mostly independent parts:
+    1. Fight Simulation
+    2. Game Enviroment (Fight Simulation + game mechanics)
+    3. Client Interaction (Input and Retrieval) 
+    4. Reinforcement Learning Part
+    
+    While i. and ii. are closely related, iii. can be written independently but is in fact needed for getting tests for the simulation.
+    
+    TLDR: simulation + client retrival in *parallel* &#8594; game env &#8594; RL &#8594; client input  
 
 ## Content
 1. [Plan](#plan)
