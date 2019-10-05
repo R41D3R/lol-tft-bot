@@ -326,6 +326,7 @@ Do I need to include Champ Stats, Synergies ... ?
 * [Coordinate System](https://www.redblobgames.com/grids/hexagons/#coordinates)
 * [PyGame Primer](https://realpython.com/pygame-a-primer/)
 * [PyGame Drawing](https://sites.cs.ucsb.edu/~pconrad/cs5nm/topics/pygame/drawing/)
+* [Beatiful Soap First Steps](https://riptutorial.com/de/beautifulsoup)
 
 **TFT**
 * [Champion Mechanics (__best site__)](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Champions)
