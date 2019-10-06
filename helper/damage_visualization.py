@@ -11,7 +11,7 @@ dmg_color = {
 class DummyDamage:
     def __init__(self, amount, stat_pos, kind: str):
         self.color = dmg_color[kind]
-        self.amount = int(amount)
+        self.amount = int(abs(amount))
         self.create = pygame.time.get_ticks()
         self.start_pos = stat_pos
         self.font = pygame.font.SysFont("Comic Sans Ms", 25)

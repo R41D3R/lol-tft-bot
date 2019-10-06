@@ -51,8 +51,6 @@ class Fight:
         # disable items
 
         # trigger items like: Zeke' Herald
-        as_bonus = 1  # zekes
-        shield_bonus = 0  # solari
 
         for champ in self.team_top + self.team_bot:
             if champ in self.team_bot:
@@ -118,8 +116,8 @@ class Fight:
                                   (champ.pos[0] + 4, champ.pos[1]),
                                   (champ.pos[0] - 2, champ.pos[1]),
                                   champ.pos]
-
-            # @todo: change zekes effect apply to additional_aa_cc
+            as_bonus = 1  # zekes
+            shield_bonus = 0  # solari
             # @item: Zeke's Herald
             item_name = "Zeke's Herald"
             if champ.item_count(item_name) > 0:
@@ -246,7 +244,7 @@ class Fight:
                 max_health_bonus += 250
             for champ in self.team_bot:
                 if synergy_name in champ.class_:
-                    champ.base_health += max_health_bonus
+                    champ.bonus_health += max_health_bonus
         elif synergy_name in self.top_synergy:
             n_syn = self.top_synergy[synergy_name]
             max_health_bonus = 0
@@ -258,7 +256,7 @@ class Fight:
                 max_health_bonus += 250
             for champ in self.team_top:
                 if synergy_name in champ.class_:
-                    champ.base_health += max_health_bonus
+                    champ.bonus_health += max_health_bonus
 
         # @synergy: Hextech
         synergy_name = "Hextech"

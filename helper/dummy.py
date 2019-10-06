@@ -11,6 +11,8 @@ from config import logger
 
 class DummyChamp:
     def __init__(self, init_pos, champ_item, rank, items=None):
+        self.status_effects = []
+
         if items is None:
             self.items = []
         else:
@@ -28,8 +30,12 @@ class DummyChamp:
         # 3-star: 360% of maximum health and attack damage.
         self.base_range = int(self.base_stats["range"])
         self.name = champ_item[0]
-        self.base_health = [int(e) for e in self.base_stats["hp"].split(" / ")][rank - 1]
-        self.base_ad = [int(e) for e in self.base_stats["dmg"].split(" / ")][rank - 1]
+
+        self.base_health = [int(e) for e in self.base_stats["hp"].split(" / ")]
+        self.bonus_health = 0
+
+        self.base_ad = [int(e) for e in self.base_stats["dmg"].split(" / ")]
+        self.bonus_ad = 0
 
         self.base_aa_cc = float(self.base_stats["atk_speed"])
         self.bonus_aa_cc = 0
@@ -55,7 +61,6 @@ class DummyChamp:
         self.current_health = self.max_health
         self.aa_last = 0  # pygame.time.get_ticks()
         self.damage_events = []
-        self.status_effects = []
         self.channelling = False
         self.last_target = None
         self.got_damage_from = []
@@ -106,212 +111,214 @@ class DummyChamp:
     # @body: if target none don't switch to next target, interesting for Blademaster
     def autoattack(self, time, fight, enemies_in_range):
         # @todo: split onhit and autoattack
+
         targets = [self.get_target(enemies_in_range)]
-        if len(targets) > 0:
-            self.aa_counter += 1
-            self.aa_last = time
+        if None not in targets:
+            if len(targets) > 0:
+                self.aa_counter += 1
+                self.aa_last = time
 
-            self.get_mana("aa")
+                self.get_mana("aa")
 
-            # @item: Guinsoo's Rageblade
-            item_name = "Guinsoo's Rageblade"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                self.base_aa_cc += 0.05 * n_items
+                # @item: Guinsoo's Rageblade
+                item_name = "Guinsoo's Rageblade"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    self.base_aa_cc += 0.05 * n_items
 
-            # @synergy: Wild
-            synergy_name = "Wild"
-            if synergy_name in self.team_synergies:
-                n_syn = self.team_synergies[synergy_name]
-                if n_syn >= 4:
-                    if self.fury_stacks < 5:
-                        self.fury_stacks += 1
-                elif n_syn >= 2 and synergy_name in self.origin:
-                    if self.fury_stacks < 5:
-                        self.fury_stacks += 1
-                    # @todo: Implement undodgeable aa's (maybe in self.dodge_chance)
+                # @synergy: Wild
+                synergy_name = "Wild"
+                if synergy_name in self.team_synergies:
+                    n_syn = self.team_synergies[synergy_name]
+                    if n_syn >= 4:
+                        if self.fury_stacks < 5:
+                            self.fury_stacks += 1
+                    elif n_syn >= 2 and synergy_name in self.origin:
+                        if self.fury_stacks < 5:
+                            self.fury_stacks += 1
+                        # @todo: Implement undodgeable aa's (maybe in self.dodge_chance)
 
-            # @synergy: Gunslinger
-            synergy_name = "Gunslinger"
-            if synergy_name in self.team_synergies and synergy_name in self.class_:
-                n_syn = self.team_synergies[synergy_name]
-                possible_gunslinger_targets = enemies_in_range
-                if len(targets) > 0:
-                    possible_gunslinger_targets.remove(targets[0])
-                try:
-                    if n_syn >= 6:
-                        for _ in range(3):
-                            targets.append(possible_gunslinger_targets.pop())
-                    elif n_syn >= 4:
+                # @synergy: Gunslinger
+                synergy_name = "Gunslinger"
+                if synergy_name in self.team_synergies and synergy_name in self.class_:
+                    n_syn = self.team_synergies[synergy_name]
+                    possible_gunslinger_targets = enemies_in_range
+                    if len(targets) > 0:
+                        possible_gunslinger_targets.remove(targets[0])
+                    try:
+                        if n_syn >= 6:
+                            for _ in range(3):
+                                targets.append(possible_gunslinger_targets.pop())
+                        elif n_syn >= 4:
+                            for _ in range(2):
+                                targets.append(possible_gunslinger_targets.pop())
+                        elif n_syn >= 2:
+                            for _ in range(1):
+                                targets.append(possible_gunslinger_targets.pop())
+                    except IndexError:
+                        pass
+
+            possible_on_hit_targets = []
+            for target in targets:
+
+                damage = self.aa_damage()
+                # @synergy: Imperial
+                if self.imperial_buff:
+                    damage *= 2
+
+                hitted = target.get_damage("physical", damage, fight.map, origin="aa", originator=self)
+                if hitted:
+                    possible_on_hit_targets.append(target)
+
+                # @item: Statikk Shiv
+                item_name = "Statik Shiv"
+                if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
+                    n_items = self.item_count(item_name)
+                    target.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
+                    # ---- need to implement jumping damage -----
+                    # Every third basic attack from the wearer deals 100
+                    # magic damage to the target and 2 additional targets.
+                    # Bounces 3 times? Range?
+
+                # @item: Titanic Hydra
+                item_name = "Titanic Hydra"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    # all target neighbors cell that are not in attackers.neighbors
+                    cleave_area_id = []
+                    attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
+                    target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
+                    for cell in target_neighbors:
+                        if cell not in attacker_neighbors:
+                            cleave_area_id.append(cell.id)
+                    cleaved_enemies = []
+                    for enemy in fight.champs_enemy_team(self):
+                        if enemy.pos in cleave_area_id:
+                            cleaved_enemies.append(enemy)
+                    for enemy in cleaved_enemies:
+                        enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight.map, origin="on_hit_no_dodge",
+                                         originator=self)
+
+                # @synery: Blademaster
+                synergy_name = "Blademaster"
+                if synergy_name in self.team_synergies and synergy_name in self.class_ and random.random() <= 0.45:
+                    n_syn = self.team_synergies[synergy_name]
+                    if n_syn >= 9:
+                        for _ in range(4):
+                            self.autoattack(time, fight, enemies_in_range)
+                    elif n_syn >= 6:
                         for _ in range(2):
-                            targets.append(possible_gunslinger_targets.pop())
+                            self.autoattack(time, fight, enemies_in_range)
+                    elif n_syn >= 3:
+                        self.autoattack(time, fight, enemies_in_range)
+
+                # @item: Runaan's Hurricane
+                item_name = "Runaan's Hurricane"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    enemy_neighbor_ids = [cell.id for cell in fight.map.get_cell_from_id(target.pos).neighbors]
+                    runans_target_counter = 0
+                    for enemy in enemies_in_range:
+                        if enemy.pos in enemy_neighbor_ids and runans_target_counter < n_items:
+                            hitted_ = enemy.get_damage("physical", damage * 0.75, fight.map, origin="aa", originator=self)
+                            if hitted_:
+                                possible_on_hit_targets.append(enemy)
+                            runans_target_counter += 1
+
+            # on_hit effects
+            for target in possible_on_hit_targets:
+                # @synergy: Noble
+                synergy_name = "Noble"
+                if self.noble_buff:
+                    self.heal(30, fight.map)
+
+                # @synergy: Demon
+                synergy_name = "Demon"
+                if synergy_name in self.team_synergies and synergy_name in self.origin and random.random() <= 0.4:
+                    n_syn = self.team_synergies[synergy_name]
+                    combo = 0
+                    if n_syn >= 6:
+                        combo = 3
+                    elif n_syn >= 4:
+                        combo = 2
                     elif n_syn >= 2:
-                        for _ in range(1):
-                            targets.append(possible_gunslinger_targets.pop())
-                except IndexError:
-                    pass
+                        combo = 1
+                    target.mana -= 20
+                    if target.mana < 0:
+                        target.mana = 0
+                    self.get_mana("Demon", 15 * combo)
 
-        possible_on_hit_targets = []
-        for target in targets:
+                # synergy: Glacial
+                synergy_name = "Glacial"
+                if synergy_name in self.team_synergies and synergy_name in self.origin:
+                    n_syn = self.team_synergies[synergy_name]
+                    rnd_n = random.random()
+                    if (n_syn >= 6 and rnd_n <= 0.5) or (n_syn >= 4 and rnd_n <= 0.33) or (n_syn >= 2 and rnd_n <= 0.2):
+                        target.stun(1.5, fight.map)
 
-            damage = self.aa_damage()
-            # @synergy: Imperial
-            if self.imperial_buff:
-                damage *= 2
+                # @item: Sword Breaker
+                item_name = "Sword Breaker"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    rnd_n = random.random()
+                    if (n_items == 1 and rnd_n <= 0.33) or (n_items == 2 and rnd_n <= 0.5511) or (n_items == 3 and rnd_n <= 0.699237):
+                        target.disarm(fight.map, 3)
 
-            hitted = target.get_damage("physical", damage, fight.map, origin="aa", originator=self)
-            if hitted:
-                possible_on_hit_targets.append(target)
+                # @item: Hand of Justice heal
+                item_name = "Hand of Justice heal"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    self.heal(40 * n_items, fight.map)
 
-            # @item: Statikk Shiv
-            item_name = "Statik Shiv"
-            if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
-                n_items = self.item_count(item_name)
-                target.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
-                # ---- need to implement jumping damage -----
-                # Every third basic attack from the wearer deals 100
-                # magic damage to the target and 2 additional targets.
-                # Bounces 3 times? Range?
+                # @item: Hush
+                item_name = "Hush"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    rnd_n = random.random()
+                    if (n_items == 1 and rnd_n <= 0.33) or (n_items == 2 and rnd_n <= 0.5511) or (n_items == 3 and rnd_n <= 0.699237):
+                        target.mana_lock(fight.map, 4)
 
-            # @item: Titanic Hydra
-            item_name = "Titanic Hydra"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                # all target neighbors cell that are not in attackers.neighbors
-                cleave_area_id = []
-                attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
-                target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
-                for cell in target_neighbors:
-                    if cell not in attacker_neighbors:
-                        cleave_area_id.append(cell.id)
-                cleaved_enemies = []
-                for enemy in fight.champs_enemy_team(self):
-                    if enemy.pos in cleave_area_id:
-                        cleaved_enemies.append(enemy)
-                for enemy in cleaved_enemies:
-                    enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight.map, origin="on_hit_no_dodge",
-                                     originator=self)
+                # @item: Giant Slayer
+                item_name = "Giant Slayer"
+                if self.item_count(item_name) > 0:
+                    on_hit_damage = self.item_count(item_name) * target.max_health * 0.05
+                    target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
 
-            # @synery: Blademaster
-            synergy_name = "Blademaster"
-            if synergy_name in self.team_synergies and synergy_name in self.class_ and random.random() <= 0.45:
-                n_syn = self.team_synergies[synergy_name]
-                if n_syn >= 9:
-                    for _ in range(4):
-                        self.autoattack(time, fight, enemies_in_range)
-                elif n_syn >= 6:
-                    for _ in range(2):
-                        self.autoattack(time, fight, enemies_in_range)
-                elif n_syn >= 3:
-                    self.autoattack(time, fight, enemies_in_range)
-
-            # @item: Runaan's Hurricane
-            item_name = "Runaan's Hurricane"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                enemy_neighbor_ids = [cell.id for cell in fight.map.get_cell_from_id(target.pos).neighbors]
-                runans_target_counter = 0
-                for enemy in enemies_in_range:
-                    if enemy.pos in enemy_neighbor_ids and runans_target_counter < n_items:
-                        hitted_ = enemy.get_damage("physical", damage * 0.75, fight.map, origin="aa", originator=self)
-                        if hitted_:
-                            possible_on_hit_targets.append(enemy)
-                        runans_target_counter += 1
-
-        # on_hit effects
-        for target in possible_on_hit_targets:
-            # @synergy: Noble
-            synergy_name = "Noble"
-            if self.noble_buff:
-                self.heal(30, fight.map)
-
-            # @synergy: Demon
-            synergy_name = "Demon"
-            if synergy_name in self.team_synergies and synergy_name in self.origin and random.random() <= 0.4:
-                n_syn = self.team_synergies[synergy_name]
-                combo = 0
-                if n_syn >= 6:
-                    combo = 3
-                elif n_syn >= 4:
-                    combo = 2
-                elif n_syn >= 2:
-                    combo = 1
-                target.mana -= 20
-                if target.mana < 0:
-                    target.mana = 0
-                self.get_mana("Demon", 15 * combo)
-
-            # synergy: Glacial
-            synergy_name = "Glacial"
-            if synergy_name in self.team_synergies and synergy_name in self.origin:
-                n_syn = self.team_synergies[synergy_name]
-                rnd_n = random.random()
-                if (n_syn >= 6 and rnd_n <= 0.5) or (n_syn >= 4 and rnd_n <= 0.33) or (n_syn >= 2 and rnd_n <= 0.2):
-                    target.stun(1.5, fight.map)
-
-            # @item: Sword Breaker
-            item_name = "Sword Breaker"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                rnd_n = random.random()
-                if (n_items == 1 and rnd_n <= 0.33) or (n_items == 2 and rnd_n <= 0.5511) or (n_items == 3 and rnd_n <= 0.699237):
-                    target.disarm(fight.map, 3)
-
-            # @item: Hand of Justice heal
-            item_name = "Hand of Justice heal"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                self.heal(40 * n_items, fight.map)
-
-            # @item: Hush
-            item_name = "Hush"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                rnd_n = random.random()
-                if (n_items == 1 and rnd_n <= 0.33) or (n_items == 2 and rnd_n <= 0.5511) or (n_items == 3 and rnd_n <= 0.699237):
-                    target.mana_lock(fight.map, 4)
-
-            # @item: Giant Slayer
-            item_name = "Giant Slayer"
-            if self.item_count(item_name) > 0:
-                on_hit_damage = self.item_count(item_name) * target.max_health * 0.05
-                target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
-
-            # @item: Cursed Blade
-            item_name = "Cursed Blade"
-            if self.item_count(item_name) > 0:
-                n_items = self.item_count(item_name)
-                rnd_n = random.random()
-                if n_items == 1 and rnd_n <= 0.2:
-                    pass
-                    # -1 Star
-                elif n_items == 2:
-                    if 0.36 >= rnd_n > 0.04:
+                # @item: Cursed Blade
+                item_name = "Cursed Blade"
+                if self.item_count(item_name) > 0:
+                    n_items = self.item_count(item_name)
+                    rnd_n = random.random()
+                    if n_items == 1 and rnd_n <= 0.2:
                         pass
                         # -1 Star
-                    elif rnd_n <= 0.04:
-                        pass
-                        # -2 Star
-                elif n_items == 3:
-                    if 0.488 >= rnd_n > 0.104:
-                        pass
-                        # -1 Star
-                    elif 0.104 >= rnd_n > 0.008:
-                        pass
-                        # -2 Star
-                    elif rnd_n <= 0.008:
-                        pass
-                        # -3 Star
+                    elif n_items == 2:
+                        if 0.36 >= rnd_n > 0.04:
+                            pass
+                            # -1 Star
+                        elif rnd_n <= 0.04:
+                            pass
+                            # -2 Star
+                    elif n_items == 3:
+                        if 0.488 >= rnd_n > 0.104:
+                            pass
+                            # -1 Star
+                        elif 0.104 >= rnd_n > 0.008:
+                            pass
+                            # -2 Star
+                        elif rnd_n <= 0.008:
+                            pass
+                            # -3 Star
 
-            # @item: Red Buff
-            item_name = "Red Buff"
-            if self.item_count(item_name) > 0:
-                if not target.has_effect_with_name("Morellonomicon"):
-                    target.gwounds(10, fight.map, "Morellonomicon", originator=self, dot=True)
-                else:
-                    for effect in target.status_effects:
-                        if effect.name == "Morellonomicon":
-                            effect.duration = 10
+                # @item: Red Buff
+                item_name = "Red Buff"
+                if self.item_count(item_name) > 0:
+                    if not target.has_effect_with_name("Morellonomicon"):
+                        target.gwounds(10, fight.map, "Morellonomicon", originator=self, dot=True)
+                    else:
+                        for effect in target.status_effects:
+                            if effect.name == "Morellonomicon":
+                                effect.duration = 10
 
     def heal(self, amount, map_):
         health_before = self.current_health
@@ -321,7 +328,7 @@ class DummyChamp:
         if self.current_health > self.max_health:
             self.current_health = self.max_health
         health_after = self.current_health
-        healed = health_before - health_after
+        healed = health_after - health_before
         self.damage_events.append(DummyDamage(healed, self.position(map_), "heal"))
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -428,7 +435,13 @@ class DummyChamp:
 
     @property
     def ad(self):
-        # @todo: implement shrink effect with ad
+        # shrink effect
+        shrinks = self.get_all_effects_with("shrink")
+        index = self.rank - 1 - len(shrinks)
+        if index < 0:
+            base_ad = self.base_ad[0] * 0.7
+        else:
+            base_ad = self.base_ad[index]
 
         # @synergy: Ninja
         ninja_bonus = 0
@@ -439,7 +452,7 @@ class DummyChamp:
             if self.team_synergies[synergy_name] == 4:
                 ninja_bonus += 80
 
-        return self.base_ad + (15 * self.item_sum_from("ad")) + ninja_bonus
+        return base_ad + self.bonus_ad + (15 * self.item_sum_from("ad")) + ninja_bonus
 
     @property
     def dodge_chance(self):
@@ -463,8 +476,13 @@ class DummyChamp:
 
     @property
     def max_health(self):
-        # @todo: implement shrink effect with max_health
-        return self.base_health + (200 * self.item_sum_from("health"))
+        shrinks = self.get_all_effects_with("shrink")
+        index = self.rank - 1 - len(shrinks)
+        if index < 0:
+            base_health = self.base_health[0] * 0.7
+        else:
+            base_health = self.base_health[index]
+        return base_health + self.bonus_health + (200 * self.item_sum_from("health"))
 
     @property
     def armor(self):
@@ -650,15 +668,8 @@ class DummyChamp:
         self.interrupt()
         self.status_effects.append(StatusEffect(map_, duration, "Airborne", effects=["airborne"]))
 
-    def shrink(self):
-        # @todo: implement shrink as status_effect and dont change rank, only health and ad
-        if self.rank > 0:
-            self.rank -= 1
-            health_before = self.current_health
-            self.base_health = self.base_stats["health"][self.rank]
-            if health_before >= self.base_health:
-                self.current_health = self.max_health
-            self.base_ad = self.base_stats["ad"][self.rank]
+    def shrink(self, fight):
+        self.status_effects.append(StatusEffect(fight.map, 99999999999, "Shrink", effects=["shrink"]))
 
     def channel(self, fight, duration, name, proc_interval=None, interruptable=True):
         self.status_effects.append(Channelling(self, fight, duration, name, proc_interval, interruptable))
@@ -927,7 +938,11 @@ class DummyChamp:
         # health progress bar
         pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.current_health / self.max_health), hb_height))
         # SHIELD
-        pygame.draw.rect(surface, (214, 214, 214), (hb_x + (hb_width * (1 - (self.all_shields / self.max_health))), hb_y, int(hb_width * (self.all_shields / self.max_health)), hb_height))
+        shield_pos_x = (hb_x + hb_width)
+        shield_width = int(hb_width * (self.all_shields / self.max_health))
+        if shield_width > hb_width:
+            shield_width = hb_width
+        pygame.draw.rect(surface, (214, 214, 214), (shield_pos_x, hb_y, -shield_width, hb_height))
 
         # ----- mana bar -----
         mb_width = 60
