@@ -5,7 +5,7 @@ import pygame
 from helper.pathfinding_helper import PriorityQueue
 from helper.dummy_vision_event import DummyEvent
 from helper.damage_visualization import DummyDamage
-from helper.status_effect import StatusEffect, GWounds, Channelling
+from helper.status_effect import StatusEffect, GWounds, Channelling, Shield
 from config import logger
 
 
@@ -42,6 +42,7 @@ class DummyChamp:
         self.base_class = self.base_stats["class"].split()  # list
 
         # positions
+        self.init_pos = init_pos
         self.pos = init_pos
         self.move_progress = 0
         self.start_pos = None
@@ -57,7 +58,9 @@ class DummyChamp:
         self.got_damage_from = []
         self.sa_counter = 0
         self.aa_counter = 0
-        self.shield = 0
+
+        self.shields = []
+
         self.team_synergies = None
         self.disables_items = None
         self.imperial_buff = False
@@ -65,7 +68,36 @@ class DummyChamp:
         self.void_buff = False
         self.fury_stacks = 0
         self.start_ap_bonus = 0
+        self.mana_per_source = {}
         # @todo: add takedown_counter
+
+    @property
+    def all_shields(self):
+        shield_amount = 0
+        for shield in self.shields:
+            shield_amount += shield.amount
+        return shield_amount
+
+    def shield_damage(self, damage, time):
+        rest_damage = damage
+        if len(self.shields) > 0:
+            sorted_durations = sorted(self.shields, key=lambda shield_: shield_.get_duration(time))
+            sorted_durations.reverse()
+            for shield in sorted_durations:
+                if rest_damage > 0:
+                    if shield.is_active(time):
+                        new_damage = shield.damage(rest_damage)
+                        if new_damage >= 0:
+                            rest_damage = 0
+                        else:
+                            rest_damage += new_damage
+                else:
+                    return 0
+        return rest_damage
+
+    def check_shields(self, time):
+        for shield in self.shields:
+            shield.is_active(time)
 
     # @todo: outsource target
     # @body: if target none don't switch to next target, interesting for Blademaster
@@ -639,7 +671,7 @@ class DummyChamp:
 
     # ----- Get Damage and Alive -----
     
-    def get_mana(self, origin, amount_=0):
+    def get_mana(self, origin, amount_=0, source=None, damage=0):
         amount = amount_
         if not self.has_effect("mana-lock"):
             if origin == "aa":
@@ -651,6 +683,18 @@ class DummyChamp:
                     amount += self.max_mana * 0.15 * self.item_count(item_name)
             elif origin == "damage":
                 amount = self.mana_on_aa
+
+                # @todo: mana gain on damage
+                # # max 50 mana per damage source
+                # if source in self.mana_per_source:
+                #     mana_recieved = self.mana_per_source[source]
+                #     if mana_recieved >= 50:
+                #         return
+                #     if mana_recieved + amount > 50:
+                #         amount = 50 - mana_recieved
+                # else:
+                #     self.mana_per_source[source] = amount
+
             # @item: Seraph's Embrace
             elif origin == "Seraphs's Embrace":
                 amount = amount_
@@ -661,7 +705,7 @@ class DummyChamp:
             else:
                 self.mana += amount
 
-    def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None, fight=None, crit=False):
+    def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None, fight=None, crit=False, source=None):
         # @synergy: Void
         if originator.void_buff and (origin == "aa" or origin == "sa"):
             type_ = "true"
@@ -771,9 +815,12 @@ class DummyChamp:
                 if real_damage < 0:
                     real_damage = 0
 
-            self.current_health -= real_damage
+            # shield
+            damage_after_shield = self.shield_damage(real_damage, map_.time)
+
+            self.current_health -= damage_after_shield
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
-            self.get_mana("damage")
+            self.get_mana("damage", source=source)
             self.check_alive(map_)
             return True
         else:
@@ -876,6 +923,8 @@ class DummyChamp:
         pygame.draw.rect(surface, (0, 0, 0), (hb_x, hb_y, hb_width, hb_height))
         # health progress bar
         pygame.draw.rect(surface, (0, 130, 46), (hb_x, hb_y, int(hb_width * self.current_health / self.max_health), hb_height))
+        # SHIELD
+        pygame.draw.rect(surface, (214, 214, 214), (hb_x + (hb_width * (1 - (self.all_shields / self.max_health))), hb_y, int(hb_width * (self.all_shields / self.max_health)), hb_height))
 
         # ----- mana bar -----
         mb_width = 60
@@ -892,7 +941,7 @@ class DummyChamp:
         cb_width = 60
         cb_height = 3
         cb_x = player_pos[0] - (cb_width / 2)
-        cb_y = mb_y + cb_height
+        cb_y = mb_y + mb_height
         if self.has_effect("channeling"):
             effect = self.get_all_effects_with("channeling")[0]
             pygame.draw.rect(surface, (0, 0, 0), (cb_x, cb_y, cb_width, cb_height))

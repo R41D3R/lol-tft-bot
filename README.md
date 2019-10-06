@@ -208,7 +208,7 @@
 | Iceborn Gauntlet | yes | first implement Aoe |
 | Knight's Vow | yes | yes |
 | Dragons Claw | yes | yes |
-| Zephyr | yes | need mirror position info |
+| Zephyr | yes | yes |
 | Quicksilver | yes | need to refactor to dummy.get_cc() |
 | Runaan's Hurrican | yes | need more info on item interaction |
 | Warmog's Armor | yes | yes |

@@ -5,7 +5,7 @@ import pygame
 
 from board.map import Map
 from helper.dummy import DummyChamp
-from helper.status_effect import StatusEffect
+from helper.status_effect import StatusEffect, Shield
 from config import logger
 
 
@@ -59,6 +59,8 @@ class Fight:
             else:
                 champ.team_synergies = self.top_synergy
 
+            champ.shields.append(Shield(champ, self, self.now, 100, duration=7))
+
             # @synergy: Sorcerer
             synergy_name = "Sorcerer"
             if synergy_name in self.top_synergy:
@@ -88,7 +90,7 @@ class Fight:
             synergy_name = "Exile"
             if synergy_name in champ.origin:
                 if len(self.adjacent_allies(champ)) == 0:
-                    champ.shield += champ.max_health
+                    champ.shields.append(Shield(champ, self, self.now, champ.max_health))
 
             # @todo: add combination list for Thiefs Glove
             # @body: see twitter link in [Link](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Thief%27s_Gloves#cite_note-0)
@@ -120,6 +122,7 @@ class Fight:
             item_name = "Zeke's Herald"
             if champ.item_count(item_name) > 0:
                 as_bonus += 0.15 * champ.item_count(item_name)
+
             # @item: Locket of the Iron Solari
             item_name = "Locket of the Iron Solari"
             if champ.item_count(item_name) > 0:
@@ -134,10 +137,10 @@ class Fight:
             # @item: Zephyr
             item_name = "Zephyr"
             if champ.item_count(item_name) > 0:
-                # @todo: Need mirror position info for implementation
-                mirror_posi = None
+                mirror_posi = champ.init_pos
                 for enemy in self.enemy_champs_alive(champ):
-                    enemy.banish(self.map)
+                    if enemy.init_pos == mirror_posi:
+                        enemy.banish(self.map)
 
             # @synergy: Robot
             synergy_name = "Robot"
@@ -403,6 +406,7 @@ class Fight:
 
         for champ in champs:
             self.activate_aura(champ)
+            champ.check_shields(self.now)
             champ.check_status_effects(now)
             if champ.alive and not champ.has_effect("banish"):
                 logger.debug(f"{champ.name} turn")
@@ -427,7 +431,7 @@ class Fight:
                         item_name = "Ionic Spark"
                         n_items_enemy_team = self.enemy_team_item_count(champ, item_name)
                         if n_items_enemy_team > 0:
-                            champ.get_damage("true", 125 * n_items_enemy_team, self.map, origin="item", originator=champ)
+                            champ.get_damage("true", 125 * n_items_enemy_team, self.map, origin="item", originator=champ, source="Ionic Spark")
 
                         champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                         champ.sa_counter += 1
