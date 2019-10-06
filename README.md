@@ -191,7 +191,7 @@
 | Name | Stats | Effect |
 | ---- | ----- | ------- |
 | Luden' Echo | yes | insert fight first in get_damage |
-| Locket of the Iron Solari | yes | implement shield_effect first |
+| Locket of the Iron Solari | yes | yes |
 | Ionic Spark | yes | yes |
 | Morellonomicon | yes | yes |
 | Jeweled Gauntlet | yes | yes |

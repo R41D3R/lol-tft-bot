@@ -53,13 +53,15 @@ class Fight:
         # trigger items like: Zeke' Herald
         as_bonus = 1  # zekes
         shield_bonus = 0  # solari
+
         for champ in self.team_top + self.team_bot:
             if champ in self.team_bot:
                 champ.team_synergies = self.bot_synergy
             else:
                 champ.team_synergies = self.top_synergy
 
-            champ.shields.append(Shield(champ, self, self.now, 100, duration=7))
+            # shield testing purpose
+            # champ.shields.append(Shield(champ, self, self.now, 100, duration=7))
 
             # @synergy: Sorcerer
             synergy_name = "Sorcerer"
@@ -131,8 +133,9 @@ class Fight:
             for allie in self.champs_allie_team(champ):
                 if allie.pos in possible_positions:
                     # give bonus to all champs in row_range <= 2
-                    allie.base_aa_cc *= as_bonus
+                    allie.bonus_aa_cc += allie.base_aa_cc * as_bonus
                     # give shield for 7 seconds to all in row_range <= 2
+                    allie.shields.append(Shield(allie, self, self.now, shield_bonus, duration=7))
 
             # @item: Zephyr
             item_name = "Zephyr"

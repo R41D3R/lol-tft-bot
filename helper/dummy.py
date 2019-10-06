@@ -30,7 +30,10 @@ class DummyChamp:
         self.name = champ_item[0]
         self.base_health = [int(e) for e in self.base_stats["hp"].split(" / ")][rank - 1]
         self.base_ad = [int(e) for e in self.base_stats["dmg"].split(" / ")][rank - 1]
+
         self.base_aa_cc = float(self.base_stats["atk_speed"])
+        self.bonus_aa_cc = 0
+
         self.max_mana = int(self.base_stats["mana"])
         self.mana = int(self.base_stats["starting_mana"]) + (20 * len([item for item in self.items if "mana" in item.attribute]))
         self.base_armor = int(self.base_stats["armor"])
@@ -411,7 +414,7 @@ class DummyChamp:
         synergy_name = "Wild"
         wild_bonus += self.base_aa_cc * self.fury_stacks * 0.15
 
-        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus) * frozen_heart_debuff
+        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc) * frozen_heart_debuff
 
         # @synergy: Ranger
         synergy_name = "Ranger"
