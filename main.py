@@ -32,14 +32,8 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
 champ_fabric = ChampionFabric()
 
-bottom_team = champ_fabric.get_team()
-top_team = champ_fabric.get_team()
-
-bot_t_copy = copy.deepcopy(bottom_team)
-top_t_copy = copy.deepcopy(top_team)
-
-fight = Fight(team_bot=bot_t_copy, team_top=top_t_copy)
-fight.place_champs()
+fight = Fight(champ_fabric)
+# fight.new_fight()
 
 
 clock = pygame.time.Clock()
@@ -57,17 +51,9 @@ while running:
             elif event.key == K_SPACE:  # pause and resume the game
                 pause = not pause
             elif event.key == K_r:  # reset fight
-                bot_t_copy = copy.deepcopy(bottom_team)
-                top_t_copy = copy.deepcopy(top_team)
-                fight = Fight(team_bot=bot_t_copy, team_top=top_t_copy)
-                fight.place_champs()
+                fight.new_fight(reset=True)
             elif event.key == K_n:  # create new fight
-                bottom_team = champ_fabric.get_team()
-                top_team = champ_fabric.get_team()
-                bot_t_copy = copy.deepcopy(bottom_team)
-                top_t_copy = copy.deepcopy(top_team)
-                fight = Fight(team_bot=bot_t_copy, team_top=top_t_copy)
-                fight.place_champs()
+                fight.new_fight()
 
     # pressed_keys_ = pygame.key.get_pressed()
     screen.fill(BG_COLOR)

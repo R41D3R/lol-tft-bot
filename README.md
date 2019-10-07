@@ -180,9 +180,9 @@
 | Guinsoo's Rageblade | yes | yes |
 | Statikk Shiv | yes | need more info |
 | Phantom Dancer | yes | need more info |
-| Cursed Blade | yes | need shrink effect first |
+| Cursed Blade | yes | yes |
 | Titanic Hydra | yes | yes |
-| Repeating Crossbow | yes | insert fight first in get_damage, check if champ has 3 items |
+| Repeating Crossbow | yes | yes |
 | Blade of the Ruined Kind | yes | yes |
 | Rabadon's Deathcap | yes | yes |
 
@@ -190,7 +190,7 @@
 
 | Name | Stats | Effect |
 | ---- | ----- | ------- |
-| Luden' Echo | yes | insert fight first in get_damage |
+| Luden' Echo | yes | yes |
 | Locket of the Iron Solari | yes | yes |
 | Ionic Spark | yes | yes |
 | Morellonomicon | yes | yes |

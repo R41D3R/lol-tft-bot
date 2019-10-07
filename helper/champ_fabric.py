@@ -1,4 +1,5 @@
 import random
+import copy
 
 import pygame
 import pandas as pd
@@ -19,6 +20,14 @@ class ChampionFabric:
         file = "data/champ_database.csv"
         champs = pd.read_csv(file, index_col="name")
         self.champ_dict = champs.to_dict("index")
+        self.base_top = None
+        self.base_bot = None
+
+    def get_teams(self, reset=False):
+        if not reset or (self.base_bot is None and self.base_top is None):
+            self.base_top = self.get_team()
+            self.base_bot = self.get_team()
+        return copy.deepcopy(self.base_bot), copy.deepcopy(self.base_top)
 
     def get_team(self):
         logger.info("Team gets initialized.")
@@ -26,7 +35,7 @@ class ChampionFabric:
         k_picks = random.sample(list(self.champ_dict.items()), k)
         k_pos = random.sample(self.possible_positions, k)
         k_ranks = [random.choices([1, 2, 3], weights=[0.85, 0.1, 0.05])[0] for i in range(k)]
-        champs = [self.get_champ(pos, item, rank) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
+        champs = [self.get_champ(pos, item, rank, None) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
         for champ in champs:
             print(champ.name)
         return champs
@@ -40,123 +49,123 @@ class ChampionFabric:
             items.append(Item(random_item[1]["attribute"], random_item[1]["name"]))
         return items
 
-    def get_champ(self, pos, champ_item, rank, items=None):
+    def get_champ(self, pos, champ_item, rank, fight, items=None):
         if items is None:
             items = self.get_items()
         if champ_item[0] == "Aatrox":
-            return Aatrox(pos, champ_item, rank, items=items)
+            return Aatrox(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Ahri":
-            return Ahri(pos, champ_item, rank, items=items)
+            return Ahri(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Akali":
-            return Akali(pos, champ_item, rank, items=items)
+            return Akali(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Anivia":
-            return Anivia(pos, champ_item, rank, items=items)
+            return Anivia(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Ashe":
-            return Ashe(pos, champ_item, rank, items=items)
+            return Ashe(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Aurelion-Sol":
-            return AurelionSol(pos, champ_item, rank, items=items)
+            return AurelionSol(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Blitzcrank":
-            return Blitzcrank(pos, champ_item, rank, items=items)
+            return Blitzcrank(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Brand":
-            return Brand(pos, champ_item, rank, items=items)
+            return Brand(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Braum":
-            return Braum(pos, champ_item, rank, items=items)
+            return Braum(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Camille":
-            return Camille(pos, champ_item, rank, items=items)
+            return Camille(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "ChoGath":
-            return ChoGath(pos, champ_item, rank, items=items)
+            return ChoGath(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Darius":
-            return Darius(pos, champ_item, rank, items=items)
+            return Darius(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Draven":
-            return Draven(pos, champ_item, rank, items=items)
+            return Draven(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Elise":
-            return Elise(pos, champ_item, rank, items=items)
+            return Elise(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Evelynn":
-            return Evelyn(pos, champ_item, rank, items=items)
+            return Evelyn(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Fiora":
-            return Fiora(pos, champ_item, rank, items=items)
+            return Fiora(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Gangplank":
-            return Gangplank(pos, champ_item, rank, items=items)
+            return Gangplank(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Garen":
-            return Garen(pos, champ_item, rank, items=items)
+            return Garen(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Gnar":
-            return Gnar(pos, champ_item, rank, items=items)
+            return Gnar(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Graves":
-            return Graves(pos, champ_item, rank, items=items)
+            return Graves(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Jayce":
-            return Jayce(pos, champ_item, rank, items=items)
+            return Jayce(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Jinx":
-            return Jinx(pos, champ_item, rank, items=items)
+            return Jinx(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "KaiSa":
-            return Kaisa(pos, champ_item, rank, items=items)
+            return Kaisa(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Karthus":
-            return Karthus(pos, champ_item, rank, items=items)
+            return Karthus(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kassadin":
-            return Kassadin(pos, champ_item, rank, items=items)
+            return Kassadin(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Katarina":
-            return Kataring(pos, champ_item, rank, items=items)
+            return Kataring(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kayle":
-            return Kayle(pos, champ_item, rank, items=items)
+            return Kayle(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kennen":
-            return Kennen(pos, champ_item, rank, items=items)
+            return Kennen(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "KhaZix":
-            return Khazix(pos, champ_item, rank, items=items)
+            return Khazix(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kindred":
-            return Kindred(pos, champ_item, rank, items=items)
+            return Kindred(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Leona":
-            return Leona(pos, champ_item, rank, items=items)
+            return Leona(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Lissandra":
-            return Lissandra(pos, champ_item, rank, items=items)
+            return Lissandra(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Lucian":
-            return Lucian(pos, champ_item, rank, items=items)
+            return Lucian(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Lulu":
-            return Lulu(pos, champ_item, rank, items=items)
+            return Lulu(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Miss-Fortune":  # check name
-            return MissFortune(pos, champ_item, rank, items=items)
+            return MissFortune(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Mordekaiser":  # check name
-            return Mordekaiser(pos, champ_item, rank, items=items)
+            return Mordekaiser(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Morgana":  # check name
-            return Morgana(pos, champ_item, rank, items=items)
+            return Morgana(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Nidalee":  # check name
-            return Nidalee(pos, champ_item, rank, items=items)
+            return Nidalee(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Pantheon":  # check name
-            return Pantheon(pos, champ_item, rank, items=items)
+            return Pantheon(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Poppy":  # check name
-            return Poppy(pos, champ_item, rank, items=items)
+            return Poppy(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Pyke":  # check name
-            return Pyke(pos, champ_item, rank, items=items)
+            return Pyke(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "RekSai":  # check name
-            return Reksai(pos, champ_item, rank, items=items)
+            return Reksai(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Rengar":  # check name
-            return Rengar(pos, champ_item, rank, items=items)
+            return Rengar(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Sejuani":  # check name
-            return Sejuani(pos, champ_item, rank, items=items)
+            return Sejuani(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Shen":  # check name
-            return Shen(pos, champ_item, rank, items=items)
+            return Shen(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Shyvana":  # check name
-            return Shyvana(pos, champ_item, rank, items=items)
+            return Shyvana(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Swain":  # check name
-            return Swain(pos, champ_item, rank, items=items)
+            return Swain(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Tristana":  # check name
-            return Tristana(pos, champ_item, rank, items=items)
+            return Tristana(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Twisted-Fate":  # check name
-            return TwistedFate(pos, champ_item, rank, items=items)
+            return TwistedFate(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Varus":  # check name
-            return Varus(pos, champ_item, rank, items=items)
+            return Varus(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Vayne":  # check name
-            return Vayne(pos, champ_item, rank, items=items)
+            return Vayne(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Veigar":  # check name
-            return Veigar(pos, champ_item, rank, items=items)
+            return Veigar(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Vi":  # check name
-            return Vi(pos, champ_item, rank, items=items)
+            return Vi(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Volibear":  # check name
-            return Volibear(pos, champ_item, rank, items=items)
+            return Volibear(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Warwick":  # check name
-            return Warwick(pos, champ_item, rank, items=items)
+            return Warwick(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Yasuo":  # check name
-            return Yasuo(pos, champ_item, rank, items=items)
+            return Yasuo(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Zed":  # check name
-            return Zed(pos, champ_item, rank, items=items)
+            return Zed(pos, champ_item, rank, fight, items=items)
         print(champ_item[0])
 
 
@@ -164,8 +173,8 @@ class ChampionFabric:
 # @body: champs like kha, jayce, camille need a champ in range, currently wasting sa
 
 class Aatrox(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [700, 1260, 2520]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -175,8 +184,8 @@ class Aatrox(DummyChamp):
 
 
 class Ahri(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage_to = [100, 200, 300]  # magic
         self.sa_damage_back = [100, 200, 300]  # true
 
@@ -189,8 +198,8 @@ class Ahri(DummyChamp):
 
 
 class Akali(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [200, 350, 500]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -201,8 +210,8 @@ class Akali(DummyChamp):
 
 
 class Anivia(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage_per_half_second = [66.67, 91.67, 116.67]
         self.sa_slowing_attack_speed = [1 - 0.5, 1 - 0.7, 1 - 0.9]
 
@@ -216,8 +225,8 @@ class Anivia(DummyChamp):
 
 
 class Ashe(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [200, 400, 600]
         self.sa_stun_duration = [1, 1.5, 2]
 
@@ -230,8 +239,8 @@ class Ashe(DummyChamp):
 
 
 class AurelionSol(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [250, 500, 750]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -242,8 +251,8 @@ class AurelionSol(DummyChamp):
 
 
 class Blitzcrank(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [250, 550, 850]
         self.sa_stun_duration = 2.5
         self.sa_airborne_duration = 1
@@ -259,8 +268,8 @@ class Blitzcrank(DummyChamp):
 
 
 class Brand(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [250, 450, 650]
         self.sa_bounces = [4, 6, 20]
 
@@ -273,8 +282,8 @@ class Brand(DummyChamp):
 
 
 class Braum(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage_reduction = [1 - 0.7, 1 - 0.8, 1 - 0.9]
         self.sa_duration = 4
 
@@ -287,8 +296,8 @@ class Braum(DummyChamp):
 
 
 class Camille(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = [4, 5, 6]
         self.sa_damage = [200, 325, 450]
 
@@ -304,8 +313,8 @@ class Camille(DummyChamp):
 
 
 class ChoGath(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [175, 350, 525]
         self.sa_stun_duration = [1.5, 1.75, 2]
 
@@ -318,8 +327,8 @@ class ChoGath(DummyChamp):
 
 
 class Darius(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [150, 200, 250]
         self.sa_heal_for_each_hit = [100, 150, 200]
 
@@ -332,8 +341,8 @@ class Darius(DummyChamp):
 
 
 class Draven(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_ad_bonus = [0.5, 1, 1.5]
         self.sa_attack_speed_boost = 1
         self.sa_duration = 5.75
@@ -353,8 +362,8 @@ class Draven(DummyChamp):
 
 
 class Elise(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_spiderlings = [1, 2, 4]
         self.spider_lifesteal = [0.6, 0.9, 1.2]
         self.spider_health = 500
@@ -373,8 +382,8 @@ class Elise(DummyChamp):
 
 
 class Evelyn(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [200, 300, 400]
         self.sa_damage_below_50 = [600, 1200, 2000]
         self.sa_back_hexes = 3
@@ -389,8 +398,8 @@ class Evelyn(DummyChamp):
 
 
 class Fiora(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [100, 250, 400]
         self.sa_used = None
 
@@ -403,7 +412,7 @@ class Fiora(DummyChamp):
         elif time - self.sa_used >= channel_duration * 1000:
             target = self.get_target(in_range)
             if target:
-                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
+                target.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="spell", originator=self)
                 stun = StatusEffect(fight.map, 1.5, "Stun", effects=["stun"])
                 target.get_spell_effect(stun, fight)
                 fight.events.append(DummyEvent(1000, (36, 36, 36), [fight.map.get_cell_from_id(target.pos)]))
@@ -414,8 +423,8 @@ class Fiora(DummyChamp):
 
 
 class Gangplank(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [150, 250, 350]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -428,8 +437,8 @@ class Gangplank(DummyChamp):
 
 
 class Garen(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [40, 65, 90]
         self.interval = 500
         self.last_proc = None
@@ -448,8 +457,8 @@ class Garen(DummyChamp):
 
 
 class Gnar(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [200, 300, 400]
         self.sa_duration = 60
         self.sa_stun_duration = 2
@@ -469,8 +478,8 @@ class Gnar(DummyChamp):
 
 
 class Graves(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_bonus_ad_damage = [0.05, 0.1, 0.15]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -481,8 +490,8 @@ class Graves(DummyChamp):
 
 
 class Jayce(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_stun_duration = [2.5, 4.25, 6]
         self.sa_damage = [200, 350, 500]
         self.as_hit_duration = [3, 5, 7]
@@ -526,8 +535,8 @@ class Jayce(DummyChamp):
 
 
 class Jinx(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_bonus_attack_speed = [0.6, 0.8, 1]
         self.sa_rocket_bonus_damage = [100, 200, 300]
 
@@ -542,8 +551,8 @@ class Jinx(DummyChamp):
 
 
 class Kaisa(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_shield = [300, 600, 900]
         self.sa_bonus_attack_speed = [0.3, 0.6, 0.9]
         self.sa_duration = 3
@@ -556,8 +565,8 @@ class Kaisa(DummyChamp):
 
 
 class Karthus(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [350, 600, 850]
         self.sa_channel_duration = 2.25
         self.sa_random_enemies = [5, 7, 9]
@@ -570,8 +579,8 @@ class Karthus(DummyChamp):
 
 
 class Kassadin(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_mana_reduce = [25, 50, 75]
         self.sa_shield_duration = 4
 
@@ -583,8 +592,8 @@ class Kassadin(DummyChamp):
 
 
 class Kataring(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_channel_duration = 2.5
         self.sa_enemies = [4, 6, 8]
         self.sa_tick_damage = [45, 70, 95]
@@ -600,8 +609,8 @@ class Kataring(DummyChamp):
 
 
 class Kayle(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_allies = [1, 2, 3]
         self.sa_duration = [2, 2.5, 3]
 
@@ -612,8 +621,8 @@ class Kayle(DummyChamp):
 
 
 class Kennen(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = 3
         self.sa_damage_per_tick = [37.5, 75, 112.5]
         self.sa_stun_duration = 1.5
@@ -629,8 +638,8 @@ class Kennen(DummyChamp):
 
 
 class Khazix(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [150, 250, 350]
         self.sa_damage_alone = [400, 600, 800]
 
@@ -638,16 +647,25 @@ class Khazix(DummyChamp):
         if len(in_range) > 0:
             target = random.choice(in_range)
             effected_area = [fight.map.get_cell_from_id(target.pos)]
+
             if len(target.get_allies_around(fight)) == 0:
-                target.get_damage("magic", self.sa_damage_alone[self.rank - 1], fight.map, origin="spell", originator=self)
+                damage = self.sa_damage_alone[self.rank - 1]
             else:
-                target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
+                damage = self.sa_damage[self.rank - 1]
+            target.get_damage("magic", damage, fight, origin="spell", originator=self)
             fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
+
+    @property
+    def can_use_sa(self):
+        if len(self.fight.adjacent_enemies(self)) > 0:
+            return True
+        else:
+            return False
 
 
 class Kindred(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = [3, 4, 5]
         self.sa_health_drop = [300, 600, 900]
 
@@ -660,8 +678,8 @@ class Kindred(DummyChamp):
 
 
 class Leona(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [175, 250, 325]
         self.sa_stun_duration = [5, 7, 9]
 
@@ -675,8 +693,8 @@ class Leona(DummyChamp):
 
 
 class Lissandra(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [175, 325, 475]
         self.sa_stun_duration = 1.5
         self.sa_untargetable_duration = 2
@@ -692,8 +710,8 @@ class Lissandra(DummyChamp):
 
 
 class Lucian(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [100, 225, 350]
 
     # @todo: jump to furthest point from all enemies
@@ -720,8 +738,8 @@ class Lucian(DummyChamp):
 
 
 class Lulu(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_bonus_health = [300, 400, 500]
         self.sa_bonus_health_duration = 6
         self.sa_knockup_duration = 1.25
@@ -735,8 +753,8 @@ class Lulu(DummyChamp):
 
 
 class MissFortune(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = 3
         self.sa_tick_damage = [1300 / 14, 2000 / 14, 2700 / 14]
         self.sa_tick_interval = 3 / 14
@@ -750,8 +768,8 @@ class MissFortune(DummyChamp):
 
 
 class Mordekaiser(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [250, 500, 750]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -762,8 +780,8 @@ class Mordekaiser(DummyChamp):
 
 
 class Morgana(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_delay = int(0.5 * 1000)
         self.sa_range = 3
         self.sa_damage = [175, 300, 425]
@@ -780,8 +798,8 @@ class Morgana(DummyChamp):
 
 
 class Nidalee(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_delay = 0.5
         self.sa_heal_duration = 6
         self.sa_heal_tick = [150 / 6, 375 / 6, 600 / 6]
@@ -799,8 +817,8 @@ class Nidalee(DummyChamp):
 
 
 class Pantheon(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_stun_duration = int(2 * 1000)
         self.sa_percent_damage = [0.1, 0.2, 0.3]
         # grievous wounds 2% true damage for 10 sec.
@@ -816,8 +834,8 @@ class Pantheon(DummyChamp):
 
 
 class Poppy(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_charge_duration = 0.75
         self.sa_enemies = [1, 2, 3]
         self.sa_damage = [300, 500, 700]
@@ -834,8 +852,8 @@ class Poppy(DummyChamp):
 
 
 class Pyke(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_image_return = 1
         self.sa_damage = [150, 200, 250]
         self.sa_stun_duration = [1.5, 2, 2.5]
@@ -850,8 +868,8 @@ class Pyke(DummyChamp):
 
 
 class Reksai(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_untargetable_duration = 1
         self.sa_healing_per_half_second = [150, 300, 450]
         self.sa_damage = [200, 350, 500]
@@ -866,8 +884,8 @@ class Reksai(DummyChamp):
 
 
 class Rengar(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_percent_ad_damage = [2, 3, 4]
         self.sa_duration = 6
         self.sa_crit_chance_increase = 0.25
@@ -883,8 +901,8 @@ class Rengar(DummyChamp):
 
 
 class Sejuani(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_delay = 2
         self.sa_damage = [100, 175, 250]
         self.sa_stun_duration = [2, 3.5, 5]
@@ -897,8 +915,8 @@ class Sejuani(DummyChamp):
 
 
 class Shen(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = [3, 4, 5]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -910,8 +928,8 @@ class Shen(DummyChamp):
 
 
 class Shyvana(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = int(60 * 1000)
         self.sa_dragon_ad_increase = [100, 150, 200]
         self.sa_dot_duration = int()
@@ -926,8 +944,8 @@ class Shyvana(DummyChamp):
 
 
 class Swain(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = 6
         self.sa_damage = [40, 80, 120]
         self.interval = 0.5 * 1000
@@ -947,8 +965,8 @@ class Swain(DummyChamp):
 
 
 class Tristana(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_detonation_delay_time = 4
         self.sa_detonation_delay_aa = 3
         self.sa_damage = [70, 110, 150]
@@ -964,8 +982,8 @@ class Tristana(DummyChamp):
 
 
 class TwistedFate(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_aa_additional_damage = [150, 250, 350]
         self.sa_blue_mana = [30, 50, 70]
         self.sa_gold_stun_duration = [2, 3, 4]
@@ -987,8 +1005,8 @@ class TwistedFate(DummyChamp):
 
 
 class Varus(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_channeltime = int(1.5 * 1000)
         self.sa_range = 8
         self.sa_damage = [300, 550, 800]
@@ -1001,8 +1019,8 @@ class Varus(DummyChamp):
 
 
 class Vayne(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_third_stack_damage = [0.08, 0.12, 0.16]
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -1015,8 +1033,8 @@ class Vayne(DummyChamp):
 
 
 class Veigar(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [350, 650, 950]
         self.sa_damage_higher_level = 19999
 
@@ -1029,8 +1047,8 @@ class Veigar(DummyChamp):
 
 
 class Vi(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [300, 500, 700]
         self.sa_airborne = [2, 2.5, 3]
 
@@ -1043,8 +1061,8 @@ class Vi(DummyChamp):
 
 
 class Volibear(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_empower_duration = 20
         self.sa_chain_enemies = [2, 3, 4]
         self.sa_ad_percent_damage = [0.8, 0.9, 1]
@@ -1058,8 +1076,8 @@ class Volibear(DummyChamp):
 
 
 class Warwick(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_stun_duration = 1.5
         self.sa_strikes = 3
         self.sa_strike_damage = [150 / 3, 225 / 3, 300 / 3]
@@ -1073,8 +1091,8 @@ class Warwick(DummyChamp):
 
 
 class Yasuo(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [150, 350, 550]
         self.sa_tornado_airborne_duration = 1.5
 
@@ -1089,8 +1107,8 @@ class Yasuo(DummyChamp):
 
 
 class Zed(DummyChamp):
-    def __init__(self, pos, champ_item, rank, items=None):
-        super().__init__(pos, champ_item, rank, items=items)
+    def __init__(self, pos, champ_item, rank, fight, items=None):
+        super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [200, 350, 500]
 
     def special_ability(self, fight, in_range, visible, alive, time):

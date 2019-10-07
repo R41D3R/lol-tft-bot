@@ -71,19 +71,20 @@ class StatusEffect:
 
 
 class GWounds(StatusEffect):
-    def __init__(self, champ, map_, duration, name, originator=None, damage=False):
-        super().__init__(map_, duration, name, effects=["gwound"])
+    def __init__(self, champ, fight, duration, name, originator=None, damage=False):
+        super().__init__(fight.map, duration, name, effects=["gwound"])
         self.damage = damage
         self.last_proc = None
         self.target = champ
         self.damage_interval = 1000
         self.originator = originator
+        self.fight = fight
 
     def proc(self):
         if self.damage:
             now = pygame.time.get_ticks()
             if self.last_proc is None or now - self.last_proc >= self.damage_interval:
-                self.target.get_damage("true", self.target.max_health * 0.02, self.map, origin="spell", originator=self.originator)
+                self.target.get_damage("true", self.target.max_health * 0.02, self.fight, origin="spell", originator=self.originator)
                 self.last_proc = now
 
 

@@ -1,5 +1,6 @@
 from typing import List
 import random
+import copy
 
 import pygame
 
@@ -10,10 +11,37 @@ from config import logger
 
 
 class Fight:
-    def __init__(self, team_bot: List[DummyChamp], team_top: List[DummyChamp]):
-        self.map = Map(cell_radius=50, n_rows=6, n_cols=7, color=(0, 150, 0), space=0)
-        self.team_bot = team_bot
-        self.team_top = team_top
+    def __init__(self, champ_fabric):
+        self.map = self.board
+        self.team_bot = None
+        self.team_top = None
+        self.base_team_bot = None
+        self.base_team_top = None
+
+        self.champ_fabric = champ_fabric
+
+        self.path = None
+        self.events = []
+        self.aoe = []
+        self.now = None
+        self.start_of_combat = True
+        self.bot_synergy = {}
+        self.top_synergy = {}
+        self.hextech_tick = None
+        self.ranger_tick = None
+        self.hextech_disabled_champs = []
+        self.new_fight()
+
+    @property
+    def board(self):
+        return Map(cell_radius=50, n_rows=6, n_cols=7, color=(0, 150, 0), space=0)
+
+    def new_fight(self, reset=False):
+        self.team_top, self.team_bot = self.champ_fabric.get_teams(reset=reset)
+        self.check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_bot)
+        self.check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_top)
+
+        self.map = self.board
         self.path = None
         self.events = []
         self.aoe = []
@@ -25,8 +53,7 @@ class Fight:
         self.ranger_tick = None
         self.hextech_disabled_champs = []
 
-        self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_bot)
-        self.check_valid_pos(self.map.n_cols, self.map.n_rows, team_top)
+        self.place_champs()
 
     # @todo: Respect that every champ (name) contributes uniquely to synergy bonus
     def set_team_synergies(self):
@@ -425,7 +452,7 @@ class Fight:
                         if effect.does_proc(now):
                             champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                 elif not champ.has_effect("airborne") and not champ.has_effect("stun"):
-                    if champ.mana >= champ.max_mana:
+                    if champ.mana >= champ.max_mana and champ.can_use_sa:
                         champ.stop_moving(self)
 
                         # @item: Ionic Spark
@@ -557,6 +584,10 @@ class Fight:
         enemy_team = self.champs_enemy_team(champ)
         return [enemy for enemy in enemy_team if enemy.alive]
 
+    def allie_champs_alive(self, champ):
+        allie_team = self.champs_allie_team(champ)
+        return [allie for allie in allie_team if allie.alive]
+
     def enemy_team_visible(self, champ):
         return [enemy for enemy in self.enemy_champs_alive(champ) if not enemy.has_effect("banish") and not enemy.has_effect("stealth")]
 
@@ -660,6 +691,7 @@ class Fight:
         for champ in self.team_top + self.team_bot:
             self.update_cell_status(champ, True)
             champ.pos = (int(champ.pos[0]), int(champ.pos[1]))
+            champ.fight = self
 
     # def show_rnd_shortest_path(self, surface):
     #     start = self.team_bot[0]

@@ -10,8 +10,9 @@ from config import logger
 
 
 class DummyChamp:
-    def __init__(self, init_pos, champ_item, rank, items=None):
+    def __init__(self, init_pos, champ_item, rank, fight, items=None):
         self.status_effects = []
+        self.fight = fight
 
         if items is None:
             self.items = []
@@ -124,7 +125,7 @@ class DummyChamp:
                 item_name = "Guinsoo's Rageblade"
                 if self.item_count(item_name) > 0:
                     n_items = self.item_count(item_name)
-                    self.base_aa_cc += 0.05 * n_items
+                    self.bonus_aa_cc += self.base_aa_cc * 0.05 * n_items
 
                 # @synergy: Wild
                 synergy_name = "Wild"
@@ -166,7 +167,7 @@ class DummyChamp:
                 if self.imperial_buff:
                     damage *= 2
 
-                hitted = target.get_damage("physical", damage, fight.map, origin="aa", originator=self)
+                hitted = target.get_damage("physical", damage, fight, origin="aa", originator=self)
                 if hitted:
                     possible_on_hit_targets.append(target)
 
@@ -196,7 +197,7 @@ class DummyChamp:
                         if enemy.pos in cleave_area_id:
                             cleaved_enemies.append(enemy)
                     for enemy in cleaved_enemies:
-                        enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight.map, origin="on_hit_no_dodge",
+                        enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight, origin="on_hit_no_dodge",
                                          originator=self)
 
                 # @synery: Blademaster
@@ -220,7 +221,7 @@ class DummyChamp:
                     runans_target_counter = 0
                     for enemy in enemies_in_range:
                         if enemy.pos in enemy_neighbor_ids and runans_target_counter < n_items:
-                            hitted_ = enemy.get_damage("physical", damage * 0.75, fight.map, origin="aa", originator=self)
+                            hitted_ = enemy.get_damage("physical", damage * 0.75, fight, origin="aa", originator=self)
                             if hitted_:
                                 possible_on_hit_targets.append(enemy)
                             runans_target_counter += 1
@@ -282,7 +283,7 @@ class DummyChamp:
                 item_name = "Giant Slayer"
                 if self.item_count(item_name) > 0:
                     on_hit_damage = self.item_count(item_name) * target.max_health * 0.05
-                    target.get_damage("true", on_hit_damage, fight.map, origin="on_hit", originator=self)
+                    target.get_damage("true", on_hit_damage, fight, origin="on_hit", originator=self)
 
                 # @item: Cursed Blade
                 item_name = "Cursed Blade"
@@ -290,31 +291,27 @@ class DummyChamp:
                     n_items = self.item_count(item_name)
                     rnd_n = random.random()
                     if n_items == 1 and rnd_n <= 0.2:
-                        pass
-                        # -1 Star
+                        target.shrink(fight)
                     elif n_items == 2:
                         if 0.36 >= rnd_n > 0.04:
-                            pass
-                            # -1 Star
+                            target.shrink(fight)
                         elif rnd_n <= 0.04:
-                            pass
-                            # -2 Star
+                            for _ in range(2):
+                                target.shrink(fight)
                     elif n_items == 3:
                         if 0.488 >= rnd_n > 0.104:
-                            pass
-                            # -1 Star
+                            target.shrink(fight)
                         elif 0.104 >= rnd_n > 0.008:
-                            pass
-                            # -2 Star
+                            for _ in range(2):
+                                target.shrink(fight)
                         elif rnd_n <= 0.008:
-                            pass
-                            # -3 Star
-
+                            for _ in range(3):
+                                target.shrink(fight)
                 # @item: Red Buff
                 item_name = "Red Buff"
                 if self.item_count(item_name) > 0:
                     if not target.has_effect_with_name("Morellonomicon"):
-                        target.gwounds(10, fight.map, "Morellonomicon", originator=self, dot=True)
+                        target.gwounds(10, fight, "Morellonomicon", originator=self, dot=True)
                     else:
                         for effect in target.status_effects:
                             if effect.name == "Morellonomicon":
@@ -340,7 +337,11 @@ class DummyChamp:
                           for champ in fight.champs_enemy_team(self)
                           if champ.alive]:
                 if enemy.pos == n_cell.id:
-                    enemy.get_damage("magic", self.aa_damage(crit=True) * 2, fight.map, origin="spell", originator=self)
+                    enemy.get_damage("magic", self.aa_damage(crit=True) * 2, fight, origin="spell", originator=self)
+
+    @property
+    def can_use_sa(self):
+        return True
 
     # ----- Stat Properties ------
 
@@ -651,8 +652,8 @@ class DummyChamp:
     def banish(self, map_):
         self.status_effects.append(StatusEffect(map_, 6, "Zephyr", effects=["banish"]))
 
-    def gwounds(self, duration, map_, name, originator, dot=False):
-        self.status_effects.append(GWounds(self, map_, duration, name, originator=originator, damage=dot))
+    def gwounds(self, duration, fight, name, originator, dot=False):
+        self.status_effects.append(GWounds(self, fight, duration, name, originator=originator, damage=dot))
 
     def stealth(self, map_):
         self.status_effects.append(StatusEffect(map_, 10**10, "Stealth", effects=["stealth"]))
@@ -719,7 +720,10 @@ class DummyChamp:
             else:
                 self.mana += amount
 
-    def get_damage(self, type_, incoming_damage, map_, origin=None, originator=None, fight=None, crit=False, source=None):
+    def get_damage(self, type_, incoming_damage, fight, origin=None, originator=None, crit=False, source=None):
+        # old implementation
+        map_ = fight.map
+
         # @synergy: Void
         if originator.void_buff and (origin == "aa" or origin == "sa"):
             type_ = "true"
@@ -781,7 +785,7 @@ class DummyChamp:
                     item_name = "Thornmail"
                     if self.item_count(item_name) > 0:
                         n_items = self.item_count(item_name)
-                        originator.get_damage("magic", incoming_damage * n_items, map_, origin="item", originator=self)
+                        originator.get_damage("magic", incoming_damage * n_items, fight, origin="item", originator=self)
                         real_damage = 0
                 if origin == "sa":
                     # @item: Jeweled Gauntlet
@@ -793,7 +797,7 @@ class DummyChamp:
                     item_name = "Morellonomicon"
                     if originator.item_count(item_name) > 0:
                         if not self.has_effect_with_name(item_name):
-                            self.gwounds(10, fight.map, item_name, originator=originator, dot=True)
+                            self.gwounds(10, fight, item_name, originator=originator, dot=True)
                         else:
                             for effect in self.status_effects:
                                 if effect.name == item_name:
@@ -803,10 +807,14 @@ class DummyChamp:
                     item_name = "Luden's Echo"
                     if originator.item_count(item_name) > 0:
                         n_items = originator.item_count(item_name)
-                        # @todo: implement Luden's damage jump (get_damage(fight first)
                         # When the wearer deals damage with their Special Ability,
                         # the first target hit and up to 3 nearby enemies are dealt
-                        # an additional 180 magic damage.
+                        # an additional 180 magic damage. -> stacks normal
+                        damage = 180 * n_items
+                        self.get_damage("magic", damage, fight, origin="item", originator=originator, source="Luden's Echo")
+                        # deal 3 nearby enemies damage -> allies
+                        for allie in random.choices(self.fight.adjacent_allies(self), k=3):
+                            allie.get_damage("magic", damage, fight, origin="item", originator=originator, source="Luden's Echo")
 
                 # @item: Hextech Gunblade
                 # @todo: Hextech multiple item healing is not tested
@@ -835,7 +843,7 @@ class DummyChamp:
             self.current_health -= damage_after_shield
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
             self.get_mana("damage", source=source)
-            self.check_alive(map_)
+            self.check_alive()
             return True
         else:
             # @item: Iceborn Gauntlet
@@ -845,11 +853,12 @@ class DummyChamp:
                 pass
             return False
 
-    def check_alive(self, map_):
+    def check_alive(self):
         if self.current_health <= 0:
-            self.kill(map_)
+            self.kill()
 
-    def kill(self, map_):
+    def kill(self):
+        map_ = self.fight.map
         # @item: Guradian Angel
         item_name = "Guardian Angel"
         if self.item_count(item_name) > 0 and self.item_proc(item_name) is None:
@@ -866,8 +875,11 @@ class DummyChamp:
             for item in self.items:
                 if item.name == item_name:
                     item.attribute.extend(["crit_chance", "crit_chance", "attack_speed"])
-                    # @todo: give Repeating Crossbow to other champ (first replace map_)
-                    # @body: give item to other random alive champ in allie team (also npc)
+                    # npc champs included
+                    possible_allies = [allie for allie in self.fight.champs_allie_team(self) if len(allie.items) < 3]
+                    random_allie = random.choice(possible_allies)
+                    random_allie.items.append(item)
+
         # @item: Deathblade
         item_name = "Deathblade"
         for enemy in self.got_damage_from:
