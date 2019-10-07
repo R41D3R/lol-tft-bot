@@ -22,13 +22,6 @@ class DummyChamp:
 
         self.base_stats = champ_item[1]
         print(self.base_stats)
-        # base stats
-        # @todo: implement base_health and base_ad as multiple of base stat
-        # @body: include 0-Star stat
-        # 0-star: 70% of maximum health and attack damage.
-        # 1-star: 100% of maximum health and attack damage.
-        # 2-star: 180% of maximum health and attack damage.
-        # 3-star: 360% of maximum health and attack damage.
         self.base_range = int(self.base_stats["range"])
         self.name = champ_item[0]
 
@@ -40,6 +33,7 @@ class DummyChamp:
 
         self.base_aa_cc = float(self.base_stats["atk_speed"])
         self.bonus_aa_cc = 0
+        self.ability_aa_cc = 0
 
         self.max_mana = int(self.base_stats["mana"])
         self.mana = int(self.base_stats["starting_mana"]) + (20 * len([item for item in self.items if "mana" in item.attribute]))
@@ -78,7 +72,10 @@ class DummyChamp:
         self.fury_stacks = 0
         self.start_ap_bonus = 0
         self.mana_per_source = {}
-        # @todo: add takedown_counter
+        self.takedown_counter = 0
+
+    def on_takedown(self):
+        pass
 
     @property
     def all_shields(self):
@@ -422,7 +419,7 @@ class DummyChamp:
         synergy_name = "Wild"
         wild_bonus += self.base_aa_cc * self.fury_stacks * 0.15
 
-        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc) * frozen_heart_debuff
+        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc + self.ability_aa_cc) * frozen_heart_debuff
 
         # @synergy: Ranger
         synergy_name = "Ranger"
@@ -880,10 +877,13 @@ class DummyChamp:
                     random_allie = random.choice(possible_allies)
                     random_allie.items.append(item)
 
-        # @item: Deathblade
-        item_name = "Deathblade"
         for enemy in self.got_damage_from:
             if enemy:
+                enemy.takedown_counter += 1
+                enemy.on_takedown()
+
+                # @item: Deathblade
+                item_name = "Deathblade"
                 if enemy.item_count(item_name) > 0:
                     enemy.base_ad += 15
 
