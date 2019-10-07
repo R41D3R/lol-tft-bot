@@ -1,67 +1,41 @@
 import pygame
-
+from abc import ABC, abstractmethod
 
 from helper.status_effect import StatusEffect
 
 
 # @todo: relative and absolute aoe
 # @body: this class needs better modeling to work effectively
-class Aoe:
-    def __init__(self, created, duration, delay, effected_area, team, effects, user, fight, interval, static_area=None, amount=0, type_=None, status_effetct=None):
-        self.created = created
-        self.duration = duration * 1000
-        self.effected_area = effected_area
-        self.team = team
-        self.delay = delay * 1000
-        self.user = user
-        self.static_area = static_area
-        self.effects = effects
-        self.last_proc = None
-        self.proc_interval = interval * 1000
-        self.amount = amount
-        self.type = type_
-        self.status_effect = status_effetct
+class Aoe(ABC):
+    def __init__(self, created, duration, delay, effected_area, team, user, fight, interval, user_needed=False):
+        self.fight = fight
+        self.fight.aoe.append(self)
 
-        if self.delay <= 0:
-            self.activate(created, fight)
+        self.created = created
+        self.duration = int(duration * 1000)
+        self.delay = int(delay * 1000)
+        self.last_proc = None
+        self.proc_interval = int(interval * 1000)
+
+        self.activated = False
+
+        self.effected_area = effected_area
+
+        self.team = team
+        self.user = user
+        self.user_needed = user_needed
 
     @property
-    def area(self):
-        if self.effected_area == "around_user":
-            if self.user.alive:
-                return self.user.neighbors
-            else:
-                return []
-        elif self.effected_area == "static_area":
-            return self.static_area
-        elif self.effected_area == "static_around_user":
-            raise NotImplementedError()
+    def interval(self):
+        return self.fight.now - self.created
+
+    @property
+    def active(self):
+        if not self.activated or self.interval + self.delay < self.duration or (self.user_needed and self.user.alive):
+            return True
         else:
-            raise NotImplementedError()
+            return False
 
-    def effect(self):
+    @abstractmethod
+    def proc(self):
         pass
-
-    def activate(self, time, fight):
-        if self.effected_area == "around_user":
-            if time - self.created >= self.delay and self.last_proc is None or time - self.last_proc >= self.proc_interval:
-                self.last_proc = time
-                if "heal" in self.effects:
-                    champs_in_area = fight.champs_in_area(self.area, fight.champs_allie_team(self))
-                    for champ in champs_in_area:
-                        champ.heal(self.amount, fight.map)
-                if "damage" in self.effects:
-                    champs_in_area = fight.champs_in_area(self.area, fight.champs_enemy_team(self))
-                    for champ in champs_in_area:
-                        champ.get_damage(self.type, self.amount, fight.map, origin="spell", originator=self.user)
-                if "zone" in self.effects:
-                    if self.team == "enemy_team":
-                        champs_in_area = fight.champs_in_area(self.area, fight.champs_enemy_team(self))
-                    else:
-                        champs_in_area = fight.champs_in_area(self.area, fight.champs_allie_team(self))
-                    for champ in champs_in_area:
-                        champ.get_spell_effect(self.status_effect, fight.map)
-            if time - self.created >= self.duration:
-                fight.aoe.remove(self)
-            else:
-                pass

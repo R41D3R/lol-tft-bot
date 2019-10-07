@@ -1,6 +1,7 @@
 from typing import List
 import random
 import copy
+import math
 
 import pygame
 
@@ -629,6 +630,72 @@ class Fight:
             if furthest_enemy_dist < dist_to_enemy:
                 furthest_enemy = enemy
         return furthest_enemy
+
+    @staticmethod
+    def get_next_id_from_degree(current_id, degree, root_deg, prev_dir_):
+        dir_dict = {
+            1: [1, -1],
+            2: [2, 0],
+            3: [1, 1],
+            4: [-1, 1],
+            5: [-2, 0],
+            6: [-1, -1],
+        }
+        if degree < root_deg:
+            next_dir = prev_dir_ + 1
+        elif degree == root_deg:
+            next_dir = prev_dir_
+        else:
+            next_dir = prev_dir_ - 1
+        if next_dir == 0:
+            next_dir = 6
+        if next_dir == 7:
+            next_dir = 1
+
+        next_id = current_id[0] + dir_dict[next_dir][0], current_id[1] + dir_dict[next_dir][1]
+        return next_id, next_dir
+
+    def get_fist_direction(self, start, goal):
+        # 1
+        if goal[0] - start[0] > 0 and 90 > self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
+            return 1
+        # 2
+        elif goal[0] - start[0] > 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
+            return 2
+        # 3
+        elif goal[0] - start[0] > 0 and self.degree(start, goal) < math.degrees(math.atan(1 / 1.5)):
+            return 3
+        # 4
+        elif goal[0] - start[0] < 0 and self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
+            return 4
+        # 5
+        elif goal[0] - start[0] < 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
+            return 5
+        # 6
+        elif goal[0] - start[0] < 0 and 90 > abs(self.degree(start, goal)) > math.degrees(math.atan(1 / 1.5)):
+            return 6
+
+    @staticmethod
+    def degree(start_id, goal_id):
+        x = (goal_id[0] - start_id[0]) / 2
+        y = start_id[1] - goal_id[1]
+        if x == 0:
+            return 90
+        return math.degrees(math.atan(y / x))
+
+    def line_area_ids(self, start_cell, goal_cell):
+        distance = 3
+        area_ids = []
+        current_id = start_cell.id
+        root_degree = self.degree(start_cell.id, goal_cell.id)
+        direction = self.get_fist_direction(current_id, goal_cell.id)
+        print(current_id, root_degree, direction)
+        for _ in range(distance):
+            current_degree = self.degree(current_id, goal_cell.id)
+            current_id, direction = self.get_next_id_from_degree(current_id, current_degree, root_degree, direction)
+            area_ids.append(current_id)
+            print(current_id, current_degree, direction)
+        return area_ids
 
     def enemy_team_item_count(self, champ, item_name):
         item_count = 0

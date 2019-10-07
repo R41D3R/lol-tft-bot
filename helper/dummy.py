@@ -74,6 +74,29 @@ class DummyChamp:
         self.mana_per_source = {}
         self.takedown_counter = 0
 
+    @property
+    def direction(self):
+        #
+        # 6  /\ 1
+        # 5 |  | 2
+        # 4  \/ 3
+        #
+        pass
+        dir_pos = None
+        target = self.get_target(self.get_enemies_in_range(self.fight))
+
+        if target:
+            dir_pos = target.pos
+        elif self.target_pos:
+            dir_pos = self.target_pos
+        else:
+            if self in self.fight.team_bot:
+                return 1
+            else:
+                return 4
+
+
+
     def on_takedown(self):
         pass
 

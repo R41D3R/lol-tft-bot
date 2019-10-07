@@ -180,7 +180,23 @@ class Aatrox(DummyChamp):
     def special_ability(self, fight, in_range, visible, alive, time):
         pass
         # Active: Cleaves the area in front of him,
-        # dealing 300 / 600 / 900 magic damage to all enemies within.
+        # dealing 300 / 600 / 900 magic damage to all enemies within
+        if len(in_range) > 0:
+            target = random.choice(in_range)
+            target_cell = fight.map.get_cell_from_id(target.pos)
+            effected_area = [target_cell] + target_cell.neighbors
+            damage = self.sa_damage[self.rank - 1]
+            targets = [target] + self.fight.adjacent_allies(target)
+            for target in targets:
+                target.get_damage("magic", damage, fight, origin="spell", originator=self)
+            fight.events.append(DummyEvent(1000, (36, 36, 36), effected_area))
+
+    @property
+    def can_use_sa(self):
+        if len(self.fight.adjacent_enemies(self)) > 0:
+            return True
+        else:
+            return False
 
 
 class Ahri(DummyChamp):
