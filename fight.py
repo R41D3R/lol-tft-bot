@@ -440,6 +440,9 @@ class Fight:
             if champ.alive and not champ.has_effect("banish"):
                 logger.debug(f"{champ.name} turn")
 
+                if champ.name == "Gangplank":
+                    champ.create_new_barrel()
+
                 enemies_alive = self.enemy_champs_alive(champ)
                 if len(enemies_alive) == 0:
                     break
@@ -631,16 +634,41 @@ class Fight:
                 furthest_enemy = enemy
         return furthest_enemy
 
-    @staticmethod
-    def get_next_id_from_degree(current_id, degree, root_deg, prev_dir_):
-        dir_dict = {
-            1: [1, -1],
-            2: [2, 0],
-            3: [1, 1],
-            4: [-1, 1],
-            5: [-2, 0],
-            6: [-1, -1],
-        }
+    def get_ability_area(self, target, champ, hexrange):
+        area_cell_ids = []
+        if hexrange is None:
+            hexrange = self.map.distance(target.my_cell, champ.my_cell)
+        if target is None:
+            first_dir = self.get_fist_direction(champ.pos, target)
+            next_dir = first_dir
+            for _ in range(hexrange):
+                next_id, next_dir = self.get_next_id_from_degree(champ.pos, 0, 0, next_dir)
+                area_cell_ids.append(next_id)
+        else:
+            champ_cell = self.map.get_cell_from_id(champ.pos)
+            target_cell = self.map.get_cell_from_id(target.cell)
+            actual_distance = self.map.distance(champ_cell, target_cell)
+            max_range_end_cell = actual_distance
+            if actual_distance < hexrange:
+                for cell in self.map.get_all_cells_in_range(target_cell, hexrange - actual_distance):
+                    current_area_cell_ids = self.line_area_ids(champ_cell, cell)
+                    if len(current_area_cell_ids) > max_range_end_cell and target_cell.id in current_area_cell_ids:
+                        area_cell_ids = current_area_cell_ids
+                        max_range_end_cell = len(current_area_cell_ids)
+                distance_after_search = hexrange - max_range_end_cell
+                if distance_after_search > 0:
+                    for _ in range(distance_after_search):
+                        area_cell_ids.append(None)
+
+        area_cells = []  # check if cell_id is in cell_map
+        for id_ in area_cell_ids:
+            if not self.map.is_id_in_map(id_):
+                area_cells.append(None)
+            else:
+                area_cells.append(self.map.get_cell_from_id(id_))
+        return area_cells
+
+    def get_next_id_from_degree(self, current_id, degree, root_deg, prev_dir_):
         if degree < root_deg:
             next_dir = prev_dir_ + 1
         elif degree == root_deg:
@@ -652,10 +680,15 @@ class Fight:
         if next_dir == 7:
             next_dir = 1
 
-        next_id = current_id[0] + dir_dict[next_dir][0], current_id[1] + dir_dict[next_dir][1]
+        next_id = current_id[0] + self.map.dir_dict[next_dir][0], current_id[1] + self.map.dir_dict[next_dir][1]
         return next_id, next_dir
 
     def get_fist_direction(self, start, goal):
+        if goal is None:
+            if self.get_champ_from_cell(self.map.get_cell_from_id(start)).pos in self.team_bot:
+                return 1
+            else:
+                return 4
         # 1
         if goal[0] - start[0] > 0 and 90 > self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
             return 1
@@ -684,7 +717,7 @@ class Fight:
         return math.degrees(math.atan(y / x))
 
     def line_area_ids(self, start_cell, goal_cell):
-        distance = 3
+        distance = self.map.distance(start_cell, goal_cell)
         area_ids = []
         current_id = start_cell.id
         root_degree = self.degree(start_cell.id, goal_cell.id)

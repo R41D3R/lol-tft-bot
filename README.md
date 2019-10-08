@@ -48,7 +48,7 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs
+- [ ] ADD all Abilities to Champs (13/57, not tested)
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 <table>
@@ -56,24 +56,24 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Aatrox | yes | no |
-| Ahri | yes | no |
-| Akali | yes | no |
-| Anivia | yes | no |
-| Ashe | yes | no |
-| Aurelion | yes | no |
-| Blitzcrank | yes | no |
-| Brand | yes | no |
-| Braum | yes | no |
-| Camille | yes | no |
-| ChoGath | yes | no |
-| Darius | yes | no |
-| Draven | yes | no |
-| Elise | yes | no |
-| Evelynn | yes | no |
-| Fiora | yes | no |
-| Gangplank | yes | no |
-| Garen | yes | no |
+| Aatrox | yes | yes |
+| Ahri | yes | yes |
+| Akali | yes | yes |
+| Anivia | yes | yes |
+| Ashe | yes | yes |
+| Aurelion | yes | yes |
+| Blitzcrank | yes | yes |
+| Brand | yes | yes |
+| Braum | yes | missles + direction? |
+| Camille | yes | yes |
+| ChoGath | yes | yes |
+| Darius | yes | yes |
+| Draven | yes | yes |
+| Elise | yes | yes |
+| Evelynn | yes | yes |
+| Fiora | yes | yes |
+| Gangplank | yes | split on-hit and aa first |
+| Garen | yes | old |
 | Gnar | yes | no |
 | Graves | yes | no |
 
@@ -83,8 +83,8 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Jayce | yes | no |
-| Jinx | yes | no |
+| Jayce | yes | old |
+| Jinx | yes | yes |
 | Kaisa | yes | no |
 | Karthus | yes | no |
 | Kassadin | yes | no |

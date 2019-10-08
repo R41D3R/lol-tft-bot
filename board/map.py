@@ -7,6 +7,16 @@ pygame.font.init()
 class Map:
     def __init__(self, cell_radius, n_rows, n_cols, color, space=0):
         assert (n_rows % 2 == 0), "Rows can not be divided by 2."
+        self.dir_dict = {
+            0: [-1, -1],
+            1: [1, -1],
+            2: [2, 0],
+            3: [1, 1],
+            4: [-1, 1],
+            5: [-2, 0],
+            6: [-1, -1],
+            7: [1, -1]
+        }
         self.cell_map = []  # cell_map[rows[cells]]
         self.n_rows = n_rows
         self.n_cols = n_cols
@@ -33,6 +43,13 @@ class Map:
 
         # map neighbors to cell
         self.create_neighbors()
+
+    def is_id_in_map(self, id_):
+        for _ in self.cell_map:
+            for cell in _:
+                if cell.id == id_:
+                    return True
+        return False
 
     def create_neighbors(self):
         for ir, row in enumerate(self.cell_map):

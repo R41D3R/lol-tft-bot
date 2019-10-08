@@ -7,6 +7,7 @@ from helper.dummy_vision_event import DummyEvent
 from helper.damage_visualization import DummyDamage
 from helper.status_effect import StatusEffect, GWounds, Channelling, Shield
 from config import logger
+from helper.champ_fabric import SpinningAxes
 
 
 class DummyChamp:
@@ -73,6 +74,8 @@ class DummyChamp:
         self.start_ap_bonus = 0
         self.mana_per_source = {}
         self.takedown_counter = 0
+        self.sa_stacks = 0  # drave only
+
 
     @property
     def direction(self):
@@ -94,8 +97,6 @@ class DummyChamp:
                 return 1
             else:
                 return 4
-
-
 
     def on_takedown(self):
         pass
@@ -180,9 +181,30 @@ class DummyChamp:
                         pass
 
             possible_on_hit_targets = []
-            for target in targets:
 
+            # blitzcrank knockup
+            if self.has_effect("knockup_on_aa"):
+                targets[0].airborne(1, fight.map)
+                status_effect = StatusEffect(fight.map, 99999999, "Blitzcrank Knockup", effects=["priority"])
+                targets[0].status_effects.appen(status_effect)
+                self.remove_effects_with_name("Rocket Grab aa")
+
+            for target in targets:
                 damage = self.aa_damage()
+
+                if self.name == "Draven":
+                    if self.has_effect("spinning_axes"):
+                        sa_ad_bonus = [0.5, 1, 1.5]
+                        buffs = self.get_all_effects_with("spinning_axes")
+                        stacks = len(buffs)
+                        damage += self.ad * sa_ad_bonus[self.rank - 1] * stacks
+                        fight.aoe.append(SpinningAxes(fight.now, [], self, fight))
+
+                if self.name == "Jinx":
+                    if self.has_effect("jinx_rocket_launcher"):
+                        rocket_damage = [100, 200, 300]
+                        target.get_damage("magic", rocket_damage[self.rank - 1], fight, origin="sa", originator=self, source="Get Excited")
+
                 # @synergy: Imperial
                 if self.imperial_buff:
                     damage *= 2
@@ -414,7 +436,10 @@ class DummyChamp:
 
     @property
     def range(self):
-        range_ = self.base_range
+        if self.has_effect("melee"):
+            range_ = 1
+        else:
+            range_ = self.base_range
         # @item: Rapid Firecannon
         item_name = "Rapid Firecannon"
         if self.item_count(item_name) > 0:
@@ -629,6 +654,11 @@ class DummyChamp:
                 item.last_proc = time
 
     # ----- Status Effects ------
+
+    def remove_effects_with_name(self, name):
+        for effect in self.status_effects:
+            if effect.name == name:
+                self.status_effects.remove(effect)
     
     def remove_negative_effects(self):
         for effect in self.status_effects:
@@ -799,6 +829,12 @@ class DummyChamp:
                     item_name = "Bloothirster"
                     if originator.item_count(item_name) > 0:
                         heal = real_damage * 0.4 * originator.item_count(item_name)
+                        originator.heal(heal, map_)
+
+                    # elise lifesteal
+                    if originator.has_effect("elise_lifesteal"):
+                        rank_lifesteal = [0.6, 0.9, 1.2]
+                        heal = real_damage * rank_lifesteal[originator.rank - 1]
                         originator.heal(heal, map_)
 
                     # @item: Thornmail
@@ -1029,6 +1065,10 @@ class DummyChamp:
                 self.damage_events.remove(dmg)
 
     # ----- Positioning -----
+
+    @property
+    def my_cell(self):
+        return self.fight.map.get_cell_from_id(self.pos)
 
     def position(self, map_):
         current_cell = map_.get_cell_from_id(self.pos)
