@@ -327,6 +327,7 @@ Do I need to include Champ Stats, Synergies ... ?
 * [PyGame Primer](https://realpython.com/pygame-a-primer/)
 * [PyGame Drawing](https://sites.cs.ucsb.edu/~pconrad/cs5nm/topics/pygame/drawing/)
 * [Beatiful Soap First Steps](https://riptutorial.com/de/beautifulsoup)
+* [Automate basic tasks in games](https://www.tautvidas.com/blog/2018/02/automating-basic-tasks-in-games-with-opencv-and-python/)
 
 **TFT**
 * [Champion Mechanics (__best site__)](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Champions)
