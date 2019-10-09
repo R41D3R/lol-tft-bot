@@ -139,11 +139,11 @@
     - [x] grievous wounds
     - [x] disarm
     - [x] stealth
-    - [ ] shrink
+    - [x] shrink
     - [x] Stun
     - [x] Root
     - [x] Airborne
-- [ ] Add displacement (Airborne, Knockback)
+- [x] Add displacement (Airborne, Knockback)
 ***
 - [x] Add Base Items
 - [x] Add all items (stats)
@@ -223,7 +223,7 @@
 
 ***
 - [ ] ADD all Synergies 20/24
-- [ ] Show Synergies
+- [x] Show Synergies
 <table><tr>
 <td>
 

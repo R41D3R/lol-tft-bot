@@ -449,6 +449,8 @@ class Fight:
                 enemy_team = self.enemy_team_visible(champ)
 
                 enemies_in_range = champ.get_enemies_in_range(self)
+                # @todo: rework channeling abilites
+                # @body: make them interuptable if needed and add can_cast
                 if champ.has_effect("channeling"):
                     champ.stop_moving(self)
                     effects = [effect for effect in champ.status_effects if effect.has("channeling")]
@@ -463,7 +465,7 @@ class Fight:
                         item_name = "Ionic Spark"
                         n_items_enemy_team = self.enemy_team_item_count(champ, item_name)
                         if n_items_enemy_team > 0:
-                            champ.get_damage("true", 125 * n_items_enemy_team, self.map, origin="item", originator=champ, source="Ionic Spark")
+                            champ.get_damage("true", 125 * n_items_enemy_team, self, origin="item", originator=champ, source="Ionic Spark")
 
                         champ.special_ability(self, enemies_in_range, enemy_team, enemies_alive, now)
                         champ.sa_counter += 1
@@ -576,7 +578,7 @@ class Fight:
         champs_in_area = []
         area_ids = [cell.id for cell in area]
         for champ in champs:
-            if champ.id in area_ids:
+            if champ.pos in area_ids:
                 champs_in_area.append(champ)
         return champs_in_area
 
@@ -645,8 +647,8 @@ class Fight:
                 next_id, next_dir = self.get_next_id_from_degree(champ.pos, 0, 0, next_dir)
                 area_cell_ids.append(next_id)
         else:
-            champ_cell = self.map.get_cell_from_id(champ.pos)
-            target_cell = self.map.get_cell_from_id(target.cell)
+            champ_cell = champ.my_cell
+            target_cell = target.my_cell
             actual_distance = self.map.distance(champ_cell, target_cell)
             max_range_end_cell = actual_distance
             if actual_distance < hexrange:
@@ -723,7 +725,7 @@ class Fight:
         root_degree = self.degree(start_cell.id, goal_cell.id)
         direction = self.get_fist_direction(current_id, goal_cell.id)
         print(current_id, root_degree, direction)
-        for _ in range(distance):
+        for _ in range(int(distance)):
             current_degree = self.degree(current_id, goal_cell.id)
             current_id, direction = self.get_next_id_from_degree(current_id, current_degree, root_degree, direction)
             area_ids.append(current_id)
@@ -751,6 +753,15 @@ class Fight:
                 top.draw(surface, self, "team_top")
         if self.game_over:
             self.draw_winner(surface)
+
+        # show synergies
+        font = pygame.font.SysFont("Comic Sans Ms", 25)
+        for i, item in enumerate(self.bot_synergy.items()):
+            syn_text = font.render(f"{item[0]} : {str(item[1])}", True, (0, 0, 0))
+            surface.blit(syn_text, (10, 550 - (15 * i)))
+        for i, item in enumerate(self.top_synergy.items()):
+            syn_text = font.render(f"{item[0]} : {str(item[1])}", True, (0, 0, 0))
+            surface.blit(syn_text, (650, 550 - (15 * i)))
 
     def update_cell_status(self, champ, status):
         cell = self.map.get_cell_from_id(champ.pos)

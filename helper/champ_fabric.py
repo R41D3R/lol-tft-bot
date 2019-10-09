@@ -247,7 +247,7 @@ class Ahri(DummyChamp):
         # magic damage to all enemies it passes through. The orb then
         # returns to her, dealing 100 / 200 / 300 true damage to all enemies
         # it passes through.
-        area_cells = fight.get_ability_area(self.get_target(in_range))
+        area_cells = fight.get_ability_area(self.get_target(in_range), self, 5)
         fight.aoe.append(SpiritOrb(fight.now, None, 0, area_cells, self, fight, 0.2, self.sa_damage[self.rank - 1]))
 
 
@@ -458,7 +458,7 @@ class Blitzcrank(DummyChamp):
         # grab -> status effect on self
         self.channel(fight, 2, "Rocket Grab", interruptable=False)
         self.status_effects.append(StatusEffect(fight.map, 999999, "Rocket Grab aa", effects=["knockup_on_aa"]))
-        fight.aoe.append(RocketGrab(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank -1]))
+        fight.aoe.append(RocketGrab(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration))
 
 
 class Pyroclasm(Aoe):
@@ -533,7 +533,7 @@ class Camille(DummyChamp):
         # roots enemy + status_effect(allies prioritize target)
         target = self.get_target(in_range)
         if target:
-            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self, source="The Hextech Ultimatum")
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="spell", originator=self, source="The Hextech Ultimatum")
             fight.events.append(DummyEvent(1000, (36, 36, 36), fight.map.get_cell_from_id(target.pos)))
             status_effect = StatusEffect(fight.map, self.sa_duration[self.rank - 1], "The Hextech Ultimatum", effects=["root", "priority"])
             target.get_spell_effect(status_effect, fight)
@@ -625,27 +625,6 @@ class Darius(DummyChamp):
         # health for each enemy hit.
         self.channel(fight, 1, "")
         fight.aoe.append(Decimate(fight.now, [], self, fight, self.sa_damage[self.rank - 1], self.sa_heal_for_each_hit[self.rank - 1]))
-
-
-class SpinningAxes(Aoe):
-    def __init__(self, created, effected_area, user, fight):
-        super().__init__(created, 0, 2, effected_area, user, fight, 0, user_needed=True)
-        self.old_pos = self.user.pos
-
-    def proc(self):
-        if self.fight.now - self.created >= self.delay and self.user.alive:
-            self.do_effect()
-            self.activated = True
-
-        if not self.user.alive:
-            self.activated = True
-
-    def do_effect(self):
-        if self.old_pos == self.user.pos:
-            buffs = self.user.get_all_effects_with("spinning_axes")
-            if len(buffs) > 0:
-                for buff in buffs:
-                    buff.duration = self.duration * 1000
 
 
 class Draven(DummyChamp):
@@ -866,7 +845,7 @@ class Garen(DummyChamp):
         if self.has_effect_with_name("Judgement"):
             # self.last_proc = time
             for enemy in in_range:
-                enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
+                enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="spell", originator=self)
             fight.events.append(DummyEvent(50, (36, 36, 36), effected_area))
         else:
             self.channel(fight, 4, "Judgement", 0.5, False)
@@ -1086,7 +1065,7 @@ class Kataring(DummyChamp):
         # can deal a total of 675 / 1050 / 1425 magic damage.
         self.channel(fight, 2.5, "Death-Lotus")
         area = fight.map.get_all_cells_in_range(self.my_cell, 2)
-        self.fight.aoe(DeathLotus(fight.now, area, self, fight, self.sa_tick_damage[self.rank - 1]))
+        self.fight.aoe.append(DeathLotus(fight.now, area, self, fight, self.sa_tick_damage[self.rank - 1]))
 
 
 class Kayle(DummyChamp):
@@ -1317,7 +1296,7 @@ class Lucian(DummyChamp):
                     best_range = item[0]
             self.move_to(best_jump, fight)
             self.autoattack(time, fight, in_range)
-            target.get_damage("magic", self.sa_damage[self.rank - 1], fight.map, origin="spell", originator=self)
+            target.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="spell", originator=self)
 
 
 class Lulu(DummyChamp):
@@ -1388,7 +1367,7 @@ class MissFortune(DummyChamp):
         # a cone for 3 seconds, dealing a total of
         # 1300 / 2000 / 2700 magic damage to all enemies
         # within over the duration.
-        self.channel(3, fight.map)
+        self.channel(fight, 3, "Bullet Time")
         fight.aoe.append(BulletTime(fight.now, self.bullet_area, self, fight, self.sa_tick_damage[self.rank - 1]))
 
 

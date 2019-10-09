@@ -46,3 +46,24 @@ class Aoe(ABC):
             if enemy.pos in area_ids:
                 enemies.append(enemy)
         return enemies
+
+
+class SpinningAxes(Aoe):
+    def __init__(self, created, effected_area, user, fight):
+        super().__init__(created, 0, 2, effected_area, user, fight, 0, user_needed=True)
+        self.old_pos = self.user.pos
+
+    def proc(self):
+        if self.fight.now - self.created >= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+
+        if not self.user.alive:
+            self.activated = True
+
+    def do_effect(self):
+        if self.old_pos == self.user.pos:
+            buffs = self.user.get_all_effects_with("spinning_axes")
+            if len(buffs) > 0:
+                for buff in buffs:
+                    buff.duration = self.duration * 1000

@@ -7,7 +7,7 @@ from helper.dummy_vision_event import DummyEvent
 from helper.damage_visualization import DummyDamage
 from helper.status_effect import StatusEffect, GWounds, Channelling, Shield
 from config import logger
-from helper.champ_fabric import SpinningAxes
+from helper.aoe import SpinningAxes
 
 
 class DummyChamp:
@@ -961,7 +961,7 @@ class DummyChamp:
                 # @item: Deathblade
                 item_name = "Deathblade"
                 if enemy.item_count(item_name) > 0:
-                    enemy.base_ad += 15
+                    enemy.bonus_ad += 15
 
         logger.debug(f"Champ died on {self.pos}")
         self.alive = False
