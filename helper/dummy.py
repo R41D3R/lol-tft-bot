@@ -205,6 +205,12 @@ class DummyChamp:
                         rocket_damage = [100, 200, 300]
                         target.get_damage("magic", rocket_damage[self.rank - 1], fight, origin="sa", originator=self, source="Get Excited")
 
+                if self.name == "Kassadin":
+                    mana_steal = [25, 50, 75]
+                    mana_reduce = mana_steal[self.rank - 1]
+                    target.steal_mana(mana_reduce, user=self)
+                    self.shields.append(Shield(self, fight, fight.now, mana_reduce, duration=4))
+
                 # @synergy: Imperial
                 if self.imperial_buff:
                     damage *= 2
@@ -453,6 +459,8 @@ class DummyChamp:
         item_bonus = 0
         item_bonus += self.base_aa_cc * 0.2 * self.item_sum_from("attack_speed")
 
+        buffs = 0.05 * self.base_aa_cc * len(self.get_all_effects_with("small_as_boost"))
+
         frozen_heart_debuff = 1
         # @item: Frozen Heart
         if self.has_effect("frozen_heart_1"):
@@ -467,7 +475,7 @@ class DummyChamp:
         synergy_name = "Wild"
         wild_bonus += self.base_aa_cc * self.fury_stacks * 0.15
 
-        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc + self.ability_aa_cc) * frozen_heart_debuff
+        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc + self.ability_aa_cc + buffs) * frozen_heart_debuff
 
         # @synergy: Ranger
         synergy_name = "Ranger"
@@ -522,13 +530,15 @@ class DummyChamp:
 
     @property
     def max_health(self):
+        time_bonus_health = 100 * len(self.get_all_effects_with("bonus_health_100"))
+
         shrinks = self.get_all_effects_with("shrink")
         index = self.rank - 1 - len(shrinks)
         if index < 0:
             base_health = self.base_health[0] * 0.7
         else:
             base_health = self.base_health[index]
-        return base_health + self.bonus_health + (200 * self.item_sum_from("health"))
+        return base_health + time_bonus_health + self.bonus_health + (200 * self.item_sum_from("health"))
 
     @property
     def armor(self):
@@ -735,6 +745,13 @@ class DummyChamp:
         self.status_effects.append(StatusEffect(fight.map, duration, "Immune", effects=["immune"]))
 
     # ----- Get Damage and Alive -----
+
+    def steal_mana(self, amount, user=None):
+        before = self.mana
+        self.mana -= amount
+        if self.mana < 0:
+            self.mana = 0
+
     
     def get_mana(self, origin, amount_=0, source=None, damage=0):
         amount = amount_

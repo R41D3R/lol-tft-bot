@@ -6,7 +6,7 @@ import pandas as pd
 
 from helper.dummy import DummyChamp
 from helper.dummy_vision_event import DummyEvent
-from helper.status_effect import StatusEffect
+from helper.status_effect import StatusEffect, Shield
 from helper.aoe import Aoe
 from config import logger
 from data.items_base_stats import Item, all_items
@@ -977,14 +977,49 @@ class Kaisa(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_shield = [300, 600, 900]
-        self.sa_bonus_attack_speed = [0.3, 0.6, 0.9]
+        self.sa_bonus_attack_speed = [6, 12, 18]  # 5% per Stack -> 30%, 60%, 90%
         self.sa_duration = 3
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Dashes to the farthest away unit, gaining
         # a 300 / 600 / 900 damage shield and 30 / 60 / 90%
         # bonus attack speed for 3 seconds.
+        new_cell = None
+        target = fight.furthest_enemy_away(self)
+        possible_positions = fight.map.get_cell_from_id(target.pos).neighbors
+        while new_cell is None:
+            for cell in possible_positions.copy():
+                if not cell.taken:
+                    new_cell = cell
+                else:
+                    for next_cell in cell.neighbors:
+                        if next_cell not in possible_positions:
+                            possible_positions.append(next_cell)
+        self.move_to(new_cell, fight)
+        self.shields.append(Shield(self, fight, fight.now, self.sa_shield[self.rank - 1], duration=3))
+        for _ in range(self.sa_bonus_attack_speed[self.rank - 1]):
+            self.status_effects.append(StatusEffect(fight.map, 3, "Killer Instinct", effects=["small_as_boost"]))
+
+
+class Requiem(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage, n_enemies):
+        super().__init__(created, 0, 2.5, effected_area, user, fight, 0, user_needed=True)
+        self.damage = damage
+        self.n_enemies = n_enemies
+
+    def proc(self):
+        if self.fight.now - self.created >= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+
+        if not self.user.alive:
+            self.activated = True
+
+    def do_effect(self):
+        enemies = self.fight.enemy_champs_alive(self.user)
+        rnd_n_enemies = random.choices(enemies, k=self.n_enemies)
+        for enemy in rnd_n_enemies:
+            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Requiem")
 
 
 class Karthus(DummyChamp):
@@ -995,10 +1030,11 @@ class Karthus(DummyChamp):
         self.sa_random_enemies = [5, 7, 9]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Channels for 2.25 seconds to deal
         # 350 / 600 / 850 magic damage to 5 / 7 / 9 random
         # enemies.
+        self.channel(fight, 2.5, "Requiem")
+        fight.aoe.append(Requiem(fight.now, [], self, fight, self.sa_damage[self.rank - 1], self.sa_random_enemies[self.rank - 1]))
 
 
 class Kassadin(DummyChamp):
@@ -1014,6 +1050,26 @@ class Kassadin(DummyChamp):
         # same amount lasting 4 seconds. The shield can stack.
 
 
+class DeathLotus(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage):
+        super().__init__(created, 2.5, 0, effected_area, user, fight, (2.5 / 15), user_needed=True)
+        self.damage = damage
+
+    def proc(self):
+        if self.fight.now - self.created <= self.duration and self.user.alive:
+            if self.last_proc is None or self.fight.now - self.last_proc >= self.proc_interval:
+                self.last_proc = self.fight.now
+                self.do_effect()
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        enemies = self.fight.champs_in_area(self.effected_area, self.fight.enemy_champs_alive(self.user))
+        for enemy in enemies:
+            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Death-Lotus")
+            enemy.gwounds(3, self.fight, "Death-Lotus", self.user)
+
+
 class Kataring(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1022,13 +1078,15 @@ class Kataring(DummyChamp):
         self.sa_tick_damage = [45, 70, 95]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Channels for 2.5 seconds, while throwing
         # 15 knives at 4 / 6 / 8 enemies within 2 hexes,
         # dealing 45 / 70 / 95 magic damage per tick and
         # applying Grievous Wounds icon Grievous Wounds,
         # reducing healing on them for 3 seconds. The channel
         # can deal a total of 675 / 1050 / 1425 magic damage.
+        self.channel(fight, 2.5, "Death-Lotus")
+        area = fight.map.get_all_cells_in_range(self.my_cell, 2)
+        self.fight.aoe(DeathLotus(fight.now, area, self, fight, self.sa_tick_damage[self.rank - 1]))
 
 
 class Kayle(DummyChamp):
@@ -1038,9 +1096,43 @@ class Kayle(DummyChamp):
         self.sa_duration = [2, 2.5, 3]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Targets the 1 / 2 / 3 weakest allies,
         # making them immune to damage for 2 / 2.5 / 3 seconds.
+        protected_allies = []
+        for allie in fight.allie_champs_alive(self):
+            if len(protected_allies) < self.sa_allies[self.rank - 1]:
+                protected_allies.append(allie)
+            else:
+                for p_allie in protected_allies:
+                    if allie.current_health < p_allie.health:
+                        protected_allies.remove(p_allie)
+                        protected_allies.append(allie)
+        for allie in protected_allies:
+            allie.immune(self.sa_duration[self.rank - 1], fight)
+
+
+class SlicingMaelstrom(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage):
+        super().__init__(created, 3, 0, effected_area, user, fight, 0.5, user_needed=True)
+        self.damage = damage
+
+    def proc(self):
+        if self.fight.now - self.created <= self.duration and self.user.alive:
+            if self.last_proc is None or self.fight.now - self.last_proc >= self.proc_interval:
+                self.last_proc = self.fight.now
+                self.do_effect()
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        area = self.fight.map.get_all_cells_in_range(self.user.my_cell, 2)
+        enemies = self.fight.champs_in_area(area, self.fight.enemy_champs_alive(self.user))
+        for enemy in enemies:
+            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Slicing Maelstrom")
+            enemy.status_effects.append(StatusEffect(self.fight.map, 3, "Slicing Maelstrom", effects=["kennen_stack"]))
+            if len(enemy.get_all_effects_with("kennen_stack")) == 3:
+                enemy.remove_effects_with_name("Slicing Maelstrom")
+                enemy.stun(1.5, self.fight.map)
 
 
 class Kennen(DummyChamp):
@@ -1051,13 +1143,14 @@ class Kennen(DummyChamp):
         self.sa_stun_duration = 1.5
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
+        # Slicing Maelstrom
         # Active: Summons a storm around himself for 3 seconds,
         # dealing 37.5 / 75 / 112.5 magic damage each 0.5
         # seconds to enemies in the area. Each enemy struck 3
         # times is Stun icon stunned for 1.5 seconds.
         # The storm can deal a total of 225 / 450 / 675
         # magic damage.
+        fight.aoe.append(SlicingMaelstrom(fight.now, [], self, fight, self.sa_damage_per_tick[self.rank - 1]))
 
 
 class Khazix(DummyChamp):
@@ -1086,6 +1179,25 @@ class Khazix(DummyChamp):
             return False
 
 
+class LambsRespite(Aoe):
+    def __init__(self, created, duration, effected_area, user, fight, health):
+        super().__init__(created, duration, 0, effected_area, user, fight, 0, user_needed=False)
+        self.health = health
+
+    def proc(self):
+        if self.fight.now - self.created <= self.duration:
+            self.do_effect()
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        for cell in self.effected_area:
+            for allie in self.fight.allie_champs_alive(self.user):
+                if cell.id == allie.pos:
+                    if allie <= self.health:
+                        allie.immune(0, self.fight)
+
+
 class Kindred(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1093,11 +1205,35 @@ class Kindred(DummyChamp):
         self.sa_health_drop = [300, 600, 900]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Creates a zone around themselves
         # for 3 / 4 / 5 seconds that prevents allies
         # within from dropping below 300 / 600 / 900
         # health or dying.
+        area = fight.map.get_all_cells_in_range(self.my_cell, 2)
+        fight.aoe.append(LambsRespite(fight.now, self.sa_duration[self.rank - 1], area, self, fight, self.sa_health_drop[self.rank - 1]))
+
+
+class SolarFlare(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage, stun_duration, cell):
+        super().__init__(created, 0, 0.625, effected_area, user, fight, 0, user_needed=False)
+        self.damage = damage
+        self.stun_duration = stun_duration
+        self.center_cell = cell
+
+    def proc(self):
+        if self.fight.now - self.created >= self.delay:
+            self.do_effect()
+            self.activated = True
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        for cell in self.effected_area:
+            for enemy in self.fight.enemy_champs_alive(self.user):
+                if cell.id == enemy.pos:
+                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Solar Flare")
+                    if enemy.my_cell == self.center_cell:
+                        enemy.stun(self.stun_duration, self.fight.map)
 
 
 class Leona(DummyChamp):
@@ -1107,7 +1243,10 @@ class Leona(DummyChamp):
         self.sa_stun_duration = [5, 7, 9]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
+        rnd_enemy = random.choice(fight.enemy_champs_alive(self))
+        center_cell = rnd_enemy.my_cell
+        area = fight.map.get_all_cells_in_range(center_cell, 2)
+        fight.aoe.append(SolarFlare(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1], center_cell))
         # Active: After a 0.625-second delay, calls down
         # a solar ray in a 3x3 area, dealing 175 / 250 / 325
         # magic damage to all enemies within and Stun icon
@@ -1123,13 +1262,34 @@ class Lissandra(DummyChamp):
         self.sa_untargetable_duration = 2
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Encases an enemy in ice, Stun icon
         # stunning them for 1.5 seconds and dealing 175 / 325 / 475
         # magic damage to all enemies in the surrounding area.
         # If she is below 50% health, instead encases herself,
         # becoming untargetable for 2 seconds and dealing the
         # same magic damage to all enemies in the surrounding area.
+        if self.current_health / self.max_health < 0.5:
+            # @todo: add untargetable effect (for liss)
+            for cell in fight.map.get_all_cells_in_range(self.my_cell, 1):
+                for d_enemy in fight.enemy_champs_alive(self):
+                    if cell.id == d_enemy.pos:
+                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1])
+        else:
+            enemy = random.choice(in_range)
+            enemy.stun(1.5, fight.map)
+            for cell in fight.map.get_all_cells_in_range(enemy.my_cell, 1):
+                for d_enemy in fight.enemy_champs_alive(self):
+                    if cell.id == d_enemy.pos:
+                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1])
+
+    @property
+    def can_use_sa(self):
+        if self.current_health / self.max_health < 0.5:
+            return True
+        elif len(self.fight.champs_in_area(self.fight.map.get_all_cells_in_range(self.my_cell, 2), self.fight.enemy_champs_alive(self))) > 0:
+            return True
+        else:
+            return False
 
 
 class Lucian(DummyChamp):
@@ -1163,16 +1323,42 @@ class Lucian(DummyChamp):
 class Lulu(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
-        self.sa_bonus_health = [300, 400, 500]
+        self.sa_bonus_health = [3, 4, 5]  # per stack 100 hp
         self.sa_bonus_health_duration = 6
         self.sa_knockup_duration = 1.25
         self.sa_allies = [1, 2, 3]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Grants 1 / 2 / 3 allies 300 / 400 / 500
         # bonus health for 6 seconds, Airborne icon knocking
         # up adjacent enemies near them for 1.25 seconds.
+        allies = random.choices(fight.allie_champs_alive(self), k=self.sa_allies[self.rank - 1])
+        health_gain_stacks = self.sa_bonus_health[self.rank - 1]
+        for allie in allies:
+            for _ in range(health_gain_stacks):
+                allie.status_effects.append(fight.map, self.sa_bonus_health_duration[self.rank - 1], "Wild Growth", effects=["bonus_health_100"])
+            allie.heal(100 * health_gain_stacks, fight.map)
+            for enemy in fight.adjacent_enemies(allie):
+                enemy.airborne(1.25, fight.map)
+
+
+class BulletTime(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage):
+        super().__init__(created, 3, 0, effected_area, user, fight, (3 / 14), user_needed=True)
+        self.damage = damage
+
+    def proc(self):
+        if self.last_proc is None or (self.fight.now - self.created <= self.duration and self.fight.now - self.last_proc >= self.proc_interval):
+            self.last_proc = self.fight.now
+            self.do_effect()
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        for cell in self.effected_area:
+            for enemy in self.fight.enemy_champs_alive(self.user):
+                if cell.id == enemy.pos:
+                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Bullet Time")
 
 
 class MissFortune(DummyChamp):
@@ -1182,12 +1368,28 @@ class MissFortune(DummyChamp):
         self.sa_tick_damage = [1300 / 14, 2000 / 14, 2700 / 14]
         self.sa_tick_interval = 3 / 14
 
+    @property
+    def bullet_area(self):
+        target = self.fight.furthest_enemy_away(self)
+        direction = self.fight.get_fist_direction(self.my_cell, target.my_cell)
+        ids = []
+        current_middle_id = self.pos
+        for i in range(4):
+            current_middle_id = (current_middle_id[0] + self.fight.map.dir_dict[direction][0], current_middle_id[1] + self.fight.map.dir_dict[direction][1])
+            ids.append(current_middle_id)
+            ids.append((current_middle_id[0] + self.fight.map.dir_dict[direction + 1][0], current_middle_id[1] + self.fight.map.dir_dict[direction + 1][1]))
+            ids.append((current_middle_id[0] + self.fight.map.dir_dict[direction - 1][0], current_middle_id[1] + self.fight.map.dir_dict[direction - 1][1]))
+        area = [self.fight.map.get_cell_from_id(id_) for id_ in ids]
+        return area
+
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
+        # Bullet Time
         # Active: Channels and fires 14 waves of bullets in
         # a cone for 3 seconds, dealing a total of
         # 1300 / 2000 / 2700 magic damage to all enemies
         # within over the duration.
+        self.channel(3, fight.map)
+        fight.aoe.append(BulletTime(fight.now, self.bullet_area, self, fight, self.sa_tick_damage[self.rank - 1]))
 
 
 class Mordekaiser(DummyChamp):
@@ -1196,10 +1398,20 @@ class Mordekaiser(DummyChamp):
         self.sa_damage = [250, 500, 750]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Slams his mace on two spaces in front of
         # him, dealing 250 / 500 / 750 magic damage to enemies
         # within.
+        id_adder = self.fight.map.dir_dict[self.direction]
+        ids = []
+        current_id = self.pos
+        for _ in range(2):
+            current_id = (current_id[0] + id_adder[0], current_id[1] + id_adder[1])
+            ids.append(current_id)
+        cells = [fight.map.get_cell_from_id(id_) for id_ in ids if fight.map.is_id_in_map(id_)]
+        for cell in cells:
+            for enemy in fight.enemy_champs_alive(self):
+                if cell.id == enemy.pos:
+                    enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Obliterate")
 
 
 class Morgana(DummyChamp):
@@ -1256,6 +1468,39 @@ class Pantheon(DummyChamp):
         # for the duration, reducing healing on the target.
 
 
+class KeepersVerdict(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage, stun_duration, n_enemies):
+        super().__init__(created, 0, 0.75, effected_area, user, fight, 0, user_needed=True)
+        self.damage = damage
+        self.stun_duration = stun_duration
+        self.n_enemies = n_enemies
+        self.n_counter = 0
+
+    def proc(self):
+        if self.fight.now - self.created <= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        target = self.user.get_target(self.fight.adjacent_enemies(self.user))
+        direction = self.fight.get_fist_direction(self.user.my_cell, target.my_cell)
+        current_cell = self.user.my_cell
+        while self.n_counter < self.n_enemies:
+            new_id = (current_cell.id[0] + self.fight.map.dir_dict[direction][0], current_cell.id[1] + self.fight.map.dir_dict[direction][1])
+            new_cell = self.fight.map.get_cell_from_id(new_id)
+            if new_cell is None:
+                break
+            else:
+                current_cell = new_cell
+                self.n_counter += 1
+                enemy = self.fight.get_champ_from_cell(current_cell)
+                enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Keeper's Verdict")
+                enemy.stun(self.stun_duration, self.fight.map)
+                enemy.airborne(1, self.fight.map)
+
+
 class Poppy(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1266,12 +1511,13 @@ class Poppy(DummyChamp):
         self.sa_stun_duration = [2, 3, 4]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: After charging for 0.75 seconds, creates a
         # shockwave in a line that can hit up to 1 / 2 / 3
         # enemies, dealing 300 / 500 / 700 magic damage,
         # Airborne icon knocking up for 1 second and Stun icon
         # stunning them for 2 / 3 / 4 seconds.
+        self.channel(fight, 0.75, "Keeper's Verdict")
+        fight.aoe.append(KeepersVerdict(fight.now, [], self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1], self.sa_enemies[self.rank - 1]))
 
 
 class Pyke(DummyChamp):
@@ -1282,6 +1528,8 @@ class Pyke(DummyChamp):
         self.sa_stun_duration = [1.5, 2, 2.5]
 
     def special_ability(self, fight, in_range, visible, alive, time):
+        # jumps to direction + 3 % 6  cell of furthest enemy
+        # stuns and deals damage in line between them
         pass
         # Active: Leaves an afterimage at his location,
         # then dashes behind the farthest enemy. After 1 second,

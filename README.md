@@ -48,7 +48,7 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs (13/57, not tested)
+- [ ] ADD all Abilities to Champs (31/57, not tested)
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 <table>
@@ -85,24 +85,24 @@
 | ---- | ----- | ------- |
 | Jayce | yes | old |
 | Jinx | yes | yes |
-| Kaisa | yes | no |
-| Karthus | yes | no |
-| Kassadin | yes | no |
-| Kararina | yes | no |
-| Kayle | yes | no |
-| Kennen | yes | no |
-| Khazix | yes | no |
-| Kindred | yes | no |
-| Leona | yes | no |
-| Lissandra | yes | no |
-| Lucian | yes | no |
-| Lulu | yes | no |
-| Miss Fortune | yes | no |
-| Mordekaiser | yes | no |
+| Kaisa | yes | yes |
+| Karthus | yes | yes |
+| Kassadin | yes | yes |
+| Kararina | yes | yes |
+| Kayle | yes | yes |
+| Kennen | yes | yes |
+| Khazix | yes | yes |
+| Kindred | yes | yes |
+| Leona | yes | yes |
+| Lissandra | yes | implement untargetable first |
+| Lucian | yes | old |
+| Lulu | yes | yes |
+| Miss Fortune | yes | yes |
+| Mordekaiser | yes | yes |
 | Morgana | yes | no |
 | Nidalee | yes | no |
 | Pantheon | yes | no |
-| Poppy | yes | no |
+| Poppy | yes | yes |
 
 
 </td>
