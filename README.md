@@ -114,7 +114,7 @@
 | Reksai | yes | untargetable first |
 | Rengar | yes | yes |
 | Sejuani | yes | yes |
-| Shen | yes | no |
+| Shen | yes | yes |
 | Shyvana | yes | no |
 | Swain | yes | no |
 | Tristana | yes | no |

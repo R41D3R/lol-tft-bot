@@ -1638,17 +1638,32 @@ class Sejuani(DummyChamp):
         # nearby enemies and Stun icon stunning them for 2 / 3.5 / 5 seconds.
 
 
+class SpiritsRefuge(Aoe):
+    def __init__(self, created, duration, effected_area, user, fight):
+        super().__init__(created, duration, 0, effected_area, user, fight, 0, user_needed=True)
+
+    def proc(self):
+        if self.fight.now - self.created <= self.duration and self.user.alive:
+            self.do_effect()
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        effect = StatusEffect(self.fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
+        for allie in self.fight.adjacent_allies(self.user):
+            allie.status_effects.append(effect)
+
+
 class Shen(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_duration = [3, 4, 5]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        # creates zone around self.pos
-        # effect = StatusEffect(fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
-        # aoe = Aoe(time, self.sa_duration[self.rank - 1], 0, "around_user", "allie_team", "zone", self, fight, 0, status_effetct=effect)
-        # fight.aoe.append(aoe)
-        pass
+        # Active: Creates a zone around himself that follows him
+        # for 3 / 4 / 5 seconds, allowing allies inside to Blind
+        # icon dodge all incoming basic attacks.
+        fight.aoe.append(SpiritsRefuge(fight.now, self.sa_duration[self.rank - 1], [], self, fight))
 
 
 class Shyvana(DummyChamp):
