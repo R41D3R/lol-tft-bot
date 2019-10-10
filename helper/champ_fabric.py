@@ -1777,6 +1777,27 @@ class TwistedFate(DummyChamp):
         self.status_effects.append(StatusEffect(fight.map, 999999, "Pick a Card", effects=["random_card"]))
 
 
+class PiercingArrow(Aoe):
+    def __init__(self, created, user, area, fight, damage):
+        super().__init__(created, 0, 1.5, area, user, fight, 0, user_needed=True)
+        self.damage = damage
+
+    def proc(self):
+        if self.fight.now - self.created >= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+        elif not self.user.alive:
+            self.activated = True
+
+    def do_effect(self):
+        area = self.fight.get_ability_area(self.fight.furthest_enemy_away(self.user), self.user, 8)
+        for cell in area:
+            if cell is not None:
+                for enemy in self.fight.enemy_champs_alive(self.user):
+                    if cell.id == enemy.pos:
+                        enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Piercing Arrow")
+
+
 class Varus(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1785,10 +1806,11 @@ class Varus(DummyChamp):
         self.sa_damage = [300, 550, 800]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: After channeling for 1.5 seconds, fires a piercing
         # arrow up to 8 hexes away, dealing 300 / 550 / 800 magic damage
         # to all enemies in its path.
+        self.channel(fight, 1.5, "Piercing Arrow")
+        fight.aoe.append(PiercingArrow(fight.now, self, [], fight, self.sa_damage[self.rank - 1]))
 
 
 class Vayne(DummyChamp):

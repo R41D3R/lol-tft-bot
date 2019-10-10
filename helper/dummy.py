@@ -213,7 +213,6 @@ class DummyChamp:
                             gold_stun_duration = [2, 3, 4]
                             target.stun(gold_stun_duration[self.rank - 1], fight.map)
 
-
                 if self.name == "Draven":
                     if self.has_effect("spinning_axes"):
                         sa_ad_bonus = [0.5, 1, 1.5]

@@ -48,7 +48,7 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs (31/57, not tested)
+- [ ] ADD all Abilities to Champs (36/57, not tested)
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 <table>
@@ -119,7 +119,7 @@
 | Swain | yes | no |
 | Tristana | yes | yes |
 | Twisted Fate | yes | yes |
-| Varus | yes | no |
+| Varus | yes | yes |
 | Vayne | yes | no |
 | Veigar | yes | no |
 | Vi | yes | no |
