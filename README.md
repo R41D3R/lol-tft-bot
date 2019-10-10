@@ -117,7 +117,7 @@
 | Shen | yes | yes |
 | Shyvana | yes | no |
 | Swain | yes | no |
-| Tristana | yes | no |
+| Tristana | yes | yes |
 | Twisted Fate | yes | no |
 | Varus | yes | no |
 | Vayne | yes | no |

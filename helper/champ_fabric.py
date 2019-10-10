@@ -1703,6 +1703,33 @@ class Swain(DummyChamp):
         # magic damage and heal for 360 / 720 / 1080 health.
 
 
+class ExplosiveCharge(Aoe):
+    def __init__(self, created, user, fight, damage, enemy):
+        super().__init__(created, 4, 0, [], user, fight, 0, user_needed=False)
+        self.damage = damage
+        if enemy in user.target_aa_counter:
+            pass
+        else:
+            user.target_aa_counter[enemy] = 0
+        self.start_counter = user.target_aa_counter[enemy]
+        self.dict = user.target_aa_counter
+        self.enemy = enemy
+
+    @property
+    def current_counter(self):
+        return self.user.target_aa_counter[self.enemy] - self.start_counter
+
+    def proc(self):
+        if self.fight.now - self.created >= self.duration or self.current_counter == 4 or not self.enemy.alive:
+            self.do_effect()
+            self.activated = True
+
+    def do_effect(self):
+        damage = self.damage * 1.5**self.current_counter
+        for enemy in [self.enemy] + self.fight.adjacent_allies(self.enemy):
+            enemy.get_damage("magic", damage, self.fight, origin="sa", originator=self.user, source="Explosive Charge")
+
+
 class Tristana(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1712,12 +1739,19 @@ class Tristana(DummyChamp):
         self.sa_damage_increase_per_aa = 1.5
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Places a bomb on her current target that detonates
         # after 4 seconds or 3 basic attacks, dealing 70 / 110 / 150
         # magic damage to all nearby enemies within 2 hexes. The damage
         # is increased by 50% with each basic attack on the target,
         # dealing up to 175 / 275 / 375 magic damage.
+        fight.aoe.append(ExplosiveCharge(fight.now, self, fight, self.sa_damage[self.rank - 1], self.get_target(in_range)))
+
+    @property
+    def can_use_sa(self):
+        if self.get_enemies_in_range(self.fight, self.range) > 0:
+            return True
+        else:
+            return False
 
 
 class TwistedFate(DummyChamp):

@@ -75,6 +75,7 @@ class DummyChamp:
         self.mana_per_source = {}
         self.takedown_counter = 0
         self.sa_stacks = 0  # drave only
+        self.target_aa_counter = {}
 
 
     @property
@@ -845,6 +846,12 @@ class DummyChamp:
                 self.got_damage_from.append(originator)
             if origin == "aa" or origin == "sa":
                 if origin == "aa":
+                    if self in originator.target_aa_counter:
+                        originator.target_aa_counter[self] += 1
+                    else:
+                        originator.target_aa_counter[self] = 1
+
+
                     # @item: Bloodthirster
                     item_name = "Bloothirster"
                     if originator.item_count(item_name) > 0:
