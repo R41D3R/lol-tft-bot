@@ -637,11 +637,12 @@ class Fight:
         return furthest_enemy
 
     def get_ability_area(self, target, champ, hexrange):
+        first_dir = self.get_fist_direction(champ.pos, target.pos)
+
         area_cell_ids = []
         if hexrange is None:
             hexrange = self.map.distance(target.my_cell, champ.my_cell)
         if target is None:
-            first_dir = self.get_fist_direction(champ.pos, target)
             next_dir = first_dir
             for _ in range(hexrange):
                 next_id, next_dir = self.get_next_id_from_degree(champ.pos, 0, 0, next_dir)
@@ -651,16 +652,19 @@ class Fight:
             target_cell = target.my_cell
             actual_distance = self.map.distance(champ_cell, target_cell)
             max_range_end_cell = actual_distance
-            if actual_distance < hexrange:
-                for cell in self.map.get_all_cells_in_range(target_cell, hexrange - actual_distance):
-                    current_area_cell_ids = self.line_area_ids(champ_cell, cell)
-                    if len(current_area_cell_ids) > max_range_end_cell and target_cell.id in current_area_cell_ids:
-                        area_cell_ids = current_area_cell_ids
-                        max_range_end_cell = len(current_area_cell_ids)
-                distance_after_search = hexrange - max_range_end_cell
-                if distance_after_search > 0:
-                    for _ in range(distance_after_search):
-                        area_cell_ids.append(None)
+            # if actual_distance < hexrange:
+            for cell in self.map.get_all_cells_in_range(target_cell, hexrange - actual_distance):
+                current_area_cell_ids = self.line_area_ids(champ_cell, cell)
+                if len(current_area_cell_ids) > max_range_end_cell and target_cell.id in current_area_cell_ids:
+                    area_cell_ids = current_area_cell_ids
+                    max_range_end_cell = len(current_area_cell_ids)
+            distance_after_search = hexrange - max_range_end_cell
+            if distance_after_search > 0:
+                last_id = area_cell_ids[-1]
+                for _ in range(distance_after_search):
+                    new_id = last_id[0] + self.map.dir_dict[first_dir][0], last_id[1] + self.map.dir_dict[first_dir][1]
+                    area_cell_ids.append(new_id)
+                    last_id = new_id
 
         area_cells = []  # check if cell_id is in cell_map
         for id_ in area_cell_ids:
@@ -670,7 +674,7 @@ class Fight:
                 area_cells.append(self.map.get_cell_from_id(id_))
         return area_cells
 
-    def get_next_id_from_degree(self, current_id, degree, root_deg, prev_dir_):
+    def get_next_id_from_degree(self, current_id, degree, root_deg, prev_dir_, goal_id):
         if degree < root_deg:
             next_dir = prev_dir_ + 1
         elif degree == root_deg:
@@ -682,6 +686,9 @@ class Fight:
         if next_dir == 7:
             next_dir = 1
 
+        if current_id == goal_id:
+            next_dir = prev_dir_
+
         next_id = current_id[0] + self.map.dir_dict[next_dir][0], current_id[1] + self.map.dir_dict[next_dir][1]
         return next_id, next_dir
 
@@ -692,7 +699,7 @@ class Fight:
             else:
                 return 4
         # 1
-        if goal[0] - start[0] > 0 and 90 > self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
+        if goal[0] - start[0] > 0 and 90 >= self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
             return 1
         # 2
         elif goal[0] - start[0] > 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
@@ -707,7 +714,7 @@ class Fight:
         elif goal[0] - start[0] < 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
             return 5
         # 6
-        elif goal[0] - start[0] < 0 and 90 > abs(self.degree(start, goal)) > math.degrees(math.atan(1 / 1.5)):
+        elif goal[0] - start[0] < 0 and 90 >= abs(self.degree(start, goal)) > math.degrees(math.atan(1 / 1.5)):
             return 6
 
     @staticmethod
@@ -724,10 +731,10 @@ class Fight:
         current_id = start_cell.id
         root_degree = self.degree(start_cell.id, goal_cell.id)
         direction = self.get_fist_direction(current_id, goal_cell.id)
-        print(current_id, root_degree, direction)
+        print(current_id, root_degree, direction, distance)
         for _ in range(int(distance)):
             current_degree = self.degree(current_id, goal_cell.id)
-            current_id, direction = self.get_next_id_from_degree(current_id, current_degree, root_degree, direction)
+            current_id, direction = self.get_next_id_from_degree(current_id, current_degree, root_degree, direction, goal_cell.id)
             area_ids.append(current_id)
             print(current_id, current_degree, direction)
         return area_ids

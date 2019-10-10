@@ -1083,7 +1083,7 @@ class Kayle(DummyChamp):
                 protected_allies.append(allie)
             else:
                 for p_allie in protected_allies:
-                    if allie.current_health < p_allie.health:
+                    if allie.current_health < p_allie.current_health:
                         protected_allies.remove(p_allie)
                         protected_allies.append(allie)
         for allie in protected_allies:
@@ -1380,7 +1380,8 @@ class Mordekaiser(DummyChamp):
         # Active: Slams his mace on two spaces in front of
         # him, dealing 250 / 500 / 750 magic damage to enemies
         # within.
-        id_adder = self.fight.map.dir_dict[self.direction]
+        target = self.get_target(in_range)
+        id_adder = self.fight.map.dir_dict[fight.get_fist_direction(self.my_cell, target.my_cell)]
         ids = []
         current_id = self.pos
         for _ in range(2):
@@ -1391,6 +1392,13 @@ class Mordekaiser(DummyChamp):
             for enemy in fight.enemy_champs_alive(self):
                 if cell.id == enemy.pos:
                     enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Obliterate")
+
+    @property
+    def can_use_sa(self):
+        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
+            return True
+        else:
+            return False
 
 
 class Morgana(DummyChamp):
@@ -1597,7 +1605,7 @@ class Rengar(DummyChamp):
         # total attack speed by 30 / 50 / 70%.
         cell, enemy = self.jump_cell
         self.move_to(cell, fight)
-        enemy.get_damage("physical", self.ad * self.sa_percent_ad_damage[self.rank - 1])
+        enemy.get_damage("physical", self.ad * self.sa_percent_ad_damage[self.rank - 1], fight, origin="sa", originator=self, source="Savagery")
         self.status_effects.append(StatusEffect(fight.map, 6, "Savagery", effects="small_crit_chance_boost"*5 + "small_as_boost_total"*self.sa_attack_speed_bonus_total[self.rank - 1]))
 
 
@@ -1748,7 +1756,7 @@ class Tristana(DummyChamp):
 
     @property
     def can_use_sa(self):
-        if self.get_enemies_in_range(self.fight, self.range) > 0:
+        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
             return True
         else:
             return False
@@ -1851,7 +1859,7 @@ class Veigar(DummyChamp):
 
     @property
     def can_use_sa(self):
-        if self.get_enemies_in_range(self.fight, self.range) > 0:
+        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
             return True
         else:
             return False
@@ -1940,7 +1948,7 @@ class Yasuo(DummyChamp):
 
     @property
     def can_use_sa(self):
-        if self.get_enemies_in_range(self.fight, self.range) > 0:
+        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
             return True
         else:
             return False

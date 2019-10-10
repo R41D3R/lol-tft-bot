@@ -95,7 +95,7 @@ class Map:
     @staticmethod
     def get_all_cells_in_range(self_cell, attack_range):
         cells_in_range = [self_cell]
-        for _ in range(attack_range):
+        for _ in range(int(attack_range)):
             for current_cell in cells_in_range.copy():
                 for neighbor in current_cell.neighbors:
                     if neighbor not in cells_in_range:
