@@ -1826,6 +1826,10 @@ class Vayne(DummyChamp):
         # The third stack consumes them all to deal 8 / 12 / 16%
         # of target's maximum health bonus true damage.
 
+    @property
+    def can_use_sa(self):
+        return False
+
 
 class Veigar(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
@@ -1834,11 +1838,23 @@ class Veigar(DummyChamp):
         self.sa_damage_higher_level = 19999
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Blasts an enemy with magical energy,
         # dealing 350 / 650 / 950 magic damage to the target enemy.
         # If Veigar is a higher star level than his target, the
         # damage is increased to 19999.
+        target = self.get_target(in_range)
+        if self.rank > target.rank:
+            damage = self.sa_damage_higher_level
+        else:
+            damage = self.sa_damage[self.rank - 1]
+        target.get_damage("magic", damage, fight, origin="sa", originator=self, source="Primordial Burst")
+
+    @property
+    def can_use_sa(self):
+        if self.get_enemies_in_range(self.fight, self.range) > 0:
+            return True
+        else:
+            return False
 
 
 class Vi(DummyChamp):
