@@ -1906,15 +1906,44 @@ class Yasuo(DummyChamp):
         super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_damage = [150, 350, 550]
         self.sa_tornado_airborne_duration = 1.5
+        self.yasuo_stacks = 0
+
+    def sword_damage(self, enemy):
+        enemy.get_damage("magic", self.sa_damage[self.rank - 1], self.fight, origin="sa", originator=self, source="Steel Tempest")
+        # + onhit effects
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Stabs his sword into the two spaces in front of him,
         # dealing 150 / 350 / 550 magic damage and applying on-hit effects
         # to enemies within.
         # Every third cast, instead throws a tornado in a line that
         # travels 6 hexes, dealing the same magic damage and additionally
         # Airborne icon knocking enemies up for 1.5 seconds.
+        self.yasuo_stacks += 1
+        target = self.get_target(in_range)
+        if self.yasuo_stacks == 3:
+            self.yasuo_stacks = 0
+            area = fight.get_ability_area(target, self, 6)
+            for cell in area:
+                if cell is not None:
+                    for enemy in fight.enemy_champs_alive(self):
+                        if cell.id == enemy.pos:
+                            enemy.airborne(1.5, fight.map)
+                            self.sword_damage(enemy)
+        else:
+            area = fight.get_ability_area(target, self, 2)
+            for cell in area:
+                if cell is not None:
+                    for enemy in fight.enemy_champs_alive(self):
+                        if cell.id == enemy.pos:
+                            self.sword_damage(enemy)
+
+    @property
+    def can_use_sa(self):
+        if self.get_enemies_in_range(self.fight, self.range) > 0:
+            return True
+        else:
+            return False
 
 
 class Zed(DummyChamp):
@@ -1923,6 +1952,12 @@ class Zed(DummyChamp):
         self.sa_damage = [200, 350, 500]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Throws a shuriken in a 4-hex line, dealing
         # 200 / 350 / 500 magic damage to all enemies in its path.
+        target = self.get_target(in_range)
+        area = fight.get_ability_area(target, self, 4)
+        for cell in area:
+            if cell is not None:
+                for enemy in fight.enemy_champs_alive(self):
+                    if cell.id == enemy.pos:
+                        enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Razor Shuriken")

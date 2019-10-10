@@ -48,7 +48,7 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs (38/57, not tested)
+- [ ] ADD all Abilities to Champs (41/57, not tested)
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 <table>
@@ -125,8 +125,8 @@
 | Vi | yes | no |
 | Volibear | yes | no |
 | Warwick | yes | no |
-| Yasuo | yes | no |
-| Zed | yes | no |
+| Yasuo | yes | yes |
+| Zed | yes | yes |
 
 
 </td></tr>
