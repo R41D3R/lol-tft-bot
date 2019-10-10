@@ -1601,6 +1601,26 @@ class Rengar(DummyChamp):
         self.status_effects.append(StatusEffect(fight.map, 6, "Savagery", effects="small_crit_chance_boost"*5 + "small_as_boost_total"*self.sa_attack_speed_bonus_total[self.rank - 1]))
 
 
+class GlacialPrison(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage, stun_duration, enemy):
+        super().__init__(created, 0, 2, effected_area, user, fight, 0, user_needed=False)
+        self.damage = damage
+        self.stun_duration = stun_duration
+        self.enemy = enemy
+
+    def proc(self):
+        if self.fight.now - self.created <= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        for enemy in [self.enemy] + self.fight.adjacent_allies(self.user):
+            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Glacial Prison")
+            enemy.stun(self.stun_duration, self.fight.map)
+
+
 class Sejuani(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1609,7 +1629,10 @@ class Sejuani(DummyChamp):
         self.sa_stun_duration = [2, 3.5, 5]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
+        fight.aoe.append(GlacialPrison(fight.now, [], self, fight,
+                                       self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1],
+                                       random.choice(fight.enemy_team_visible(self))))
+        # Glacial Prison
         # Active: After a 2 second delay, creates a glacial prison
         # on an enemy, dealing 100 / 175 / 250 magic damage to all
         # nearby enemies and Stun icon stunning them for 2 / 3.5 / 5 seconds.

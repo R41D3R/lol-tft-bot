@@ -113,7 +113,7 @@
 | Pyke | yes | yes |
 | Reksai | yes | untargetable first |
 | Rengar | yes | yes |
-| Sejuani | yes | no |
+| Sejuani | yes | yes |
 | Shen | yes | no |
 | Shyvana | yes | no |
 | Swain | yes | no |
