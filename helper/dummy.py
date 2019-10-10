@@ -76,6 +76,7 @@ class DummyChamp:
         self.takedown_counter = 0
         self.sa_stacks = 0  # drave only
         self.target_aa_counter = {}
+        self.vayne_stacks = 0
 
 
     @property
@@ -192,6 +193,16 @@ class DummyChamp:
 
             for target in targets:
                 damage = self.aa_damage()
+
+                if self.name == "Vayne":
+                    third_stack_damage = [0.08, 0.12, 0.16]
+                    if self.last_target == target:
+                        self.vayne_stacks += 1
+                    else:
+                        self.vayne_stacks = 1
+                    if self.vayne_stacks == 3:
+                        target.get_damage("true", target.max_health + third_stack_damage[self.rank - 1], fight, origin="sa", originator=self, source="Silver Bolts")
+                        self.vayne_stacks = 0
 
                 if self.name == "Twisted-Fate":
                     if self.has_effect("random_card"):
