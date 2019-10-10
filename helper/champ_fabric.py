@@ -1554,7 +1554,6 @@ class Pyke(DummyChamp):
         fight.aoe.append(PhantomUndertow(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
-
 class Reksai(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1577,15 +1576,29 @@ class Rengar(DummyChamp):
         self.sa_percent_ad_damage = [2, 3, 4]
         self.sa_duration = 6
         self.sa_crit_chance_increase = 0.25
-        self.sa_attack_speed_bonus_total = [0.3, 0.5, 0.7]
+        self.sa_attack_speed_bonus_total = [6, 10, 14]
+
+    @property
+    def weakest_enemies(self, ):
+        return sorted(self.fight.enemy_team_visible(self), key=lambda enemy: enemy.current_health)
+
+    @property
+    def jump_cell(self):
+        for enemy in self.weakest_enemies:
+            possible_jumps = enemy.my_cell.free_neighbors
+            if len(possible_jumps) > 0:
+                return random.choice(possible_jumps), enemy
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: Leaps to and stabs the weakest enemy,
         # dealing 200 / 300 / 400% AD physical damage and applying
         # on-hit effects to his target. After this leap, for the next
         # 6 seconds, gains 25% critical strike chance and increases his
         # total attack speed by 30 / 50 / 70%.
+        cell, enemy = self.jump_cell
+        self.move_to(cell, fight)
+        enemy.get_damage("physical", self.ad * self.sa_percent_ad_damage[self.rank - 1])
+        self.status_effects.append(StatusEffect(fight.map, 6, "Savagery", effects="small_crit_chance_boost"*5 + "small_as_boost_total"*self.sa_attack_speed_bonus_total[self.rank - 1]))
 
 
 class Sejuani(DummyChamp):

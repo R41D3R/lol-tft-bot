@@ -460,6 +460,7 @@ class DummyChamp:
         item_bonus += self.base_aa_cc * 0.2 * self.item_sum_from("attack_speed")
 
         buffs = 0.05 * self.base_aa_cc * len(self.get_all_effects_with("small_as_boost"))
+        total_boost = 0.05 * self.base_aa_cc * len(self.get_all_effects_with("small_as_boost_total"))
 
         frozen_heart_debuff = 1
         # @item: Frozen Heart
@@ -475,7 +476,7 @@ class DummyChamp:
         synergy_name = "Wild"
         wild_bonus += self.base_aa_cc * self.fury_stacks * 0.15
 
-        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc + self.ability_aa_cc + buffs) * frozen_heart_debuff
+        aa_cc = (self.base_aa_cc + item_bonus + wild_bonus + self.bonus_aa_cc + self.ability_aa_cc + buffs) * total_boost * frozen_heart_debuff
 
         # @synergy: Ranger
         synergy_name = "Ranger"
@@ -526,7 +527,9 @@ class DummyChamp:
             elif n_syn >= 3:
                 assassin_bonus += 0.1
 
-        return self.base_crit_chance + (0.1 * self.item_sum_from("crit_chance")) + assassin_bonus
+        buffs = 0.05 * len(self.get_all_effects_with("small_crit_chance_boost"))
+
+        return self.base_crit_chance + (0.1 * self.item_sum_from("crit_chance")) + assassin_bonus + buffs
 
     @property
     def max_health(self):

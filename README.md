@@ -111,8 +111,8 @@
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
 | Pyke | yes | yes |
-| Reksai | yes | no |
-| Rengar | yes | no |
+| Reksai | yes | untargetable first |
+| Rengar | yes | yes |
 | Sejuani | yes | no |
 | Shen | yes | no |
 | Shyvana | yes | no |
