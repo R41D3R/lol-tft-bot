@@ -193,6 +193,27 @@ class DummyChamp:
             for target in targets:
                 damage = self.aa_damage()
 
+                if self.name == "Twisted-Fate":
+                    if self.has_effect("random_card"):
+                        self.remove_effects_with_name("Pick a Card")
+                        rnd_n = random.random()
+                        damage = [150, 250, 350]
+                        target.get_damage("magic", damage[self.rank - 1], fight, origin="sa", originator=self, source="Pick a Card")
+                        if rnd_n <= 0.33:
+                            # blue
+                            blue_mana = [30, 50, 70]
+                            for allie in [self] + fight.adjacent_allies(self):
+                                allie.get_mana("sa", blue_mana[self.rank - 1], source="Pick a Card")
+                        if rnd_n <= 0.66:
+                            # red
+                            for enemy in fight.adjacent_allies(target):
+                                enemy.get_damage("magic", damage[self.rank - 1], fight, origin="sa", originator=self, source="Pick a Card")
+                        else:
+                            # yellow
+                            gold_stun_duration = [2, 3, 4]
+                            target.stun(gold_stun_duration[self.rank - 1], fight.map)
+
+
                 if self.name == "Draven":
                     if self.has_effect("spinning_axes"):
                         sa_ad_bonus = [0.5, 1, 1.5]

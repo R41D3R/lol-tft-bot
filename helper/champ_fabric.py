@@ -1762,7 +1762,6 @@ class TwistedFate(DummyChamp):
         self.sa_gold_stun_duration = [2, 3, 4]
 
     def special_ability(self, fight, in_range, visible, alive, time):
-        pass
         # Active: After a small delay, randomly selects one of three cards,
         # enhancing his next basic attack to deal 150 / 250 / 350 bonus
         # magic damage and apply an additional effect:
@@ -1775,6 +1774,7 @@ class TwistedFate(DummyChamp):
         #
         # Gold Card Gold Card: Stun icon Stuns the target
         # for 2 / 3 / 4 seconds.
+        self.status_effects.append(StatusEffect(fight.map, 999999, "Pick a Card", effects=["random_card"]))
 
 
 class Varus(DummyChamp):
