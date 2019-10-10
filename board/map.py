@@ -51,6 +51,10 @@ class Map:
                     return True
         return False
 
+    def get_cell_in_direction(self, cell, direction):
+        new_id = (cell.id[0] + self.dir_dict[direction][0], cell.id[1] + self.dir_dict[direction][1])
+        return self.get_cell_from_id(new_id)
+
     def create_neighbors(self):
         for ir, row in enumerate(self.cell_map):
             for cell in row:

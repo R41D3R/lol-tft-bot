@@ -1499,6 +1499,27 @@ class Poppy(DummyChamp):
         fight.aoe.append(KeepersVerdict(fight.now, [], self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1], self.sa_enemies[self.rank - 1]))
 
 
+class PhantomUndertow(Aoe):
+    def __init__(self, created, effected_area, user, fight, damage, stun_duration):
+        super().__init__(created, 0, 1, effected_area, user, fight, 0, user_needed=True)
+        self.damage = damage
+        self.stun_duration = stun_duration
+
+    def proc(self):
+        if self.fight.now - self.created <= self.delay and self.user.alive:
+            self.do_effect()
+            self.activated = True
+        else:
+            self.activated = True
+
+    def do_effect(self):
+        for cell in self.effected_area:
+            for enemy in self.fight.enemy_champs_alive(self.user):
+                if cell.id == enemy.pos:
+                    enemy.stun(self.stun_duration, self.fight.map)
+                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Phantom Undertow")
+
+
 class Pyke(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
@@ -1506,15 +1527,32 @@ class Pyke(DummyChamp):
         self.sa_damage = [150, 200, 250]
         self.sa_stun_duration = [1.5, 2, 2.5]
 
+    def get_jump_cell(self):
+        enemy = self.fight.furthest_enemy_away(self)
+        direction = self.fight.get_fist_direction(self.my_cell, enemy.my_cell)
+        behind = (direction + 3) % 6
+        cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind)
+        if cell is None:
+            cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind + 1)
+            if cell is None:
+                cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind - 1)
+        return cell
+
     def special_ability(self, fight, in_range, visible, alive, time):
         # jumps to direction + 3 % 6  cell of furthest enemy
         # stuns and deals damage in line between them
-        pass
+
+        # Phantom Undertow
         # Active: Leaves an afterimage at his location,
         # then dashes behind the farthest enemy. After 1 second,
         # his afterimage returns to him, dealing 150 / 200 / 250
         # magic damage to all enemies it passes through and
         # and Stun icon stunning them for 1.5 / 2 / 2.5 seconds.
+        jump_cell = self.get_jump_cell()
+        area = [self.fight.map.get_cell_from_id(id_) for id_ in self.fight.line_area_ids(self.my_cell, jump_cell)]
+        self.move_to(jump_cell, fight)
+        fight.aoe.append(PhantomUndertow(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
+
 
 
 class Reksai(DummyChamp):

@@ -110,7 +110,7 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Pyke | yes | no |
+| Pyke | yes | yes |
 | Reksai | yes | no |
 | Rengar | yes | no |
 | Sejuani | yes | no |
