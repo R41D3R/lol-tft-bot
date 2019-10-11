@@ -1,6 +1,6 @@
-#Fight Simulation
+# Fight Simulation
 
-##Get started
+## Get started
 * run `./fight/data/champ_base_stats_scraper.py` to scrape champion base stats
 * run the `./fight/main.py` to test the fight (visually)
 ***
