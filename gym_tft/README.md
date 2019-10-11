@@ -26,3 +26,8 @@
 - [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
 - [ ] Win/ Loose Streak Counter
 Do I need to include Champ Stats, Synergies ... ?
+
+## Useful Reads for RL
+* [Deep Reinforcement Learning Doesn't Work Yet](https://www.alexirpan.com/2018/02/14/rl-hard.html)
+* [Deep Learning and Reward Designfor Reinforcement Learning](https://deepblue.lib.umich.edu/bitstream/handle/2027.42/136931/guoxiao_1.pdf)
+* [Algorithms for Reinforcement Learning](https://sites.ualberta.ca/~szepesva/RLBook.html)
