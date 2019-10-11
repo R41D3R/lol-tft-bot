@@ -52,7 +52,7 @@
 - [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 
-![image](https://drive.google.com/file/d/1EbPxzfrXilO-mlYEJjYW_n92JBahPUaZ/view?usp=sharing)
+![image](https://drive.google.com/uc?export=view&id=1EbPxzfrXilO-mlYEJjYW_n92JBahPUaZ)
 
 <table>
 <tr><td>
