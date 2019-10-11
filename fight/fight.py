@@ -1,14 +1,12 @@
-from typing import List
 import random
-import copy
 import math
 
 import pygame
 
-from board.map import Map
-from helper.dummy import DummyChamp
-from helper.status_effect import StatusEffect, Shield
-from config import logger
+from fight.board.map import Map
+from fight.effects.status_effect import StatusEffect
+from fight.effects.shield import Shield
+from fight.config import logger
 
 
 class Fight:

@@ -1,10 +1,7 @@
-import copy
-
 import pygame
 
-from fight import Fight
-from game_config import SCREEN_WIDTH, SCREEN_HEIGHT, BG_COLOR  # , get_team
-from helper.champ_fabric import ChampionFabric
+from fight.fight import Fight
+from fight.champ_fabric import ChampionFabric
 # @todo: replace print functions with logger
 
 # realpython
@@ -15,6 +12,10 @@ from helper.champ_fabric import ChampionFabric
 # Reset the game to start = K_r
 # Pause, Resume the Game = K_SPACE
 # New fight = K_n
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+BG_COLOR = (255, 255, 255)
 
 
 from pygame.locals import (

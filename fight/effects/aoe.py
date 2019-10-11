@@ -1,7 +1,6 @@
-import pygame
 from abc import ABC, abstractmethod
 
-from helper.status_effect import StatusEffect
+from fight.effects.status_effect import StatusEffect
 
 
 # @todo: relative and absolute aoe

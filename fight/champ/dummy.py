@@ -2,12 +2,15 @@ import random
 
 import pygame
 
-from helper.pathfinding_helper import PriorityQueue
-from helper.dummy_vision_event import DummyEvent
-from helper.damage_visualization import DummyDamage
-from helper.status_effect import StatusEffect, GWounds, Channelling, Shield
-from config import logger
-from helper.aoe import SpinningAxes
+from fight.helper.pathfinding_helper import PriorityQueue
+
+from fight.config import logger
+
+from fight.effects.dummy_vision_event import DummyEvent
+from fight.effects.aoe import SpinningAxes
+from fight.effects.damage_visualization import DummyDamage
+from fight.effects.status_effect import StatusEffect, GWounds, Channelling
+from fight.effects.shield import Shield
 
 
 class DummyChamp:

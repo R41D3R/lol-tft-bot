@@ -1,5 +1,6 @@
-import math
 import pygame
+
+from fight.board.hexagon import Hexagon
 
 pygame.font.init()
 
@@ -131,60 +132,3 @@ class Map:
     # -> how do I manage neighbor tiles
     # http://tomrushtech.com/astar_1/
     # https://www.google.com/search?client=ubuntu&hs=A4X&channel=fs&sxsrf=ACYBGNTaJJFci1COJZtULz48JgbfaCZVpA%3A1569349642596&ei=CmCKXcH6I8rVwQLByJOoAQ&q=pygame+hexagon+map+&oq=pygame+hexagon+map+&gs_l=psy-ab.3..0i22i30.6056.11324..12192...1.0..0.99.930.11......0....1..gws-wiz.......35i39j0i203.BHO8UNIBmJ4&ved=0ahUKEwjBp-b_iurkAhXKalAKHUHkBBUQ4dUDCAo&uact=5
-
-
-class Hexagon:
-    def __init__(self, radius, x, y, color, id_):
-        self.font = pygame.font.SysFont("Comic Sans Ms", 30)
-
-        self.radius = radius
-        self.pos = (x, y)
-        self.taken = False
-        self.color = color
-        self.neighbors = []
-        self.id = id_
-        self.owner = None
-        self.offset = (self.radius**2 - (self.radius/2)**2)**.5
-
-    @property
-    def free_neighbors(self):
-        return [neighbor for neighbor in self.neighbors if not neighbor.taken]
-
-    @property
-    def center(self):
-        return self.pos
-
-    def has_neighbor_from_id(self, id_):
-        for cell in self.neighbors:
-            if cell.id == id_:
-                return True
-        return False
-
-    def draw(self, surface, c, alpha=None):
-        if alpha is not None:
-            color = (c[0], c[1], c[2], alpha)
-            s = pygame.Surface((800, 600), pygame.SRCALPHA)  # per-pixel alpha
-            self._draw_hexagon_on_surface(s, color)
-            # s.fill((255, 255, 255, alpha))  # notice the alpha value in the color
-            surface.blit(s, (0, 0))
-
-        else:
-            color = c if not self.taken else (200, 0, 0)
-            # draw tile
-            self._draw_hexagon_on_surface(surface, color)
-            # draw coordinates
-            text = self.font.render(str(self.id), False, (234, 23, 234))
-            surface.blit(text, self.pos)
-
-    def _draw_hexagon_on_surface(self, surface, color):
-        n, r = 6, self.radius
-        x, y = self.pos
-        pygame.draw.polygon(surface, color, [
-                (x + r * math.cos(2 * math.pi * i / n + (1 / 6 * math.pi)),
-                 y + r * math.sin(2 * math.pi * i / n + (1 / 6 * math.pi)))
-                for i in range(n)
-        ])
-
-    def draw_neighbors(self, surface, c):
-        for n in self.neighbors:
-            n.draw(surface, c)
