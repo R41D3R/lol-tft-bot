@@ -56,23 +56,26 @@ class Fight:
 
         self.place_champs()
 
-    # @todo: Respect that every champ (name) contributes uniquely to synergy bonus
     def set_team_synergies(self):
-        self.bot_synergy = {}
-
+        bot_names = []
         for champ in self.team_bot:
+            if champ.name not in bot_names:
+                bot_names.append(champ.name)
             for type_ in champ.class_ + champ.origin:
                 if type_ not in self.bot_synergy:
                     self.bot_synergy[type_] = 1
                 else:
                     self.bot_synergy[type_] += 1
 
+        top_names = []
         for champ in self.team_top:
-            for type_ in champ.class_ + champ.origin:
-                if type_ not in self.top_synergy:
-                    self.top_synergy[type_] = 1
-                else:
-                    self.top_synergy[type_] += 1
+            if champ.name not in top_names:
+                top_names.append(champ.name)
+                for type_ in champ.class_ + champ.origin:
+                    if type_ not in self.top_synergy:
+                        self.top_synergy[type_] = 1
+                    else:
+                        self.top_synergy[type_] += 1
 
     def trigger_fight_start(self):
         # check synergies
