@@ -260,7 +260,7 @@ class Akali(DummyChamp):
         # Active: Throws kunai at her target, dealing 200 / 350 / 500
         # magic damage to all enemies in a 2-hex cone. This damage
         # can critically strike.
-        first_dir = fight.get_fist_direction(self.pos, self.get_target(in_range).pos)
+        first_dir = fight.get_direction(self.pos, self.get_target(in_range).pos)
         area_ids = [(self.pos[0] + fight.map.dir_dict[first_dir][0], self.pos[1] + fight.map.dir_dict[first_dir][1]),
                     (self.pos[0] + fight.map.dir_dict[first_dir + 1][0], self.pos[1] + fight.map.dir_dict[first_dir + 1][1]),
                     (self.pos[0] + fight.map.dir_dict[first_dir - 1][0], self.pos[1] + fight.map.dir_dict[first_dir - 1][1])]
@@ -429,7 +429,7 @@ class RocketGrab(Aoe):
                 self.activated = True
 
     def do_effect(self, enemy):
-        direction = self.fight.get_fist_direction(self.user.pos, enemy.pos)
+        direction = self.fight.get_direction(self.user.pos, enemy.pos)
         new_id = self.user.pos[0] + self.fight.map.dir_dict[direction][0], self.user.pos[1] + self.fight.map.dir_dict[direction][1]
         new_cell = self.fight.map.get_cell_from_id(new_id)
         enemy.move_to(new_cell, self.fight)
@@ -747,7 +747,7 @@ class Evelyn(DummyChamp):
         # Damage is increased to 600 / 1200 / 2000 against enemies below 50% health
 
         self.channel(fight, 0.35, "Last Caress", interruptable=False)
-        first_dir = fight.get_fist_direction(self.pos, self.get_target(in_range).pos)
+        first_dir = fight.get_direction(self.pos, self.get_target(in_range).pos)
         area_ids = [(self.pos[0] + fight.map.dir_dict[first_dir][0], self.pos[1] + fight.map.dir_dict[first_dir][1]),
                     (self.pos[0] + fight.map.dir_dict[first_dir + 1][0],
                      self.pos[1] + fight.map.dir_dict[first_dir + 1][1]),
@@ -1350,7 +1350,7 @@ class MissFortune(DummyChamp):
     @property
     def bullet_area(self):
         target = self.fight.furthest_enemy_away(self)
-        direction = self.fight.get_fist_direction(self.my_cell, target.my_cell)
+        direction = self.fight.get_direction(self.pos, target.pos)
         ids = []
         current_middle_id = self.pos
         for i in range(4):
@@ -1381,17 +1381,9 @@ class Mordekaiser(DummyChamp):
         # him, dealing 250 / 500 / 750 magic damage to enemies
         # within.
         target = self.get_target(in_range)
-        id_adder = self.fight.map.dir_dict[fight.get_fist_direction(self.my_cell, target.my_cell)]
-        ids = []
-        current_id = self.pos
-        for _ in range(2):
-            current_id = (current_id[0] + id_adder[0], current_id[1] + id_adder[1])
-            ids.append(current_id)
-        cells = [fight.map.get_cell_from_id(id_) for id_ in ids if fight.map.is_id_in_map(id_)]
-        for cell in cells:
-            for enemy in fight.enemy_champs_alive(self):
-                if cell.id == enemy.pos:
-                    enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Obliterate")
+        area = fight.get_ability_area(target, self, 2)
+        for enemy in fight.get_enemies_in_area(self, area):
+            enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Obliterate")
 
     @property
     def can_use_sa(self):
@@ -1472,7 +1464,7 @@ class KeepersVerdict(Aoe):
 
     def do_effect(self):
         target = self.user.get_target(self.fight.adjacent_enemies(self.user))
-        direction = self.fight.get_fist_direction(self.user.my_cell, target.my_cell)
+        direction = self.fight.get_direction(self.user.pos, target.pos)
         current_cell = self.user.my_cell
         while self.n_counter < self.n_enemies:
             new_id = (current_cell.id[0] + self.fight.map.dir_dict[direction][0], current_cell.id[1] + self.fight.map.dir_dict[direction][1])
@@ -1537,14 +1529,14 @@ class Pyke(DummyChamp):
 
     def get_jump_cell(self):
         enemy = self.fight.furthest_enemy_away(self)
-        direction = self.fight.get_fist_direction(self.my_cell, enemy.my_cell)
+        direction = self.fight.get_direction(self.pos, enemy.pos)
         behind = (direction + 3) % 6
         cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind)
         if cell is None:
             cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind + 1)
             if cell is None:
                 cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind - 1)
-        return cell
+        return cell, enemy
 
     def special_ability(self, fight, in_range, visible, alive, time):
         # jumps to direction + 3 % 6  cell of furthest enemy
@@ -1556,8 +1548,8 @@ class Pyke(DummyChamp):
         # his afterimage returns to him, dealing 150 / 200 / 250
         # magic damage to all enemies it passes through and
         # and Stun icon stunning them for 1.5 / 2 / 2.5 seconds.
-        jump_cell = self.get_jump_cell()
-        area = [self.fight.map.get_cell_from_id(id_) for id_ in self.fight.line_area_ids(self.my_cell, jump_cell)]
+        jump_cell, enemy = self.get_jump_cell()
+        area = fight.get_ability_area(enemy, self)
         self.move_to(jump_cell, fight)
         fight.aoe.append(PhantomUndertow(fight.now, area, self, fight, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 

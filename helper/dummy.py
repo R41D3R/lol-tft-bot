@@ -78,27 +78,25 @@ class DummyChamp:
         self.target_aa_counter = {}
         self.vayne_stacks = 0
 
-
     @property
     def direction(self):
         #
-        # 6  /\ 1
-        # 5 |  | 2
-        # 4  \/ 3
+        # 5  /\ 0
+        # 4 |  | 1
+        # 3  \/ 2
         #
         pass
-        dir_pos = None
         target = self.get_target(self.get_enemies_in_range(self.fight))
 
         if target:
-            dir_pos = target.pos
+            return self.fight.get_direction(self.pos, target.pos)
         elif self.target_pos:
-            dir_pos = self.target_pos
+            return self.fight.get_direction(self.pos, self.target_pos)
         else:
             if self in self.fight.team_bot:
-                return 1
+                return 0
             else:
-                return 4
+                return 3
 
     def on_takedown(self):
         pass

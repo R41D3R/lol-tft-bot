@@ -8,14 +8,14 @@ class Map:
     def __init__(self, cell_radius, n_rows, n_cols, color, space=0):
         assert (n_rows % 2 == 0), "Rows can not be divided by 2."
         self.dir_dict = {
-            0: [-1, -1],
-            1: [1, -1],
-            2: [2, 0],
-            3: [1, 1],
-            4: [-1, 1],
-            5: [-2, 0],
-            6: [-1, -1],
-            7: [1, -1]
+            -1: [-1, -1],
+            0: [1, -1],
+            1: [2, 0],
+            2: [1, 1],
+            3: [-1, 1],
+            4: [-2, 0],
+            5: [-1, -1],
+            6: [1, -1],
         }
         self.cell_map = []  # cell_map[rows[cells]]
         self.n_rows = n_rows
@@ -55,6 +55,10 @@ class Map:
         new_id = (cell.id[0] + self.dir_dict[direction][0], cell.id[1] + self.dir_dict[direction][1])
         return self.get_cell_from_id(new_id)
 
+    def get_id_in_direction(self, id_, direction):
+        new_id = (id_[0] + self.dir_dict[direction][0], id_[1] + self.dir_dict[direction][1])
+        return new_id
+
     def create_neighbors(self):
         for ir, row in enumerate(self.cell_map):
             for cell in row:
@@ -85,6 +89,17 @@ class Map:
     def distance(start, goal):
         dx = abs(start.id[0] - goal.id[0])
         dy = abs(start.id[1] - goal.id[1])
+        return dy + max([0, (dx - dy) / 2])
+
+        # function double_width_distance(a, b):
+        # var dx = abs(a.col - b.col)
+        # var dy = abs(a.row - b.row)
+        # return dy + max(0, (dx - dy) / 2)
+
+    @staticmethod
+    def distance_id(start, goal):
+        dx = abs(start[0] - goal[0])
+        dy = abs(start[1] - goal[1])
         return dy + max([0, (dx - dy) / 2])
 
         # function double_width_distance(a, b):

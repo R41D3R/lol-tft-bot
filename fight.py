@@ -636,86 +636,87 @@ class Fight:
                 furthest_enemy = enemy
         return furthest_enemy
 
-    def get_ability_area(self, target, champ, hexrange):
-        first_dir = self.get_fist_direction(champ.pos, target.pos)
+    def im_target(self, target, start):
+        x = target[0] - start[0]
+        y = target[1] - start[1]
+        im_target = (target[0] + 10*x, target[1] + 10*y)
+        return im_target
 
+    def get_next_cell_id(self, current_cell_id, target_id):
+        direction = self.get_direction(current_cell_id, target_id)
+
+        next_cell_id = self.map.get_id_in_direction(current_cell_id, direction)
+        return next_cell_id
+
+    def get_enemies_in_area(self, user, area):
+        enemies = []
+        for cell in area:
+            if cell is not None:
+                for enemy in self.enemy_champs_alive(user):
+                    if cell.id == enemy.pos:
+                        enemies.append(enemy)
+        return enemies
+
+    def get_ability_area(self, target, champ, hexrange=None):
         area_cell_ids = []
         if hexrange is None:
-            hexrange = self.map.distance(target.my_cell, champ.my_cell)
-        if target is None:
-            next_dir = first_dir
-            for _ in range(hexrange):
-                next_id, next_dir = self.get_next_id_from_degree(champ.pos, 0, 0, next_dir)
-                area_cell_ids.append(next_id)
-        else:
-            champ_cell = champ.my_cell
-            target_cell = target.my_cell
-            actual_distance = self.map.distance(champ_cell, target_cell)
-            max_range_end_cell = actual_distance
-            # if actual_distance < hexrange:
-            for cell in self.map.get_all_cells_in_range(target_cell, hexrange - actual_distance):
-                current_area_cell_ids = self.line_area_ids(champ_cell, cell)
-                if len(current_area_cell_ids) > max_range_end_cell and target_cell.id in current_area_cell_ids:
-                    area_cell_ids = current_area_cell_ids
-                    max_range_end_cell = len(current_area_cell_ids)
-            distance_after_search = hexrange - max_range_end_cell
-            if distance_after_search > 0:
-                last_id = area_cell_ids[-1]
-                for _ in range(distance_after_search):
-                    new_id = last_id[0] + self.map.dir_dict[first_dir][0], last_id[1] + self.map.dir_dict[first_dir][1]
-                    area_cell_ids.append(new_id)
-                    last_id = new_id
-
-        area_cells = []  # check if cell_id is in cell_map
-        for id_ in area_cell_ids:
-            if not self.map.is_id_in_map(id_):
-                area_cells.append(None)
+            if target is None:
+                hexrange = 20
             else:
-                area_cells.append(self.map.get_cell_from_id(id_))
-        return area_cells
+                hexrange = self.map.distance(target.my_cell, champ.my_cell)
 
-    def get_next_id_from_degree(self, current_id, degree, root_deg, prev_dir_, goal_id):
-        if degree < root_deg:
-            next_dir = prev_dir_ + 1
-        elif degree == root_deg:
-            next_dir = prev_dir_
+        if target is None:
+
+            first_direction = champ.direction
+            current_cell_id = champ.pos
+            for i in range(hexrange):
+                current_cell_id = self.map.get_id_in_direction(current_cell_id, first_direction)
+                area_cell_ids.append(current_cell_id)
         else:
-            next_dir = prev_dir_ - 1
-        if next_dir == 0:
-            next_dir = 6
-        if next_dir == 7:
-            next_dir = 1
+            target = self.im_target(target.pos, champ.pos)
+            current_cell_id = champ.pos
 
-        if current_id == goal_id:
-            next_dir = prev_dir_
+            for i in range(hexrange):
+                current_cell_id = self.get_next_cell_id(current_cell_id, target)
+                area_cell_ids.append(current_cell_id)
+        area = []
+        for id_ in area_cell_ids:
+            area.append(self.map.get_cell_from_id(id_))
+        return area
 
-        next_id = current_id[0] + self.map.dir_dict[next_dir][0], current_id[1] + self.map.dir_dict[next_dir][1]
-        return next_id, next_dir
-
-    def get_fist_direction(self, start, goal):
+    def get_direction(self, start, goal):
         if goal is None:
             if self.get_champ_from_cell(self.map.get_cell_from_id(start)).pos in self.team_bot:
+                return 0
+            else:
+                return 3
+
+        degree = abs(self.degree(start, goal))
+        turning_degree = math.degrees(math.atan(1 / 1.5))
+        # rechts oben
+        if goal[0] - start[0] >= 0 and goal[1] - start[1] <= 0:
+            if degree < turning_degree:
                 return 1
             else:
+                return 0
+        # links oben
+        elif goal[0] - start[0] < 0 and goal[1] - start[1] <= 0:
+            if degree < turning_degree:
                 return 4
-        # 1
-        if goal[0] - start[0] > 0 and 90 >= self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
-            return 1
-        # 2
-        elif goal[0] - start[0] > 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
-            return 2
-        # 3
-        elif goal[0] - start[0] > 0 and self.degree(start, goal) < math.degrees(math.atan(1 / 1.5)):
-            return 3
-        # 4
-        elif goal[0] - start[0] < 0 and self.degree(start, goal) > math.degrees(math.atan(1 / 1.5)):
-            return 4
-        # 5
-        elif goal[0] - start[0] < 0 and abs(self.degree(start, goal)) <= math.degrees(math.atan(1 / 1.5)):
-            return 5
-        # 6
-        elif goal[0] - start[0] < 0 and 90 >= abs(self.degree(start, goal)) > math.degrees(math.atan(1 / 1.5)):
-            return 6
+            else:
+                return 5
+        # rechts unten
+        elif goal[0] - start[0] >= 0 and goal[1] - start[1] > 0:
+            if degree < turning_degree:
+                return 1
+            else:
+                return 2
+        # links unten
+        elif goal[0] - start[0] < 0 and goal[1] - start[1] > 0:
+            if degree < turning_degree:
+                return 4
+            else:
+                return 3
 
     @staticmethod
     def degree(start_id, goal_id):
@@ -723,21 +724,7 @@ class Fight:
         y = start_id[1] - goal_id[1]
         if x == 0:
             return 90
-        return math.degrees(math.atan(y / x))
-
-    def line_area_ids(self, start_cell, goal_cell):
-        distance = self.map.distance(start_cell, goal_cell)
-        area_ids = []
-        current_id = start_cell.id
-        root_degree = self.degree(start_cell.id, goal_cell.id)
-        direction = self.get_fist_direction(current_id, goal_cell.id)
-        print(current_id, root_degree, direction, distance)
-        for _ in range(int(distance)):
-            current_degree = self.degree(current_id, goal_cell.id)
-            current_id, direction = self.get_next_id_from_degree(current_id, current_degree, root_degree, direction, goal_cell.id)
-            area_ids.append(current_id)
-            print(current_id, current_degree, direction)
-        return area_ids
+        return abs(math.degrees(math.atan(y / x)))
 
     def enemy_team_item_count(self, champ, item_name):
         item_count = 0
