@@ -44,7 +44,7 @@
 | Elise | yes | yes |
 | Evelynn | yes | yes |
 | Fiora | yes | yes |
-| Gangplank | yes | split on-hit and aa first |
+| Gangplank | yes | yes |
 | Garen | yes | old |
 | Gnar | yes | no |
 | Graves | yes | no |
@@ -150,8 +150,8 @@
 | Youmuu's Ghostblade | yes | yes |
 | Rapidfire Cannon | yes | yes |
 | Guinsoo's Rageblade | yes | yes |
-| Statikk Shiv | yes | need more info |
-| Phantom Dancer | yes | need more info |
+| Statikk Shiv | yes | yes |
+| Phantom Dancer | yes | yes |
 | Cursed Blade | yes | yes |
 | Titanic Hydra | yes | yes |
 | Repeating Crossbow | yes | yes |

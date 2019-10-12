@@ -664,6 +664,7 @@ class Gangplank(DummyChamp):
                     if cell.id == enemy.pos:
                         # apply onhit
                         enemy.get_damage("magic", self.sa_damage[self.rank - 1], self.fight, origin="sa", originator=self, source="Powder Kegs")
+                        self.do_onhit_damage(fight, enemy)
         self.barrels = []
 
 

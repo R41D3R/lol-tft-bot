@@ -251,6 +251,11 @@ class Fight:
                 furthest_enemy = enemy
         return furthest_enemy
 
+    def get_n_closest_allies(self, champ, n):
+        allies = self.allie_champs_alive(champ)
+        ordered_by_distance = sorted(allies, key=lambda allie: self.map.distance_id(champ.pos, allie.pos))
+        return ordered_by_distance[:min(n, len(allies))]
+
     def get_enemy_synergies(self, champ):
         if champ in self.team_bot:
             return self.bot_synergy

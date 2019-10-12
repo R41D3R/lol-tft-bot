@@ -80,12 +80,35 @@ class DummyChamp:
         self.fight = fight
 
     @property
+    def _quicksilver(self):
+        activated = False
+        # @item: Quicksilver
+        item_name = "Quicksilver"
+        if self.item_count(item_name) > 0:
+            for item in self.items:
+                if item.name == item_name:
+                    if item.last_proc is None or self.fight.now - item.last_proc >= 3:
+                        activated = True
+                        item.last_proc = self.fight.now
+        return activated
+
+    @property
+    def _wild_synergy(self):
+        # @synergy: Wild
+        synergy_name = "Wild"
+        if synergy_name in self.enemy_synergies:
+            n_syn = self.enemy_synergies[synergy_name]
+            if n_syn >= 4:
+                return True
+        return False
+
+    @property
     def enemy_synergies(self):
         return self.fight.get_enemy_synergies(self)
 
     @property
     def can_make_turn(self):
-        if self.has_effect("banish") or self.has_effect("stun") or self.has_effect("untargerable") or self.has_effect("airborne") or self.has_effect("channeling"):
+        if self.has_effect("banish") or self.has_effect("stun") or self.has_effect("untargetable") or self.has_effect("airborne") or self.has_effect("channeling"):
             return False
         else:
             return True
@@ -247,12 +270,8 @@ class DummyChamp:
 
     @property
     def dodge_chance(self):
-        # @synergy: Wild
-        synergy_name = "Wild"
-        if synergy_name in self.enemy_synergies:
-            n_syn = self.enemy_synergies[synergy_name]
-            if n_syn >= 4:
-                return 0
+        if self._wild_synergy:
+            return 0
 
         return 0.1 * self._item_sum_from("dodge_chance")
 
@@ -439,11 +458,6 @@ class DummyChamp:
                     gold_stun_duration = [2, 3, 4]
                     target.stun(gold_stun_duration[self.rank - 1], fight.map)
 
-        # @synergy: Noble
-        synergy_name = "Noble"
-        if self.noble_buff:
-            self.heal(30, fight.map)
-
         # synergy: Glacial
         synergy_name = "Glacial"
         if synergy_name in self.team_synergies and synergy_name in self.origin:
@@ -514,6 +528,9 @@ class DummyChamp:
                     if effect.name == "Morellonomicon":
                         effect.duration = 10
 
+    def pseudo_autoattack(self, fight, enemies_in_range):
+        pass
+
     def autoattack(self, time, fight, enemies_in_range, target_=None):
         if target_ is None:
             target = self.get_target(enemies_in_range)
@@ -581,10 +598,8 @@ class DummyChamp:
         if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
             n_items = self.item_count(item_name)
             target.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
-            # ---- need to implement jumping damage -----
-            # Every third basic attack from the wearer deals 100
-            # magic damage to the target and 2 additional targets.
-            # Bounces 3 times? Range?
+            for enemy in fight.get_n_closest_allies(target, 2):
+                enemy.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
 
         # @item: Titanic Hydra
         item_name = "Titanic Hydra"
@@ -659,10 +674,6 @@ class DummyChamp:
         for enemy in gunslinger_targets + [target]:
             damage = self.aa_damage()
 
-            # @synergy: Imperial
-            if self.imperial_buff:
-                damage *= 2
-
             # @champ: Draven
             if self.name == "Draven":
                 if self.has_effect("spinning_axes"):
@@ -690,6 +701,11 @@ class DummyChamp:
             if hitted:
                 self.do_onhit_damage(fight, enemy)
 
+                # @synergy: Noble
+                synergy_name = "Noble"
+                if synergy_name in self.origin:
+                    self.heal(30, fight.map)
+
     def heal(self, amount, map_):
         health_before = self.current_health
         if self.has_effect("gwound"):
@@ -716,25 +732,38 @@ class DummyChamp:
         # old implementation
         map_ = fight.map
 
-        # @synergy: Void
-        if originator.void_buff and (origin == "aa" or origin == "sa"):
-            type_ = "true"
-
-        if origin and originator:
-            if origin == "aa":
-                if self.has_effect("aa_dodge"):
-                    return False
-                # implement thornmail
         types = {
             "physical": self.armor,
             "magic": self.mr,
             "true": 0,
         }
-        if (random.random() > self.dodge_chance or origin == "on_hit" or origin == "on_hit_no_dodge") and not self.has_effect("immune"):
+
+        # @item: Jeweled Gauntlet
+        if origin == "aa" or (origin == "sa" and originator.item_count("Jeweled Gauntlet") > 0):
+            if not crit:
+                if random.random() <= originator.crit_chance:
+                    crit = True
+        if crit:
+            incoming_damage *= originator.crit_multiplier
+
+        # @synergy: Imperial
+        if originator.imperial_buff and origin != "item":
+            incoming_damage *= 2
+
+        # @synergy: Void
+        if originator.void_buff and (origin == "aa" or origin == "sa"):
+            type_ = "true"
+
+        if ((random.random() > self.dodge_chance and origin == "aa") or origin in ["sa","item","on_hit","on_hit_no_dodge"]) and not self.has_effect("immune"):
+
+            # @item: Phantom Dancer
+            item_name = "Phantom Dancer"
+            if self.item_count(item_name) > 0 and crit and not self._wild_synergy:
+                return False
 
             # @synergy: Yordle
             synergy_name = "Yordle"
-            if not origin == "on_hit_no_dodge" and synergy_name in self.team_synergies and synergy_name in self.origin:
+            if origin == "on_hit" or (origin == "aa" and not self._wild_synergy) and synergy_name in self.team_synergies and synergy_name in self.origin:
                 n_syn = self.team_synergies[synergy_name]
                 rnd_n = random.random()
                 if (n_syn >= 9 and rnd_n <= 0.9) or (n_syn >= 6 and rnd_n <= 0.6) or (n_syn >= 3 and rnd_n <= 0.3):
@@ -766,10 +795,23 @@ class DummyChamp:
 
             if origin == "aa" or origin == "sa":
                 if origin == "aa":
+
+                    # @champ: Shen
+                    if self.has_effect("aa_dodge") and not self._wild_synergy:
+                        return False
+
                     if self in originator.target_aa_counter:
                         originator.target_aa_counter[self] += 1
                     else:
                         originator.target_aa_counter[self] = 1
+
+                    # @item: Thornmail
+                    item_name = "Thornmail"
+                    if self.item_count(item_name) > 0 and type_ == "physical":
+                        n_items = self.item_count(item_name)
+                        originator.get_damage("magic", incoming_damage * n_items, fight, origin="item",
+                                              originator=self)
+                        real_damage = 0
 
                     # @item: Bloodthirster
                     item_name = "Bloothirster"
@@ -783,14 +825,8 @@ class DummyChamp:
                         heal = real_damage * rank_lifesteal[originator.rank - 1]
                         originator.heal(heal, map_)
 
-                    # @item: Thornmail
-                    item_name = "Thornmail"
-                    if self.item_count(item_name) > 0 and type_ == "physical":
-                        n_items = self.item_count(item_name)
-                        originator.get_damage("magic", incoming_damage * n_items, fight, origin="item", originator=self)
-                        real_damage = 0
-
                 if origin == "sa":
+
                     # @item: Trap Claw
                     item_name = "Trap Claw"
                     if self.item_count(item_name) > 0:
@@ -803,11 +839,6 @@ class DummyChamp:
                                         if i.last_proc is None:
                                             i.last_proc = fight.now
                                 return False
-
-                    # @item: Jeweled Gauntlet
-                    item_name = "Jeweled Gauntlet"
-                    if originator.item_count(item_name) > 0 and random.random() <= originator.crit_chance:
-                        real_damage *= originator.crit_multiplier
 
                     # @item: Morellonomicon
                     item_name = "Morellonomicon"
@@ -829,14 +860,14 @@ class DummyChamp:
                         damage = 180 * n_items
                         self.get_damage("magic", damage, fight, origin="item", originator=originator, source="Luden's Echo")
                         # deal 3 nearby enemies damage -> allies
-                        for allie in random.choices(self.fight.adjacent_allies(self), k=3):
-                            allie.get_damage("magic", damage, fight, origin="item", originator=originator, source="Luden's Echo")
+                        enemies = self.fight.adjacent_allies(self)
+                        for enemy in random.choices(enemies, k=min(len(enemies), 3)):
+                            enemy.get_damage("magic", damage, fight, origin="item", originator=originator, source="Luden's Echo")
 
-                # @item: Hextech Gunblade
-                # @todo: Hextech multiple item healing is not tested
                 # @body: [Link to Stat Website](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:Items)
+                # @item: Hextech Gunblade
                 item_name = "Hextech Gunblade"
-                if originator.item_count(item_name) > 0:
+                if originator.item_count(item_name) > 0 and (origin == "aa" or origin == "sa"):
                     hextech_healing = [0.25, 0.6506, 1.314]
                     originator.heal(real_damage * hextech_healing[originator.item_count(item_name) - 1], map_)
 
@@ -985,6 +1016,9 @@ class DummyChamp:
 
     def immune(self, duration, fight):
         self.status_effects.append(StatusEffect(fight.map, duration, "Immune", effects=["immune"]))
+
+    def untargetable(self, duration, fight):
+        self.status_effects.append(StatusEffect(fight.map, duration, "Untargetable", effects=["untargetable"]))
 
     def get_enemies_in_range(self, fight, range_=None):
         if range_ is None:
@@ -1229,19 +1263,6 @@ class DummyChamp:
         for item in self.items:
             if item.name == name:
                 item.last_proc = time
-
-    @property
-    def _quicksilver(self):
-        activated = False
-        # @item: Quicksilver
-        item_name = "Quicksilver"
-        if self.item_count(item_name) > 0:
-            for item in self.items:
-                if item.name == item_name:
-                    if item.last_proc is None or self.fight.now - item.last_proc >= 3:
-                        activated = True
-                        item.last_proc = self.fight.now
-        return activated
 
     # ----- rendering -----
 
