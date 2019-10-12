@@ -1,3 +1,5 @@
+pynput
+pyautogui
 gym
 beautifulsoup4
 requests

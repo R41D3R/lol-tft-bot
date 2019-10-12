@@ -194,7 +194,7 @@
 </table>
 
 ***
-- [ ] ADD all Synergies 20/24
+- [ ] ADD all Synergies 23/24
 - [x] Show Synergies
 <table><tr>
 <td>
@@ -206,7 +206,7 @@
 | Exile | yes |
 | Glacial | yes |
 | Hextech | yes |
-| Imperial | refactor to deal damage |
+| Imperial | yes |
 | Ninja | yes |
 | Noble | yes |
 | Phantom | yes |

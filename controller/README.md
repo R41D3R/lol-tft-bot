@@ -1,3 +1,27 @@
+# Progress
+* [Best Resource](https://medium.com/@martin.lees/how-i-made-a-python-bot-to-automate-a-tactical-mmorpg-9f6693350d10)
+- [x] smooth mouse movement
+- [x] mouse clicking
+- [x] keyboard pressing
+- [x] taking screenshot
+***
+> make sure the game runs with correct settings
+- [ ] start league
+- [ ] locate current screen
+- [ ] log in
+- [ ] switch to league
+- [ ] start a game
+- [ ] accept a game
+***
+> hope the following can be automated
+- [ ] Get all champ icons for buy menue
+- [ ] Get all champs for on board and bank + differrent angles
+- [ ] get all items
+- [ ] get gold pots
+- [ ] get health bars
+***
+
+
 ### Game Info
 - [ ] Champs to buy
 - [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
