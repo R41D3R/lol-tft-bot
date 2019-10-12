@@ -181,10 +181,10 @@
 | Knight's Vow | yes | yes |
 | Dragons Claw | yes | yes |
 | Zephyr | yes | yes |
-| Quicksilver | yes | need to refactor to dummy.get_cc() |
+| Quicksilver | yes | yes |
 | Runaan's Hurrican | yes | need more info on item interaction |
 | Warmog's Armor | yes | yes |
-| Trap Claw | yes | need to refactor to dummy.get_cc() |
+| Trap Claw | yes | yes |
 | Frozen Mallet | yes | yes |
 | Thief's Gloves | yes | need tier list first |
 | Mittens | yes | yes |
@@ -213,7 +213,7 @@
 | Pirate | implemented in game env |
 | Robot | yes |
 | Void | yes |
-| Wild | implement undodgeable aa |
+| Wild | yes |
 | Yordle | yes |
 </td><td>
 

@@ -8,7 +8,6 @@ class Shield:
         self.fight = fight
         self.amount = amount
         self.champ = champ
-        # self.champ.shields.append(self)
 
     def get_duration(self, time):
         if self.duration is None:

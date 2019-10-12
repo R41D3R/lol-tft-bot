@@ -20,23 +20,23 @@ class ChampionFabric:
 
     def get_teams(self, reset=False):
         if not reset or (self.base_bot is None and self.base_top is None):
-            self.base_top = self.get_team()
-            self.base_bot = self.get_team()
+            self.base_top = self._get_team()
+            self.base_bot = self._get_team()
         return copy.deepcopy(self.base_bot), copy.deepcopy(self.base_top)
 
-    def get_team(self):
+    def _get_team(self):
         logger.info("Team gets initialized.")
         k = 3
         k_picks = random.sample(list(self.champ_dict.items()), k)
         k_pos = random.sample(self.possible_positions, k)
         k_ranks = [random.choices([1, 2, 3], weights=[0.85, 0.1, 0.05])[0] for _ in range(k)]
-        champs = [self.get_champ(pos, item, rank, None) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
+        champs = [self._get_champ(pos, item, rank, None) for pos, item, rank in zip(k_pos, k_picks, k_ranks)]
         for champ in champs:
             print(champ.name)
         return champs
 
     @staticmethod
-    def get_items():
+    def _get_items():
         items = []
         n_items = random.choices([0, 1, 2, 3], weights=[0.5, 0.3, 0.1, 0.1])[0]
         for i in range(n_items):
@@ -44,9 +44,9 @@ class ChampionFabric:
             items.append(Item(random_item[1]["attribute"], random_item[1]["name"]))
         return items
 
-    def get_champ(self, pos, champ_item, rank, fight, items=None):
+    def _get_champ(self, pos, champ_item, rank, fight, items=None):
         if items is None:
-            items = self.get_items()
+            items = self._get_items()
         if champ_item[0] == "Aatrox":
             return Aatrox(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Ahri":

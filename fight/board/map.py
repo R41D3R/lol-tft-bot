@@ -43,7 +43,7 @@ class Map:
             self.cell_map.append(row)
 
         # map neighbors to cell
-        self.create_neighbors()
+        self._create_neighbors()
 
     def is_id_in_map(self, id_):
         for _ in self.cell_map:
@@ -60,7 +60,7 @@ class Map:
         new_id = (id_[0] + self.dir_dict[direction][0], id_[1] + self.dir_dict[direction][1])
         return new_id
 
-    def create_neighbors(self):
+    def _create_neighbors(self):
         for ir, row in enumerate(self.cell_map):
             for cell in row:
                 id_ = cell.id
@@ -92,21 +92,11 @@ class Map:
         dy = abs(start.id[1] - goal.id[1])
         return dy + max([0, (dx - dy) / 2])
 
-        # function double_width_distance(a, b):
-        # var dx = abs(a.col - b.col)
-        # var dy = abs(a.row - b.row)
-        # return dy + max(0, (dx - dy) / 2)
-
     @staticmethod
     def distance_id(start, goal):
         dx = abs(start[0] - goal[0])
         dy = abs(start[1] - goal[1])
         return dy + max([0, (dx - dy) / 2])
-
-        # function double_width_distance(a, b):
-        # var dx = abs(a.col - b.col)
-        # var dy = abs(a.row - b.row)
-        # return dy + max(0, (dx - dy) / 2)
 
     @staticmethod
     def get_all_cells_in_range(self_cell, attack_range):

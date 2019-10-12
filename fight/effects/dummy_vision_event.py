@@ -9,7 +9,16 @@ class DummyEvent:
         self.created = pygame.time.get_ticks()
         self.area = area
 
-    def draw(self, surface, map_):
+    @property
+    def is_active(self):
+        now = pygame.time.get_ticks()
+        state = now - self.created
+        if state >= self.duration:
+            return False
+        else:
+            return True
+
+    def draw(self, surface):
         now = pygame.time.get_ticks()
         state = now - self.created
 
@@ -26,24 +35,3 @@ class DummyEvent:
     def _render_as_object(self, surface, state):
         pass
 
-    @property
-    def is_active(self):
-        now = pygame.time.get_ticks()
-        state = now - self.created
-        if state >= self.duration:
-            return False
-        else:
-            return True
-
-    # area = [cells] who are infected
-    # color
-    # set time created
-    # state = time_created - now
-    # if state >= duration:
-    #       delete it from the render list
-    # else:
-    #       render area with opacity alpha for given state
-    #       if area is list:
-    #           render cells
-    #       elif area is rect or circle
-    #           render rect or circle

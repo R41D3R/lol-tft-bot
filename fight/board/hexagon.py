@@ -55,6 +55,6 @@ class Hexagon:
                 for i in range(n)
         ])
 
-    def draw_neighbors(self, surface, c):
+    def _draw_neighbors(self, surface, c):
         for n in self.neighbors:
             n.draw(surface, c)

@@ -2,7 +2,6 @@ import pygame
 
 from fight.fight import Fight
 from fight.champ_fabric import ChampionFabric
-# @todo: replace print functions with logger
 
 # realpython
 # https://realpython.com/pygame-a-primer/
@@ -30,16 +29,14 @@ from pygame.locals import (
 pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-champ_fabric = ChampionFabric()
-
-fight = Fight(champ_fabric)
-# fight.new_fight()
-
-
 clock = pygame.time.Clock()
 running = True
 pause = False
+
+champ_fabric = ChampionFabric()
+fight = Fight(champ_fabric)
+
+fight.new_fight()
 
 while running:
 
