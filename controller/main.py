@@ -25,7 +25,8 @@ def on_release(key):
         running = False
 
 
-user_action = pyautogui.confirm("The bot has been started. Press Ok to continue!")
+user_action = pyautogui.confirm("The bot has been started. Press Ok to continue.\n"
+                                "WARNING: Don't type sensible Informations while the bot is running")
 if user_action == "OK":
     bot = Bot()
     listener = keyboard.Listener(

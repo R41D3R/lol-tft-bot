@@ -3,11 +3,9 @@ from abc import ABC, abstractmethod
 from fight.effects.status_effect import StatusEffect
 
 
-# @todo: relative and absolute aoe
-# @body: this class needs better modeling to work effectively
 class Aoe(ABC):
-    def __init__(self, fight, user, name, duration=0, delay=0, effected_area=None, interval=0, user_needed=False, interruptable=False):
-        self.name = name
+    def __init__(self, fight, user, duration=0, delay=0, effected_area=None, interval=0, user_needed=False, interruptable=False):
+        self.name = None
         self.fight = fight
         self.fight.aoe.append(self)
 
@@ -44,13 +42,25 @@ class Aoe(ABC):
     def _create_channel(self, duration):
         self.user.channel(self.fight, duration, self.name, self.interruptable)
 
-    def _all_enemies_in_area(self):
+    def _all_enemies_in_area(self, area=None):
+        if area is None:
+            area = self.effected_area
         enemies = []
-        area_ids = [cell.id for cell in self.effected_area]
+        area_ids = [cell.id for cell in area if cell is not None]
         for enemy in self.fight.enemy_champs_alive(self.user):
             if enemy.pos in area_ids:
                 enemies.append(enemy)
         return enemies
+
+    def _all_allies_in_area(self, area=None):
+        if area is None:
+            area = self.effected_area
+        allies = []
+        area_ids = [cell.id for cell in area if cell is not None]
+        for allie in self.fight.allie_champs_alive(self.user):
+            if allie.pos in area_ids:
+                allies.append(allie)
+        return allies
 
 
 class SpinningAxes(Aoe):

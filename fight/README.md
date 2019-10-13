@@ -20,8 +20,8 @@
 - [x] Improve Damage Reduction (Mr and Armor)
 > Perfect Champ mechanic's til this
 - [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs (41/57, not tested)
-- [ ] ADD NPC like champ (spiders, golem, enemy quest npc's)
+- [ ] ADD all Abilities to Champs (47/57, not tested)
+- [x] ADD NPC like champ (spiders, golem, enemy quest npc's)
 
 <table>
 <tr><td>
@@ -45,9 +45,9 @@
 | Evelynn | yes | yes |
 | Fiora | yes | yes |
 | Gangplank | yes | yes |
-| Garen | yes | old |
-| Gnar | yes | no |
-| Graves | yes | no |
+| Garen | yes | yes |
+| Gnar | yes | add abstract knockback first |
+| Graves | yes | yes |
 
 
 
@@ -55,25 +55,25 @@
 
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
-| Jayce | yes | old |
+| Jayce | yes | knockback then done |
 | Jinx | yes | yes |
 | Kaisa | yes | yes |
 | Karthus | yes | yes |
 | Kassadin | yes | yes |
-| Kararina | yes | yes |
+| Katarina | yes | yes |
 | Kayle | yes | yes |
 | Kennen | yes | yes |
 | Khazix | yes | yes |
 | Kindred | yes | yes |
 | Leona | yes | yes |
-| Lissandra | yes | implement untargetable first |
-| Lucian | yes | old |
+| Lissandra | yes | yes |
+| Lucian | yes | need more info |
 | Lulu | yes | yes |
 | Miss Fortune | yes | yes |
 | Mordekaiser | yes | yes |
-| Morgana | yes | no |
-| Nidalee | yes | no |
-| Pantheon | yes | no |
+| Morgana | yes | yes |
+| Nidalee | yes | yes |
+| Pantheon | yes | need more info |
 | Poppy | yes | yes |
 
 
@@ -83,18 +83,18 @@
 | Name | Stats | Ability |
 | ---- | ----- | ------- |
 | Pyke | yes | yes |
-| Reksai | yes | untargetable first |
+| Reksai | yes | yes |
 | Rengar | yes | yes |
 | Sejuani | yes | yes |
 | Shen | yes | yes |
-| Shyvana | yes | no |
-| Swain | yes | no |
+| Shyvana | yes | knockback abstract first |
+| Swain | yes | need more info |
 | Tristana | yes | yes |
 | Twisted Fate | yes | yes |
 | Varus | yes | yes |
 | Vayne | yes | yes |
 | Veigar | yes | yes |
-| Vi | yes | no |
+| Vi | yes | knockback abstract first |
 | Volibear | yes | no |
 | Warwick | yes | no |
 | Yasuo | yes | yes |
@@ -194,7 +194,7 @@
 </table>
 
 ***
-- [ ] ADD all Synergies 23/24
+- [x] ADD all Synergies
 - [x] Show Synergies
 <table><tr>
 <td>
@@ -222,7 +222,7 @@
 | Assasin | yes |
 | Blademaster | yes |
 | Brawler | yes |
-| Elementalist | implement golem + summon |
+| Elementalist | yes |
 | Guardian | yes |
 | Gunslinger | yes |
 | Knight | yes |

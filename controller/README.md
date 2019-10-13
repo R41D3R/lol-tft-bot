@@ -18,7 +18,7 @@
 - [ ] Get all champs for on board and bank + differrent angles
 - [ ] get all items
 - [ ] get gold pots
-- [ ] get health bars
+- [ ] get health bars (maybe per pixel)
 ***
 
 

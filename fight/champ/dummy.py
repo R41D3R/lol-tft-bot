@@ -257,6 +257,8 @@ class DummyChamp:
         else:
             base_ad = self.base_ad[index]
 
+        ad_buffs = 10 * len(self.get_all_effects_with("10_ad"))
+
         # @synergy: Ninja
         ninja_bonus = 0
         synergy_name = "Ninja"
@@ -266,7 +268,7 @@ class DummyChamp:
             if self.team_synergies[synergy_name] == 4:
                 ninja_bonus += 80
 
-        return base_ad + self.bonus_ad + (15 * self._item_sum_from("ad")) + ninja_bonus
+        return base_ad + self.bonus_ad + ad_buffs + (15 * self._item_sum_from("ad")) + ninja_bonus
 
     @property
     def dodge_chance(self):
@@ -697,14 +699,23 @@ class DummyChamp:
                             self.do_onhit_damage(fight, enemy)
                         runans_target_counter += 1
 
-            hitted = enemy.get_damage("physical", damage, fight, origin="aa", originator=self, source=None)
-            if hitted:
-                self.do_onhit_damage(fight, enemy)
+            # @champ: Graves
+            if self.name == "Graves":
+                bonus_ad_damage =[0.05, 0.1, 0.15]
+                area = [cell for cell in target.my_cell.neighbors if cell not in self.my_cell.neighbors]
+                for g_enemy in fight.get_enemies_in_area(self, area):
+                    hitted = g_enemy.get_damage("physical", damage * (1 + bonus_ad_damage[self.rank - 1]), fight, origin="aa", originator=self, source="Buckshot")
+                    if hitted:
+                        self.do_onhit_damage(fight, enemy)
+            else:
+                hitted = enemy.get_damage("physical", damage, fight, origin="aa", originator=self, source=None)
+                if hitted:
+                    self.do_onhit_damage(fight, enemy)
 
-                # @synergy: Noble
-                synergy_name = "Noble"
-                if synergy_name in self.origin:
-                    self.heal(30, fight.map)
+                    # @synergy: Noble
+                    synergy_name = "Noble"
+                    if synergy_name in self.origin:
+                        self.heal(30, fight.map)
 
     def heal(self, amount, map_):
         health_before = self.current_health
@@ -771,6 +782,9 @@ class DummyChamp:
 
             if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
                 return False
+
+            if origin == "sa":
+                incoming_damage *= originator.ability_power_multiplier
 
             resistance = types[type_]
             damage_reduction = (100 / (resistance + 100))
@@ -887,7 +901,25 @@ class DummyChamp:
             # shield
             damage_after_shield = self._shield_damage(real_damage, map_.time)
 
+            # @champ: Kindred
+            if self.has_effect("kindred_300"):
+                if self.current_health <= 300:
+                    return True
+                elif self.current_health - damage_after_shield < 300:
+                    damage_after_shield = self.current_health - 300
+            if self.has_effect("kindred_600"):
+                if self.current_health <= 600:
+                    return True
+                elif self.current_health - damage_after_shield < 600:
+                    damage_after_shield = self.current_health - 600
+            if self.has_effect("kindred_900"):
+                if self.current_health <= 900:
+                    return True
+                elif self.current_health - damage_after_shield < 900:
+                    damage_after_shield = self.current_health - 900
+
             self.current_health -= damage_after_shield
+
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
@@ -1005,7 +1037,7 @@ class DummyChamp:
     def shrink(self, fight):
         self.status_effects.append(StatusEffect(fight.map, 99999999999, "Shrink", effects=["shrink"]))
 
-    def channel(self, fight, duration, name, interruptable):
+    def channel(self, fight, duration, name, interruptable=False):
         self.status_effects.append(Channelling(fight, duration, name, interruptable))
 
     def interrupt(self):

@@ -7,6 +7,7 @@ from fight.board.map import Map
 from fight.effects.status_effect import StatusEffect
 from fight.effects.shield import Shield
 from fight.config import logger
+from fight.champ.champs import Golem
 
 
 class Fight:
@@ -487,6 +488,15 @@ class Fight:
             if synergy_name in champ.origin:
                 champ.mana = champ.max_mana
 
+        # @synergy: Elementalist
+        synergy_name = "Elementalist"
+        if synergy_name in self.top_synergy:
+            if self.top_synergy[synergy_name] >= 3:
+                self._summon_golem(self.team_top)
+        if synergy_name in self.bot_synergy:
+            if self.bot_synergy[synergy_name] >= 3:
+                self._summon_golem(self.team_bot)
+
         # @synergy: Guradian
         synergy_name = "Guardian"
         if synergy_name in self.top_synergy:
@@ -795,3 +805,20 @@ class Fight:
             champ = f"{champ.name} [Rank {champ.rank}] with {int(champ.current_health)}/{int(champ.max_health)}"
             champ_text = team_font.render(champ, False, (0, 0, 0))
             surface.blit(champ_text, (0, 100 + ((i+1) * 25)))
+
+    def _summon_golem(self, team):
+        synergy_name = "Elementalist"
+        champs = [champ for champ in team if synergy_name in champ.class_]
+        best_cell = None
+        best_dist = 99999
+        for champ in champs:
+            for free_cell in champ.my_cell.free_neighbors:
+                for enemy in self.enemy_champs_alive(champ):
+                    distance = self.map.distance(free_cell, enemy.my_cell)
+                    if distance < best_dist:
+                        best_cell = free_cell
+                        best_dist = distance
+        if best_cell:
+            golem = Golem(best_cell.id, self)
+            best_cell.taken = True
+            team.append(golem)

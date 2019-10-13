@@ -40,7 +40,8 @@ class DummyEvent:
                 alpha = int(state * 155) + 100
 
         for cell in self.area:
-            cell.draw(surface, self.color, alpha=alpha)
+            if cell is not None:
+                cell.draw(surface, self.color, alpha=alpha)
 
     def _render_as_object(self, surface, state):
         pass
