@@ -5,6 +5,7 @@ dmg_color = {
     "magic": (226, 121, 252),
     "true": (255, 255, 255),
     "heal": (110, 255, 124),
+    "dodge": (200, 200, 200),
 }
 
 
@@ -29,3 +30,9 @@ class DummyDamage:
             return False
         else:
             return True
+
+
+class NoDamage(DummyDamage):
+    def __init__(self, pos, name):
+        super().__init__(0, pos, "dodge")
+        self.amount = name

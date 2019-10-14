@@ -7,7 +7,7 @@ from fight.config import logger
 
 from fight.effects.dummy_vision_event import DummyEvent
 from fight.effects.aoe import SpinningAxes
-from fight.effects.damage_visualization import DummyDamage
+from fight.effects.damage_visualization import DummyDamage, NoDamage
 from fight.effects.status_effect import StatusEffect, Dot, Channelling
 from fight.effects.shield import Shield
 
@@ -770,6 +770,7 @@ class DummyChamp:
             # @item: Phantom Dancer
             item_name = "Phantom Dancer"
             if self.item_count(item_name) > 0 and crit and not self._wild_synergy:
+                self.damage_events.append(NoDamage(self.position(map_), "phantom_dancer_dodge"))
                 return False
 
             # @synergy: Yordle
@@ -778,10 +779,12 @@ class DummyChamp:
                 n_syn = self.team_synergies[synergy_name]
                 rnd_n = random.random()
                 if (n_syn >= 9 and rnd_n <= 0.9) or (n_syn >= 6 and rnd_n <= 0.6) or (n_syn >= 3 and rnd_n <= 0.3):
+                    self.damage_events.append(NoDamage(self.position(map_), "yordle_dodge"))
                     return False
 
             if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
-                return False
+                self.damage_events.append(NoDamage(self.position(map_), f"immune_{type_}"))
+                incoming_damage = 0
 
             if origin == "sa":
                 incoming_damage *= originator.ability_power_multiplier
@@ -812,6 +815,7 @@ class DummyChamp:
 
                     # @champ: Shen
                     if self.has_effect("aa_dodge") and not self._wild_synergy:
+                        self.damage_events.append(NoDamage(self.position(map_), "shen_dodge"))
                         return False
 
                     if self in originator.target_aa_counter:
@@ -852,6 +856,7 @@ class DummyChamp:
                                     if i.name == item_name:
                                         if i.last_proc is None:
                                             i.last_proc = fight.now
+                                self.damage_events.append(NoDamage(self.position(map_), "Trap Claw"))
                                 return False
 
                     # @item: Morellonomicon
@@ -904,17 +909,20 @@ class DummyChamp:
             # @champ: Kindred
             if self.has_effect("kindred_300"):
                 if self.current_health <= 300:
-                    return True
+                    damage_after_shield = 0
+                    self.damage_events.append(NoDamage(self.position(map_), "kindred_immune"))
                 elif self.current_health - damage_after_shield < 300:
                     damage_after_shield = self.current_health - 300
             if self.has_effect("kindred_600"):
                 if self.current_health <= 600:
-                    return True
+                    damage_after_shield = 0
+                    self.damage_events.append(NoDamage(self.position(map_), "kindred_immune"))
                 elif self.current_health - damage_after_shield < 600:
                     damage_after_shield = self.current_health - 600
             if self.has_effect("kindred_900"):
                 if self.current_health <= 900:
-                    return True
+                    self.damage_events.append(NoDamage(self.position(map_), "kindred_immune"))
+                    damage_after_shield = 0
                 elif self.current_health - damage_after_shield < 900:
                     damage_after_shield = self.current_health - 900
 
@@ -932,6 +940,7 @@ class DummyChamp:
             if self.item_count(item_name) > 0:
                 # @todo: Implement Iceborn Gauntlet after Aoe implementation
                 pass
+            self.damage_events.append(NoDamage(self.position(map_), "dodge"))
             return False
 
     def item_count(self, name):
