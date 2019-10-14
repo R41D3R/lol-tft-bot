@@ -3,15 +3,15 @@ import random
 import pygame
 
 
-from fight.config import logger
+from fight_sim.config import logger
 
-from fight.effects.dummy_vision_event import DummyEvent
-from fight.effects.aoe import SpinningAxes
-from fight.effects.damage_visualization import DummyDamage, NoDamage
-from fight.effects.status_effect import StatusEffect, Dot, Channelling
-from fight.effects.shield import Shield
+from fight_sim.effects.dummy_vision_event import DummyEvent
+from fight_sim.effects.aoe import SpinningAxes
+from fight_sim.effects.damage_visualization import DummyDamage, NoDamage
+from fight_sim.effects.status_effect import StatusEffect, Dot, Channelling
+from fight_sim.effects.shield import Shield
 
-from fight.helper.dijkstra import dijkstra_path
+from fight_sim.helper.dijkstra import dijkstra_path
 
 
 class DummyChamp:
@@ -115,6 +115,13 @@ class DummyChamp:
 
     @property
     def can_use_sa(self):
+        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
+            return True
+        else:
+            return False
+
+    @property
+    def enough_mana_for_sa(self):
         if self.mana < self.max_mana:
             return False
         else:
@@ -224,11 +231,11 @@ class DummyChamp:
         frozen_heart_debuff = 1
         # @item: Frozen Heart
         if self.has_effect("frozen_heart_1"):
-            frozen_heart_debuff = 0.35
+            frozen_heart_debuff = 1 - 0.35
         elif self.has_effect("frozen_heart_2"):
-            frozen_heart_debuff = 0.5775
+            frozen_heart_debuff = 1 - 0.5775
         elif self.has_effect("frozen_heart_3"):
-            frozen_heart_debuff = 0.725375
+            frozen_heart_debuff = 1 - 0.725375
 
         wild_bonus = 0
         # @synergy: Wild
@@ -245,7 +252,7 @@ class DummyChamp:
 
         if aa_cc > 5:
             aa_cc = 5
-        return int(1 / aa_cc * 1000)
+        return int((1 / aa_cc) * 1000)
 
     @property
     def ad(self):
@@ -524,7 +531,7 @@ class DummyChamp:
         item_name = "Red Buff"
         if self.item_count(item_name) > 0:
             if not target.has_effect_with_name("Morellonomicon"):
-                target.gwounds(10, fight, "Morellonomicon", originator=self, dot=True)
+                target.gwounds(10, fight, "Morellonomicon", self, source="Morellonomicon", damage=True)
             else:
                 for effect in target.status_effects:
                     if effect.name == "Morellonomicon":
@@ -674,7 +681,7 @@ class DummyChamp:
                 gunslinger_targets = random.sample(possible_gunslinger_targets, k=additional_targets)
 
         for enemy in gunslinger_targets + [target]:
-            damage = self.aa_damage()
+            damage = self.aa_damage
 
             # @champ: Draven
             if self.name == "Draven":
@@ -683,7 +690,7 @@ class DummyChamp:
                     buffs = self.get_all_effects_with("spinning_axes")
                     stacks = len(buffs)
                     damage += self.ad * sa_ad_bonus[self.rank - 1] * stacks
-                    fight.aoe.append(SpinningAxes(fight.now, [], self, fight))
+                    fight.aoe.append(SpinningAxes(fight, self))
 
             # @item: Runaan's Hurricane
             item_name = "Runaan's Hurricane"
@@ -775,12 +782,13 @@ class DummyChamp:
 
             # @synergy: Yordle
             synergy_name = "Yordle"
-            if origin == "on_hit" or (origin == "aa" and not self._wild_synergy) and synergy_name in self.team_synergies and synergy_name in self.origin:
-                n_syn = self.team_synergies[synergy_name]
-                rnd_n = random.random()
-                if (n_syn >= 9 and rnd_n <= 0.9) or (n_syn >= 6 and rnd_n <= 0.6) or (n_syn >= 3 and rnd_n <= 0.3):
-                    self.damage_events.append(NoDamage(self.position(map_), "yordle_dodge"))
-                    return False
+            if synergy_name in self.team_synergies:
+                if origin == "on_hit" or (origin == "aa" and not self._wild_synergy) and synergy_name in self.team_synergies and synergy_name in self.origin:
+                    n_syn = self.team_synergies[synergy_name]
+                    rnd_n = random.random()
+                    if (n_syn >= 9 and rnd_n <= 0.9) or (n_syn >= 6 and rnd_n <= 0.6) or (n_syn >= 3 and rnd_n <= 0.3):
+                        self.damage_events.append(NoDamage(self.position(map_), "yordle_dodge"))
+                        return False
 
             if self.has_effect("immune_magic") and type_ == "magic" or self.has_effect("immune_physical") and type_ == "physical":
                 self.damage_events.append(NoDamage(self.position(map_), f"immune_{type_}"))
@@ -863,7 +871,7 @@ class DummyChamp:
                     item_name = "Morellonomicon"
                     if originator.item_count(item_name) > 0:
                         if not self.has_effect_with_name(item_name):
-                            self.gwounds(10, fight, item_name, originator=originator, dot=True)
+                            self.gwounds(10, fight, item_name, originator, source=item_name, damage=True)
                         else:
                             for effect in self.status_effects:
                                 if effect.name == item_name:
@@ -927,6 +935,7 @@ class DummyChamp:
                     damage_after_shield = self.current_health - 900
 
             self.current_health -= damage_after_shield
+            logger.debug(f"{self.name}: got damage {real_damage} from {origin} from user {originator.name}")
 
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
@@ -1201,7 +1210,7 @@ class DummyChamp:
                     return 0
         return rest_damage
 
-    def _steal_mana(self, amount, user=None):
+    def steal_mana(self, amount, user=None):
         before = self.mana
         self.mana -= amount
         if self.mana < 0:

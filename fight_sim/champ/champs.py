@@ -1,10 +1,10 @@
 import random
 
-from fight.champ.dummy import DummyChamp
-from fight.effects.dummy_vision_event import DummyEvent
-from fight.effects.aoe import Aoe
-from fight.effects.status_effect import StatusEffect
-from fight.effects.shield import Shield
+from fight_sim.champ.dummy import DummyChamp
+from fight_sim.effects.dummy_vision_event import DummyEvent
+from fight_sim.effects.aoe import Aoe
+from fight_sim.effects.status_effect import StatusEffect
+from fight_sim.effects.shield import Shield
 
 
 class Aatrox(DummyChamp):
@@ -137,9 +137,9 @@ class GlacialStorm(Aoe):
     def do_effect(self):
         for enemy in self._all_enemies_in_area():
             for _ in range(self.as_slow_stacks):
-                enemy.status_effects.appen(StatusEffect(self.fight.map, 0, "Glacial Storm", effects=["as_slow"]))
+                enemy.status_effects.append(StatusEffect(self.fight.map, 0, "Glacial Storm", effects=["as_slow"]))
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source=self.name)
-        self.fight.events.append(DummyEvent(500, (36, 36, 36), [self.effected_area], type_="half_fade"))
+        self.fight.events.append(DummyEvent(500, (36, 36, 36), self.effected_area, type_="half_fade"))
 
 
 class Anivia(DummyChamp):
@@ -247,7 +247,7 @@ class RocketGrab(Aoe):
         super().__init__(fight, user, effected_area=effected_area, interval=0.1, user_needed=True)
         self.damage = damage
         self.stun_duration = stun_duration
-        self.area_index = 0
+        self.area_index = -1
         self.last_proc = fight.now
 
     def proc(self):
@@ -263,7 +263,7 @@ class RocketGrab(Aoe):
                         self.do_effect(enemy)
                         self.activated = True
 
-            if self.area_index + 1 == len(self.effected_area):
+            if self.area_index + 1 >= len(self.effected_area):
                 self.activated = True
 
     def do_effect(self, enemy):
@@ -418,7 +418,7 @@ class ChoGath(DummyChamp):
         # stunning them for 1.5 / 1.75 / 2 seconds.
         target = self.get_target(visible)
         area = fight.map.get_all_cells_in_range(target.my_cell, 3)
-        fight.aoe.append(Rupture(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1], target))
+        fight.aoe.append(Rupture(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
 class Decimate(Aoe):
@@ -525,8 +525,8 @@ class Spider(DummyChamp):
     def __init__(self, pos, fight):
         spider_dict = {
             "range": 1,
-            "hp": [500, 500, 500],
-            "dmg": [60, 60, 60],
+            "hp": "500 / 500 / 500",
+            "dmg": "60 / 60 / 60",
             "atk_speed": 0.7,
             "mana": 0,
             "starting_mana": 0,
@@ -630,7 +630,7 @@ class Riposte(Aoe):
         enemy = self.user.get_target(self.fight.adjacent_enemies(self.user))
         if enemy:
             enemy.stun(1.5, self.fight.map)
-            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self, source="Riposte")
+            enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Riposte")
             self.fight.events.append(DummyEvent(0.5, (191, 189, 191), [enemy.my_cell]))
 
 
@@ -772,7 +772,7 @@ class Jayce(DummyChamp):
         self.aa_counter_after_sa = self.aa_counter
         self.rank_on_use = self.rank
         target = self.get_target(in_range)
-        target.get_damage("magic", self.sa_damage[self.rank_on_use - 1], fight.map, origin="sa", originator=self, source="Mercury Cannon")
+        target.get_damage("magic", self.sa_damage[self.rank_on_use - 1], fight, origin="sa", originator=self, source="Mercury Cannon")
         fight.events.append(DummyEvent(self.sa_stun_duration[self.rank_on_use - 1] * 1000, (36, 36, 36), [target.my_cell]))
         target.stun(self.sa_stun_duration[self.rank - 1], fight.map)
         # @todo: add knockback for jayce
@@ -786,12 +786,13 @@ class Jayce(DummyChamp):
             self.status_effects.append(range_effect)
         self.status_effects.append(as_buff)
 
-    def autoattack(self, time, fight, enemies_in_range, target=None):
-        super().autoattack(time, fight, enemies_in_range, target=target)
-        if self.aa_counter_after_sa - self.aa_counter >= self.as_hit_duration[self.rank_on_use - 1]:
-            effects = self.get_all_effects_with("jayce_as_boost")
-            for effect in effects:
-                self.status_effects.remove(effect)
+    def autoattack(self, time, fight, enemies_in_range, target_=None):
+        super().autoattack(time, fight, enemies_in_range, target_=target_)
+        if self.has_effect("jayce_as_boost"):
+            if self.aa_counter_after_sa - self.aa_counter >= self.as_hit_duration[self.rank_on_use - 1]:
+                effects = self.get_all_effects_with("jayce_as_boost")
+                for effect in effects:
+                    self.status_effects.remove(effect)
 
     @property
     def can_use_sa(self):
@@ -1015,7 +1016,7 @@ class Kennen(DummyChamp):
         # times is Stun icon stunned for 1.5 seconds.
         # The storm can deal a total of 225 / 450 / 675
         # magic damage.
-        fight.aoe.append(SlicingMaelstrom(fight.now, [], self, fight, self.sa_damage_per_tick[self.rank - 1]))
+        fight.aoe.append(SlicingMaelstrom(fight, self, self.sa_damage_per_tick[self.rank - 1]))
 
 
 class Khazix(DummyChamp):
@@ -1138,7 +1139,7 @@ class Lissandra(DummyChamp):
                 self.fight.events.append(DummyEvent(1000, (32, 48, 97), [cell]))
                 for d_enemy in fight.enemy_champs_alive(self):
                     if cell.id == d_enemy.pos:
-                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1])
+                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Frozen Tomb")
         else:
             enemy = self.get_target(in_range)
             enemy.stun(1.5, fight.map)
@@ -1146,7 +1147,7 @@ class Lissandra(DummyChamp):
                 self.fight.events.append(DummyEvent(1000, (32, 48, 97), [cell]))
                 for d_enemy in fight.enemy_champs_alive(self):
                     if cell.id == d_enemy.pos:
-                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1])
+                        d_enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Frozen Tomb")
 
     @property
     def can_use_sa(self):
@@ -1204,7 +1205,7 @@ class Lulu(DummyChamp):
         for allie in allies:
             self.fight.events.append(DummyEvent(500, (104, 247, 164), [allie.my_cell]))
             for _ in range(health_gain_stacks):
-                allie.status_effects.append(fight.map, self.sa_bonus_health_duration, "Wild Growth", effects=["bonus_health_100"])
+                allie.status_effects.append(StatusEffect(fight.map, self.sa_bonus_health_duration, "Wild Growth", effects=["bonus_health_100"]))
             allie.heal(100 * health_gain_stacks, fight.map)
             for enemy in fight.adjacent_enemies(allie):
                 self.fight.events.append(DummyEvent(1000, (18, 56, 34), [enemy.my_cell]))
@@ -1303,13 +1304,13 @@ class SoulShackles(Aoe):
             self.enemies = self.user.morgana_sa_range_enemies
             for enemy in self.enemies:
                 self.fight.events.append(DummyEvent(500, (71, 56, 71), [enemy.my_cell]))
-                enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self, source="Soul Shackles")
+                enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Soul Shackles")
         elif self.fight.now - self.last_proc >= self.proc_interval:
             new_enemies = self.user.morgana_sa_range_enemies
             for enemy in self.enemies:
                 if enemy in new_enemies:
                     self.fight.events.append(DummyEvent(1000, (71, 56, 71), [enemy.my_cell]))
-                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self, source="Soul Shackles")
+                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Soul Shackles")
                     enemy.stun(self.stun_duration, self.fight.map)
             self.activated = True
 
@@ -1519,7 +1520,7 @@ class Pyke(DummyChamp):
         jump_cell, enemy = self.get_jump_cell()
         area = fight.get_ability_area(enemy, self)
         self.move_to(jump_cell, fight)
-        fight.aoe.append(PhantomUndertow(self, fight, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
+        fight.aoe.append(PhantomUndertow(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
 class Burrow(Aoe):
@@ -1596,7 +1597,7 @@ class Rengar(DummyChamp):
         self.move_to(cell, fight)
         self.fight.events.append(DummyEvent(500, (64, 43, 11), [enemy.my_cell]))
         enemy.get_damage("physical", self.ad * self.sa_percent_ad_damage[self.rank - 1], fight, origin="sa", originator=self, source="Savagery")
-        self.status_effects.append(StatusEffect(fight.map, 6, "Savagery", effects="small_crit_chance_boost"*5 + "small_as_boost_total"*self.sa_attack_speed_bonus_total[self.rank - 1]))
+        self.status_effects.append(StatusEffect(fight.map, 6, "Savagery", effects=["small_crit_chance_boost"]*5 + ["small_as_boost_total"]*self.sa_attack_speed_bonus_total[self.rank - 1]))
 
 
 class GlacialPrison(Aoe):
@@ -1652,7 +1653,7 @@ class SpiritsRefuge(Aoe):
         area = [self.user.my_cell] + self.user.my_cell.neighbors
         self.fight.events.append(DummyEvent(100, (133, 130, 53), area, type_="half_fade"))
         effect = StatusEffect(self.fight.map, 0, "Spirit's Refuge", effects=["aa_dodge"])
-        for allie in self.fight.adjacent_allies(self.user) + [self.user.my_cell]:
+        for allie in self.fight.adjacent_allies(self.user) + [self.user]:
             allie.status_effects.append(effect)
 
 
@@ -1748,7 +1749,7 @@ class Tristana(DummyChamp):
         # magic damage to all nearby enemies within 2 hexes. The damage
         # is increased by 50% with each basic attack on the target,
         # dealing up to 175 / 275 / 375 magic damage.
-        fight.aoe.append(ExplosiveCharge(fight.now, self, fight, self.sa_damage[self.rank - 1], self.get_target(in_range)))
+        fight.aoe.append(ExplosiveCharge(fight, self, self.sa_damage[self.rank - 1], self.get_target(in_range)))
 
     @property
     def can_use_sa(self):
@@ -1954,7 +1955,7 @@ class Zed(DummyChamp):
         target = self.get_target(in_range)
         area = fight.get_ability_area(target, self, 4)
         self.fight.events.append(DummyEvent(500, (56, 13, 29), area))
-        for enemy in fight.get_ability_area(self, area):
+        for enemy in fight.get_enemies_in_area(self, area):
             enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Razor Shuriken")
 
 

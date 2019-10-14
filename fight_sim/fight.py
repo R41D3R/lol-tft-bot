@@ -3,11 +3,11 @@ import math
 
 import pygame
 
-from fight.board.map import Map
-from fight.effects.status_effect import StatusEffect
-from fight.effects.shield import Shield
-from fight.config import logger
-from fight.champ.champs import Golem
+from fight_sim.board.map import Map
+from fight_sim.effects.status_effect import StatusEffect
+from fight_sim.effects.shield import Shield
+from fight_sim.config import logger
+from fight_sim.champ.champs import Golem
 
 
 class Fight:
@@ -27,6 +27,7 @@ class Fight:
         self.hextech_tick = None
         self.ranger_tick = None
         self.hextech_disabled_champs = []
+        self.selected_champs = []
 
     @property
     def board(self):
@@ -61,6 +62,7 @@ class Fight:
         self.hextech_tick = None
         self.ranger_tick = None
         self.hextech_disabled_champs = []
+        self.selected_champs = []
 
         self._place_champs()
 
@@ -125,7 +127,7 @@ class Fight:
 
                 # @todo: rework channeling abilites
                 # @body: make them interuptable if needed and add can_cast
-                if champ.can_use_sa:
+                if champ.enough_mana_for_sa and champ.can_use_sa:
                     champ.stop_moving(self)
 
                     # @item: Ionic Spark
@@ -263,6 +265,9 @@ class Fight:
         else:
             return self.top_synergy
 
+    def knockback(self, enemy, k_distance, user):
+        pass
+
     def get_enemies_in_area(self, user, area):
         enemies = []
         for cell in area:
@@ -280,6 +285,7 @@ class Fight:
             else:
                 hexrange = self.map.distance(target.my_cell, champ.my_cell)
 
+        hexrange = int(hexrange)
         if target is None:
 
             first_direction = champ.direction
@@ -337,7 +343,7 @@ class Fight:
         self.map.draw(surface)
         for event in self.events:
             if event.is_active:
-                event.draw(surface, self.map)
+                event.draw(surface)
             else:
                 self.events.remove(event)
 
@@ -357,6 +363,11 @@ class Fight:
         for i, item in enumerate(self.top_synergy.items()):
             syn_text = font.render(f"{item[0]} : {str(item[1])}", True, (0, 0, 0))
             surface.blit(syn_text, (650, 550 - (15 * i)))
+
+        # show all champs with number
+        for i, champ in enumerate(self.team_top + self.team_bot):
+            champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}", True, (0, 0, 0))
+            surface.blit(champ_text, (10, 600 + (i * 15)))
 
     @staticmethod
     def _dot_damage(target):
@@ -689,6 +700,7 @@ class Fight:
                 furthest_enemy = self.furthest_enemy_away(champ)
                 new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
                 champ.move_to(new_cell, self)
+                champ.untargetable(1, self)
 
     def _activate_aura(self, champ):
         # @item: Warmog's Armor
@@ -822,3 +834,4 @@ class Fight:
             golem = Golem(best_cell.id, self)
             best_cell.taken = True
             team.append(golem)
+

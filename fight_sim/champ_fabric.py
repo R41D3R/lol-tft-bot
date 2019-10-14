@@ -1,10 +1,10 @@
 import copy
 import pandas as pd
 
-from fight.champ.champs import *
-from fight.config import logger
-from fight.item.item import Item
-from fight.data.items_base_stats import all_items
+from fight_sim.champ.champs import *
+from fight_sim.config import logger
+from fight_sim.item.item import Item
+from fight_sim.data.items_base_stats import all_items
 
 
 # @todo: Do checks before you place champs and assign champs + pos
@@ -12,7 +12,7 @@ from fight.data.items_base_stats import all_items
 class ChampionFabric:
     def __init__(self):
         self.possible_positions = [(x, y) for x in range(7) for y in range(3)]  # rows 0..2, cols 0..6
-        file = "data/champ_database.csv"
+        file = "fight_sim/data/champ_database.csv"
         champs = pd.read_csv(file, index_col="name")
         self.champ_dict = champs.to_dict("index")
         self.base_top = None

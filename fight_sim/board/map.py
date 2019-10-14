@@ -1,6 +1,6 @@
 import pygame
 
-from fight.board.hexagon import Hexagon
+from fight_sim.board.hexagon import Hexagon
 
 pygame.font.init()
 

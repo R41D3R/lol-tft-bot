@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from fight.effects.status_effect import StatusEffect
+from fight_sim.effects.status_effect import StatusEffect
 
 
 class Aoe(ABC):
@@ -64,8 +64,8 @@ class Aoe(ABC):
 
 
 class SpinningAxes(Aoe):
-    def __init__(self, created, effected_area, user, fight):
-        super().__init__(created, 0, 2, effected_area, user, fight, 0, user_needed=True)
+    def __init__(self, fight, user):
+        super().__init__(fight, user, delay=2, user_needed=True)
         self.old_pos = self.user.pos
 
     def proc(self):

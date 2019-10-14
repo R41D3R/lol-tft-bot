@@ -1,7 +1,7 @@
 import pygame
 
-from fight.fight import Fight
-from fight.champ_fabric import ChampionFabric
+from fight_sim.fight import Fight
+from fight_sim.champ_fabric import ChampionFabric
 
 # realpython
 # https://realpython.com/pygame-a-primer/
@@ -12,8 +12,8 @@ from fight.champ_fabric import ChampionFabric
 # Pause, Resume the Game = K_SPACE
 # New fight = K_n
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 900
 BG_COLOR = (255, 255, 255)
 
 
