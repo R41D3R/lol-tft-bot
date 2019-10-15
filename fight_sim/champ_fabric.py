@@ -10,21 +10,32 @@ from fight_sim.data.items_base_stats import all_items
 # @todo: Do checks before you place champs and assign champs + pos
 # @body: Spatula items (only on non class, unique), valid champ position, number of champs, number of same champs, ...
 class ChampionFabric:
-    def __init__(self):
+    def __init__(self, test=False):
         self.possible_positions = [(x, y) for x in range(7) for y in range(3)]  # rows 0..2, cols 0..6
         file = "fight_sim/data/champ_database.csv"
         champs = pd.read_csv(file, index_col="name")
         self.champ_dict = champs.to_dict("index")
         self.base_top = None
         self.base_bot = None
+        self.test = test
 
     def get_teams(self, reset=False):
-        if not reset or (self.base_bot is None and self.base_top is None):
-            self.base_top = self._get_team()
-            self.base_bot = self._get_team()
+        if self.base_bot is None and self.base_top is None:
+            if not reset:
+                self.base_top = self._get_team()
+                self.base_bot = self._get_team()
         return copy.deepcopy(self.base_bot), copy.deepcopy(self.base_top)
 
-    def _get_team(self, special_champ_names=None, special_item_names=None):
+    def get_real_team(self, champion_list_info):
+        champs = []
+        for champ in champion_list_info:
+            items = [self._get_item_from_id(i) for i in champ[3]]
+            champ_item = self._get_champ_item_from_name(champ[0])
+            champs.append(self._get_champ(champ[1], champ_item, champ[2], None, items=items))
+        print([champ.pos for champ in champs])
+        return champs
+
+    def _get_team(self, special_champ_name=None, special_item_id=None):
         logger.info("Team gets initialized.")
         k = 3
         k_picks = random.sample(list(self.champ_dict.items()), k)
@@ -34,6 +45,13 @@ class ChampionFabric:
         for champ in champs:
             print(champ.name)
         return champs
+
+    def _get_champ_item_from_name(self, name):
+        return name, self.champ_dict[name]
+
+    @staticmethod
+    def _get_item_from_id(id_):
+        return [Item(all_items[id_]["attribute"], all_items[id_]["name"])]
 
     @staticmethod
     def _get_items():

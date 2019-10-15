@@ -47,8 +47,12 @@ class Fight:
     def champions_alive(self):
         return [champ for champ in self.team_top + self.team_bot if champ.alive]
 
-    def new_fight(self, reset=False):
-        self.team_top, self.team_bot = self.champ_fabric.get_teams(reset=reset)
+    def new_fight(self, reset=False, champs_top=None, champs_bot=None):
+        if champs_bot and champs_top:
+            self.team_top = self.champ_fabric.get_real_team(champs_top)
+            self.team_bot = self.champ_fabric.get_real_team(champs_bot)
+        else:
+            self.team_top, self.team_bot = self.champ_fabric.get_teams(reset=reset)
         self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_bot)
         self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_top)
 
