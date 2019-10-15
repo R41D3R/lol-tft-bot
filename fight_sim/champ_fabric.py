@@ -24,7 +24,7 @@ class ChampionFabric:
             self.base_bot = self._get_team()
         return copy.deepcopy(self.base_bot), copy.deepcopy(self.base_top)
 
-    def _get_team(self):
+    def _get_team(self, special_champ_names=None, special_item_names=None):
         logger.info("Team gets initialized.")
         k = 3
         k_picks = random.sample(list(self.champ_dict.items()), k)

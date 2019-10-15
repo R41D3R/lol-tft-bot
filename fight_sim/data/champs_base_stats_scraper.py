@@ -38,7 +38,7 @@ req = requests.get(main_url)
 soup = BeautifulSoup(req.text, "html.parser")
 
 names = ["name", "origin", "class", "cost", "hp", "dps", "atk_speed", "dmg", "range", "armor", "mr"]
-file = "./champ_database.csv"
+file = ".fight_sim/data/champ_database.csv"
 
 df = pd.DataFrame(columns=names)
 df.set_index("name", inplace=True)
