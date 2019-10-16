@@ -222,9 +222,7 @@ class DummyChamp:
     @property
     def aa_cc(self):
         # @todo: respect rule: max_as = 5 also for override methods (jayce)
-        item_bonus = 0
-        item_bonus += self.base_aa_cc * 0.2 * self._item_sum_from("attack_speed")
-
+        item_bonus = self.base_aa_cc * 0.2 * self._item_sum_from("attack_speed")
         buffs = 0.05 * self.base_aa_cc * len(self.get_all_effects_with("small_as_boost"))
         total_boost = 1 + (0.05 * self.base_aa_cc * len(self.get_all_effects_with("small_as_boost_total")))
 
@@ -549,7 +547,7 @@ class DummyChamp:
                 return
 
         self.aa_counter += 1
-        self.aa_last = time
+        self.aa_last = self.fight.now
 
         self._get_mana("aa")
 
@@ -940,7 +938,7 @@ class DummyChamp:
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
-            self._get_mana("damage", source=source)
+            self._get_mana("damage", source=source, damage=incoming_damage)
             self._check_alive()
             return True
         else:
@@ -1227,7 +1225,7 @@ class DummyChamp:
                 if self.item_count(item_name) > 0 and self.sa_counter > 0:
                     amount += self.max_mana * 0.15 * self.item_count(item_name)
             elif origin == "damage":
-                amount = self.mana_on_aa
+                amount = (damage / (damage + 10000)) * 50
 
                 # @todo: mana gain on damage
                 # # max 50 mana per damage source
@@ -1243,12 +1241,16 @@ class DummyChamp:
             # @item: Seraph's Embrace
             elif origin == "Seraphs's Embrace":
                 amount = amount_
+                # @todo: Mana Lock and Seraph's Embrace
 
+            mana_before = self.mana
             # check if mana is full
             if self.mana + amount >= self.max_mana:
                 self.mana = self.max_mana
             else:
                 self.mana += amount
+            after = self.mana - mana_before
+            self.damage_events.append(DummyDamage(after, self.position(self.fight.map), "mana"))
 
     def _check_alive(self):
         if self.current_health <= 0:

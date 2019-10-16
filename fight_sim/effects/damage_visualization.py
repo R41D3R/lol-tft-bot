@@ -6,11 +6,13 @@ dmg_color = {
     "true": (255, 255, 255),
     "heal": (110, 255, 124),
     "dodge": (200, 200, 200),
+    "mana": (61, 174, 245),
 }
 
 
 class DummyDamage:
     def __init__(self, amount, stat_pos, kind: str):
+        self.kind = kind
         self.color = dmg_color[kind]
         self.amount = int(abs(amount))
         self.create = pygame.time.get_ticks()
@@ -21,7 +23,11 @@ class DummyDamage:
     def render(self, surface, time):
         state = time - self.create
         text = self.font.render(str(self.amount), True, self.color)
-        surface.blit(text, (self.start_pos[0],
+        if self.kind == "mana":
+            start_pos_x = self.start_pos[0] - 30
+        else:
+            start_pos_x = self.start_pos[0] + 10
+        surface.blit(text, (start_pos_x,
                             int(self.start_pos[1] - (state / self.duration * 50))))
 
     def is_active(self, time):

@@ -114,8 +114,12 @@ class Fight:
             aoe.proc()
             if not aoe.active:
                 self.aoe.remove(aoe)
+            if self.game_over:
+                return
 
         for champ in champs:
+            if self.game_over:
+                return
             if champ.can_make_turn:
                 logger.debug(f"{champ.name} turn")
 
@@ -123,8 +127,6 @@ class Fight:
                     champ.create_new_barrel()
 
                 enemies_alive = self.enemy_champs_alive(champ)
-                if len(enemies_alive) == 0:
-                    return
 
                 enemy_team = self.enemy_team_visible(champ)  # rework visible
                 enemies_in_range = champ.get_enemies_in_range(self)
@@ -132,6 +134,7 @@ class Fight:
                 # @todo: rework channeling abilites
                 # @body: make them interuptable if needed and add can_cast
                 if champ.enough_mana_for_sa and champ.can_use_sa:
+                    logger.debug(f"{champ.name} uses sa")
                     champ.stop_moving(self)
 
                     # @item: Ionic Spark
@@ -187,6 +190,8 @@ class Fight:
                     champ.move()
 
         for champ in self.champions_alive:
+            if self.game_over:
+                return
             self._activate_aura(champ)
             champ.check_shields(self.now)
             champ.check_status_effects(self.now)
@@ -302,7 +307,6 @@ class Fight:
 
         cube_line = self.map.cube_line(start_cube, goal_cube)
         dbwidth_line = [self.map.cube_to_doublewidth(cube) for cube in cube_line]
-        print(dbwidth_line)
         return dbwidth_line
 
     def get_direction(self, start, goal, root):
@@ -367,8 +371,9 @@ class Fight:
 
         # show all champs with number
         for i, champ in enumerate(self.team_top + self.team_bot):
-            champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}", True, (0, 0, 0))
-            surface.blit(champ_text, (10, 600 + (i * 15)))
+            if champ.alive:
+                champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}, aa_delay={int(champ.aa_cc)}", True, (0, 0, 0))
+                surface.blit(champ_text, (10, 600 + (i * 15)))
 
     @staticmethod
     def _dot_damage(target):
@@ -468,7 +473,7 @@ class Fight:
                                   (champ.pos[0] + 4, champ.pos[1]),
                                   (champ.pos[0] - 2, champ.pos[1]),
                                   champ.pos]
-            as_bonus = 1  # zekes
+            as_bonus = 0  # zekes
             shield_bonus = 0  # solari
             # @item: Zeke's Herald
             item_name = "Zeke's Herald"

@@ -39,8 +39,8 @@ champ_fabric = ChampionFabric()
 fight = Fight(champ_fabric)
 
 possible_positions = [(x, y) for x in range(7) for y in range(3)]
-n_champs = 4
-champs = [["Ahri", pos, 2, []] for pos in random.sample(possible_positions, n_champs)]
+n_champs = 1
+champs = [["Ahri", pos, 1, []] for pos in random.sample(possible_positions, n_champs)]
 print(champs)
 fight.new_fight(champs_bot=champs, champs_top=champs)
 

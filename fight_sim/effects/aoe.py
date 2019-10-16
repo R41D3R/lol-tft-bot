@@ -26,12 +26,18 @@ class Aoe(ABC):
     @property
     def active(self):
         if not self.activated:
-            if self.user_needed and self.user.alive:
-                if self.interruptable and self.user.interrupted(self.name):
+            if self.user_needed:
+                if self.user.alive:
+                    if self.interruptable:
+                        if self.user.interrupted(self.name):
+                            return False
+                        else:
+                            return True
+                    return True
+                else:
                     return False
-                return True
             else:
-                return False
+                return True
         else:
             return False
 
