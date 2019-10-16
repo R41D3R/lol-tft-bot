@@ -287,8 +287,7 @@ class Fight:
         else:
             end = None
         return [self.map.get_cell_from_id(id_)
-                for id_ in self._get_line_area_ids(target, champ, hexrange=hexrange)
-                if self.map.is_id_in_map(id_)][1:end]
+                for id_ in self._get_line_area_ids(target, champ, hexrange=hexrange)][1:end]
 
     def _get_line_area_ids(self, target, champ, hexrange=None):
         start = champ.pos
@@ -305,35 +304,6 @@ class Fight:
         dbwidth_line = [self.map.cube_to_doublewidth(cube) for cube in cube_line]
         print(dbwidth_line)
         return dbwidth_line
-
-    def get_ability_area(self, target, champ, hexrange=None):
-        area_cell_ids = []
-        if hexrange is None:
-            if target is None:
-                hexrange = 20
-            else:
-                hexrange = self.map.distance(target.my_cell, champ.my_cell)
-
-        hexrange = int(hexrange)
-        if target is None:
-
-            first_direction = champ.direction
-            current_cell_id = champ.pos
-            for i in range(hexrange):
-                current_cell_id = self.map.get_id_in_direction(current_cell_id, first_direction)
-                area_cell_ids.append(current_cell_id)
-        else:
-            target = self._im_target(target.pos, champ.pos)
-            current_cell_id = champ.pos
-            root_deg = self._degree(current_cell_id, target)
-
-            for i in range(hexrange):
-                current_cell_id = self._get_next_cell_id(current_cell_id, target, root_deg)
-                area_cell_ids.append(current_cell_id)
-        area = []
-        for id_ in area_cell_ids:
-            area.append(self.map.get_cell_from_id(id_))
-        return area
 
     def get_direction(self, start, goal, root):
         if goal is None:

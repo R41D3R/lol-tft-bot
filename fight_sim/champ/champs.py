@@ -81,7 +81,7 @@ class Ahri(DummyChamp):
         # magic damage to all enemies it passes through. The orb then
         # returns to her, dealing 100 / 200 / 300 true damage to all enemies
         # it passes through.
-        area_cells = fight.get_ability_area(self.get_target(in_range), self, 5)
+        area_cells = fight.get_line_area(self.get_target(in_range), self, 5)
         fight.aoe.append(SpiritOrb(fight, self, area_cells, 0.5, self.sa_damage[self.rank - 1]))
 
 
@@ -203,7 +203,7 @@ class Ashe(DummyChamp):
         # magic damage and Stun icon stunning them. The stun
         # lasts 1 / 1.5 / 2 seconds per hex traveled.
         enemy = fight.furthest_enemy_away(self)
-        area = fight.get_ability_area(enemy, self, 20)
+        area = fight.get_line_area(enemy, self, 20)
         fight.aoe.append(EnchantedCrystalArrow(fight, self, area, 0.1, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
@@ -237,7 +237,7 @@ class AurelionSol(DummyChamp):
         # Active: After a 0.35-second delay, breathes fire
         # in a line, dealing 250 / 500 / 750 magic damage
         # to all enemies in the area.
-        area = fight.get_ability_area(self.get_target(visible), self, 15)
+        area = fight.get_line_area(self.get_target(visible), self, 15)
         self.channel(fight, 0.35, "Voice of Light", interruptable=False)
         fight.aoe.append(VoiceofLight(fight, self, 0.35, area, self.sa_damage[self.rank - 1]))
 
@@ -294,7 +294,7 @@ class Blitzcrank(DummyChamp):
         # up his target for 1 seconds. Allies within range will
         # prioritize attacking that enemy.
         target = fight.furthest_enemy_away(self)
-        area = fight.get_ability_area(target, self, None)
+        area = fight.get_line_area(target, self, None)
         # grab -> status effect on self
         self.channel(fight, 2, "Rocket Grab", interruptable=False)
         self.status_effects.append(StatusEffect(fight.map, 999999, "Rocket Grab aa", effects=["knockup_on_aa"]))
@@ -1271,7 +1271,7 @@ class Mordekaiser(DummyChamp):
         # him, dealing 250 / 500 / 750 magic damage to enemies
         # within.
         target = self.get_target(in_range)
-        area = fight.get_ability_area(target, self, 2)
+        area = fight.get_line_area(target, self, 2)
         self.fight.events.append(DummyEvent(700, (56, 71, 57), area))
         for enemy in fight.get_enemies_in_area(self, area):
             enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Obliterate")
@@ -1433,7 +1433,7 @@ class KeepersVerdict(Aoe):
 
     def do_effect(self):
         target = self.user.get_target(self.fight.adjacent_enemies(self.user))
-        area = self.fight.get_ability_area(target, self.user, 12)
+        area = self.fight.get_line_area(target, self.user, 12)
         cell_counter = -1
         while self.n_counter < self.n_enemies:
             cell_counter += 1
@@ -1518,7 +1518,7 @@ class Pyke(DummyChamp):
         # magic damage to all enemies it passes through and
         # and Stun icon stunning them for 1.5 / 2 / 2.5 seconds.
         jump_cell, enemy = self.get_jump_cell()
-        area = fight.get_ability_area(enemy, self)
+        area = fight.get_line_area(enemy, self)
         self.move_to(jump_cell, fight)
         fight.aoe.append(PhantomUndertow(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
@@ -1795,7 +1795,7 @@ class PiercingArrow(Aoe):
             self.activated = True
 
     def do_effect(self):
-        area = self.fight.get_ability_area(self.fight.furthest_enemy_away(self.user), self.user, 8)
+        area = self.fight.get_line_area(self.fight.furthest_enemy_away(self.user), self.user, 8)
         self.fight.events.append(DummyEvent(500, (44, 39, 51), area))
         for enemy in self._all_enemies_in_area(area=area):
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Piercing Arrow")
@@ -1925,13 +1925,13 @@ class Yasuo(DummyChamp):
         target = self.get_target(in_range)
         if self.yasuo_stacks == 3:
             self.yasuo_stacks = 0
-            area = fight.get_ability_area(target, self, 6)
+            area = fight.get_line_area(target, self, 6)
             self.fight.events.append(DummyEvent(500, (135, 132, 133), area))
             for enemy in fight.get_enemies_in_area(self, area):
                 enemy.airborne(1.5, fight.map)
                 self.sword_damage(enemy)
         else:
-            area = fight.get_ability_area(target, self, 2)
+            area = fight.get_line_area(target, self, 2)
             self.fight.events.append(DummyEvent(500, (135, 132, 133), area))
             for enemy in fight.get_enemies_in_area(self, area):
                 self.sword_damage(enemy)
@@ -1953,7 +1953,7 @@ class Zed(DummyChamp):
         # Active: Throws a shuriken in a 4-hex line, dealing
         # 200 / 350 / 500 magic damage to all enemies in its path.
         target = self.get_target(in_range)
-        area = fight.get_ability_area(target, self, 4)
+        area = fight.get_line_area(target, self, 4)
         self.fight.events.append(DummyEvent(500, (56, 13, 29), area))
         for enemy in fight.get_enemies_in_area(self, area):
             enemy.get_damage("magic", self.sa_damage[self.rank - 1], fight, origin="sa", originator=self, source="Razor Shuriken")
