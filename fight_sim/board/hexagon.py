@@ -23,19 +23,6 @@ class Hexagon:
         y = -x - z
         return x, y, z
 
-    @staticmethod
-    def doublewidth_to_cube(dbwidth):
-        x = (dbwidth[0] - dbwidth[1]) / 2
-        z = dbwidth[1]
-        y = -x - z
-        return x, y, z
-
-    @staticmethod
-    def cube_to_doublewidth(cube):
-        x = 2 * (cube[0] + cube[2])
-        y = cube[2]
-        return x, y
-
     @property
     def free_neighbors(self):
         return [neighbor for neighbor in self.neighbors if not neighbor.taken]

@@ -281,6 +281,31 @@ class Fight:
                         enemies.append(enemy)
         return enemies
 
+    def get_line_area(self, target, champ, hexrange=None):
+        if hexrange:
+            end = hexrange + 1
+        else:
+            end = None
+        return [self.map.get_cell_from_id(id_)
+                for id_ in self._get_line_area_ids(target, champ, hexrange=hexrange)
+                if self.map.is_id_in_map(id_)][1:end]
+
+    def _get_line_area_ids(self, target, champ, hexrange=None):
+        start = champ.pos
+        if hexrange is not None:
+            goal = self._im_target(target.pos, champ.pos)
+        else:
+            goal = target.pos
+
+        # convert coordinates
+        start_cube = self.map.doublewidth_to_cube(start)
+        goal_cube = self.map.doublewidth_to_cube(goal)
+
+        cube_line = self.map.cube_line(start_cube, goal_cube)
+        dbwidth_line = [self.map.cube_to_doublewidth(cube) for cube in cube_line]
+        print(dbwidth_line)
+        return dbwidth_line
+
     def get_ability_area(self, target, champ, hexrange=None):
         area_cell_ids = []
         if hexrange is None:

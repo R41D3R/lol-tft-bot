@@ -99,6 +99,10 @@ class Map:
         return dy + max([0, (dx - dy) / 2])
 
     @staticmethod
+    def cube_distance(start_cube, target_cube):
+        return (abs(start_cube[0] - target_cube[0]) + abs(start_cube[1] - target_cube[1]) + abs(start_cube[2] - target_cube[2])) / 2
+
+    @staticmethod
     def get_all_cells_in_range(self_cell, attack_range):
         cells_in_range = [self_cell]
         for _ in range(int(attack_range)):
@@ -107,6 +111,52 @@ class Map:
                     if neighbor not in cells_in_range:
                         cells_in_range.append(neighbor)
         return cells_in_range
+
+    @staticmethod
+    def cube_round(cube):
+        rx = round(cube[0])
+        ry = round(cube[1])
+        rz = round(cube[2])
+
+        x_diff = abs(rx - cube[0])
+        y_diff = abs(ry - cube[1])
+        z_diff = abs(rz - cube[2])
+
+        if x_diff > y_diff and x_diff > z_diff:
+            rx = -ry - rz
+        elif y_diff > z_diff:
+            ry = -rx - rz
+        else:
+            rz = -rx - ry
+
+        return rx, ry, rz
+
+    @staticmethod
+    def lerp(a, b, t):
+        return a + (b - a) * t
+
+    def cube_lerp(self, a, b, t):
+        return self.lerp(a[0], b[0], t), self.lerp(a[1], b[1], t), self.lerp(a[2], b[2], t)
+
+    def cube_line(self, a, b):
+        N = int(self.cube_distance(a, b))
+        results = []
+        for i in range(N + 1):
+            results.append(self.cube_round(self.cube_lerp(a, b, 1.0/N * i)))
+        return results
+
+    @staticmethod
+    def doublewidth_to_cube(dbwidth):
+        x = (dbwidth[0] - dbwidth[1]) / 2
+        z = dbwidth[1]
+        y = -x - z
+        return x, y, z
+
+    @staticmethod
+    def cube_to_doublewidth(cube):
+        x = 2 * cube[0] + cube[2]
+        y = cube[2]
+        return x, y
 
     def draw(self, surface):
         for row in self.cell_map:
