@@ -41,6 +41,7 @@
 > old
 * [lolchess.gg - champs, items, meta, synergies](https://lolchess.gg/champions/blitzcrank) -> nicht aktuell
 * [drop rates and other useful guides](https://www.rockpapershotgun.com/2019/08/02/teamfight-tactics-champions-hextech-new-tft-champions/#hextech)
+* [automated game theory](https://github.com/LY0708/Automated-Game-Theory)
 
 ### Github Repos
 * [TFT Statistical Analysis](https://github.com/Strafos/TFT)
@@ -49,4 +50,24 @@
 * [TFT Wiki Scraper](https://github.com/LNTech/TeamfightTactics_Simulator9)
 * [TFT Bot (get and send actions)](https://github.com/ConnorWolanski/TeamFightTacticsBot)
 * [TFT Champion Masking](https://github.com/tufanYavas/LoL-TFT-Champion-Masking)
+* [crawler for blitz.gg](https://github.com/JamesYouL2/TFT-Crawler)
+
+***
+* [autotftf](https://github.com/admin-ll55/AutoTFT-token-reward)
+* [autoclicker tft](https://github.com/Turumbo/joseBot)
+* [twitch extension](https://github.com/rummanwaqar/twitch_tft)
+* [level calc](https://github.com/ketiil/TFT_level_calc/blob/master/main.py)
+* [unitshop tracker](https://github.com/TFTUnitsShopUI/TFTUnitsShopTracker)
+* [tft rest api](https://github.com/WojdaLukasz/tftproject)
+* [Vue App with item images](https://github.com/oivasenk/VueJS-LeagieOfLegendTFT-simple)
+* [item collection](https://github.com/Kevzys/TFTItemCollectionv)
+* [App with item and synergy sim, only japanese](https://github.com/nyaagoo/tft-simulator)
+* [Overlay](https://github.com/xcibe95x/TFT-Overlay)
+* [Overlay](https://github.com/Antize/TFT-Overlay)
+* [Probability of finding champs](https://github.com/landmarco/tftdex)
+* [prob notebook for champs](https://github.com/hiowatah/TFT-Probability-Calculator)
+* [builds](https://github.com/hankyutae/tftbuilds-server)
+* [tft planner](https://github.com/jesperc/tft-planner/tree/master/src)
+* [item combs](https://github.com/masonmcbride/TFTitemhelper)
+* [tft tracker](https://github.com/CSDragon/TeamFightTacticsTracker)
 
