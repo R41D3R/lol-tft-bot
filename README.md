@@ -37,11 +37,12 @@
 
 **GYM**
 * [Multi Agent Gym](https://github.com/openai/multiagent-particle-envs/tree/master/multiagent)
+* [automated game theory](https://github.com/LY0708/Automated-Game-Theory)
+* streamlit for interface
 
 > old
 * [lolchess.gg - champs, items, meta, synergies](https://lolchess.gg/champions/blitzcrank) -> nicht aktuell
 * [drop rates and other useful guides](https://www.rockpapershotgun.com/2019/08/02/teamfight-tactics-champions-hextech-new-tft-champions/#hextech)
-* [automated game theory](https://github.com/LY0708/Automated-Game-Theory)
 
 ### Github Repos
 * [TFT Statistical Analysis](https://github.com/Strafos/TFT)
