@@ -300,16 +300,17 @@ class Fight:
         else:
             target = self._im_target(target.pos, champ.pos)
             current_cell_id = champ.pos
+            root_deg = self._degree(current_cell_id, target)
 
             for i in range(hexrange):
-                current_cell_id = self._get_next_cell_id(current_cell_id, target)
+                current_cell_id = self._get_next_cell_id(current_cell_id, target, root_deg)
                 area_cell_ids.append(current_cell_id)
         area = []
         for id_ in area_cell_ids:
             area.append(self.map.get_cell_from_id(id_))
         return area
 
-    def get_direction(self, start, goal):
+    def get_direction(self, start, goal, root):
         if goal is None:
             if self.get_champ_from_cell(self.map.get_cell_from_id(start)).pos in self.team_bot:
                 return 0
@@ -317,22 +318,23 @@ class Fight:
                 return 3
 
         degree = abs(self._degree(start, goal))
+        print(degree)
         turning_degree = math.degrees(math.atan(1 / 1.5))
         # rechts oben
         if goal[0] - start[0] >= 0 and goal[1] - start[1] <= 0:
-            if degree < turning_degree:
+            if degree < turning_degree or degree < root and not root == 90:
                 return 1
             else:
                 return 0
         # links oben
-        elif goal[0] - start[0] < 0 and goal[1] - start[1] <= 0:
-            if degree < turning_degree:
+        elif goal[0] - start[0] <= 0 and goal[1] - start[1] <= 0:
+            if degree < turning_degree or degree < root and not root == 90:
                 return 4
             else:
                 return 5
         # rechts unten
-        elif goal[0] - start[0] >= 0 and goal[1] - start[1] > 0:
-            if degree < turning_degree:
+        elif goal[0] - start[0] > 0 and goal[1] - start[1] > 0:
+            if degree < turning_degree or degree < root and not root == 90:
                 return 1
             else:
                 return 2
@@ -385,11 +387,11 @@ class Fight:
         for champ in self.team_bot:
             if champ.name not in bot_names:
                 bot_names.append(champ.name)
-            for type_ in champ.class_ + champ.origin:
-                if type_ not in self.bot_synergy:
-                    self.bot_synergy[type_] = 1
-                else:
-                    self.bot_synergy[type_] += 1
+                for type_ in champ.class_ + champ.origin:
+                    if type_ not in self.bot_synergy:
+                        self.bot_synergy[type_] = 1
+                    else:
+                        self.bot_synergy[type_] += 1
 
         top_names = []
         for champ in self.team_top:
@@ -732,8 +734,9 @@ class Fight:
                 enemy.status_effects.append(
                     StatusEffect(self.map, 4, item_name, effects=["frozen_heart_" + str(n_items)]))
 
-    def _get_next_cell_id(self, current_cell_id, target_id):
-        direction = self.get_direction(current_cell_id, target_id)
+    def _get_next_cell_id(self, current_cell_id, target_id, root):
+        direction = self.get_direction(current_cell_id, target_id, root)
+        print(direction)
 
         next_cell_id = self.map.get_id_in_direction(current_cell_id, direction)
         return next_cell_id

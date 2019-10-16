@@ -17,6 +17,26 @@ class Hexagon:
         self.offset = (self.radius**2 - (self.radius/2)**2)**.5
 
     @property
+    def id_cube(self):
+        x = (self.id[0] - self.id[1]) / 2
+        z = self.id[1]
+        y = -x - z
+        return x, y, z
+
+    @staticmethod
+    def doublewidth_to_cube(dbwidth):
+        x = (dbwidth[0] - dbwidth[1]) / 2
+        z = dbwidth[1]
+        y = -x - z
+        return x, y, z
+
+    @staticmethod
+    def cube_to_doublewidth(cube):
+        x = 2 * (cube[0] + cube[2])
+        y = cube[2]
+        return x, y
+
+    @property
     def free_neighbors(self):
         return [neighbor for neighbor in self.neighbors if not neighbor.taken]
 

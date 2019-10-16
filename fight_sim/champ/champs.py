@@ -63,12 +63,12 @@ class SpiritOrb(Aoe):
         current_cell = self.effected_area[self.area_index_counter]
         if current_cell is not None:
             enemy = self.fight.get_champ_from_cell(current_cell)
+            self.fight.events.append(DummyEvent(self.proc_interval, (36, 36, 36), [current_cell], type_="half_fade"))
             if enemy in self.fight.enemy_champs_alive(self.user):
                 if self.true_damage:
                     enemy.get_damage("true", self.damage, self.fight, origin="sa", originator=self.user, source=self.name)
                 else:
                     enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source=self.name)
-                self.fight.events.append(DummyEvent(200, (36, 36, 36), [current_cell], type_="half_fade"))
 
 
 class Ahri(DummyChamp):
@@ -82,7 +82,7 @@ class Ahri(DummyChamp):
         # returns to her, dealing 100 / 200 / 300 true damage to all enemies
         # it passes through.
         area_cells = fight.get_ability_area(self.get_target(in_range), self, 5)
-        fight.aoe.append(SpiritOrb(fight, self, area_cells, 0.2, self.sa_damage[self.rank - 1]))
+        fight.aoe.append(SpiritOrb(fight, self, area_cells, 0.5, self.sa_damage[self.rank - 1]))
 
 
 class Akali(DummyChamp):
