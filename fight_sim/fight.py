@@ -110,7 +110,7 @@ class Fight:
                             champ.status_effects.append(StatusEffect(self.map, 3, "Ranger", effects=["double_attack_speed"]))
 
         # AOE
-        for aoe in self.aoe:
+        for aoe in self.aoe.copy():
             aoe.proc()
             if not aoe.active:
                 self.aoe.remove(aoe)
@@ -316,8 +316,7 @@ class Fight:
             else:
                 return 3
 
-        degree = abs(self._degree(start, goal))
-        print(degree)
+        degree = abs(self.degree(start, goal))
         turning_degree = math.degrees(math.atan(1 / 1.5))
         # rechts oben
         if goal[0] - start[0] >= 0 and goal[1] - start[1] <= 0:
@@ -352,11 +351,12 @@ class Fight:
             else:
                 self.events.remove(event)
 
-        for top, bot in zip(self.team_top, self.team_bot):
-            if bot.alive:
-                bot.draw(surface, self, "team_bot")
-            if top.alive:
-                top.draw(surface, self, "team_top")
+        for champ in self.team_top + self.team_bot:
+            if champ.alive:
+                if champ in self.team_bot:
+                    champ.draw(surface, self, "team_bot")
+                else:
+                    champ.draw(surface, self, "team_top")
         if self.game_over:
             self._draw_winner(surface)
 
@@ -705,8 +705,13 @@ class Fight:
             if synergy_name in champ.class_ and not champ.has_effect("banish"):
                 furthest_enemy = self.furthest_enemy_away(champ)
                 new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
-                champ.move_to(new_cell, self)
-                champ.untargetable(1, self)
+                champ.jump_cell = new_cell
+
+        for champ in self.team_top + self.team_bot:
+            if synergy_name in champ.class_ and not champ.has_effect("banish"):
+                if champ.jump_cell:
+                    champ.move_to(champ.jump_cell, self)
+                    champ.untargetable(1, self)
 
     def _activate_aura(self, champ):
         # @item: Warmog's Armor
@@ -749,7 +754,7 @@ class Fight:
         return im_target
 
     @staticmethod
-    def _degree(start_id, goal_id):
+    def degree(start_id, goal_id):
         x = (goal_id[0] - start_id[0]) / 2
         y = start_id[1] - goal_id[1]
         if x == 0:

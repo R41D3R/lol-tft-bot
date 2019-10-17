@@ -7,7 +7,7 @@ class Aoe(ABC):
     def __init__(self, fight, user, duration=0, delay=0, effected_area=None, interval=0, user_needed=False, interruptable=False):
         self.name = None
         self.fight = fight
-        self.fight.aoe.append(self)
+        # self.fight.aoe.append(self)
 
         self.created = fight.now
         self.duration = int(duration * 1000)
@@ -87,6 +87,6 @@ class SpinningAxes(Aoe):
             buffs = self.user.get_all_effects_with("spinning_axes")
             if len(buffs) > 0:
                 for buff in buffs:
-                    buff.duration = self.duration * 1000
+                    buff.created = self.fight.now
 
 

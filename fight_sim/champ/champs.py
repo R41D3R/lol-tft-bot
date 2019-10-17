@@ -101,10 +101,14 @@ class Akali(DummyChamp):
         # Active: Throws kunai at her target, dealing 200 / 350 / 500
         # magic damage to all enemies in a 2-hex cone. This damage
         # can critically strike.
-        first_dir = fight.get_direction(self.pos, self.get_target(in_range).pos)
-        area_ids = [(self.pos[0] + fight.map.dir_dict[first_dir][0], self.pos[1] + fight.map.dir_dict[first_dir][1]),
-                    (self.pos[0] + fight.map.dir_dict[first_dir + 1][0], self.pos[1] + fight.map.dir_dict[first_dir + 1][1]),
-                    (self.pos[0] + fight.map.dir_dict[first_dir - 1][0], self.pos[1] + fight.map.dir_dict[first_dir - 1][1])]
+        target = self.get_target(in_range)
+        degree = fight.degree(self.pos, target.pos)
+        first_dir = fight.get_direction(self.pos, target.pos, degree)
+        front = (self.pos[0] + fight.map.dir_dict[first_dir][0], self.pos[1] + fight.map.dir_dict[first_dir][1])
+        front_2 = (self.pos[0] + 2 * fight.map.dir_dict[first_dir][0], self.pos[1] + 2 * fight.map.dir_dict[first_dir][1])
+        left = (self.pos[0] + fight.map.dir_dict[first_dir][0] + fight.map.dir_dict[first_dir - 1][0], self.pos[1] + fight.map.dir_dict[first_dir][1] + fight.map.dir_dict[first_dir - 1][1])
+        right = (self.pos[0] + fight.map.dir_dict[first_dir][0] + fight.map.dir_dict[first_dir + 1][0], self.pos[1] + fight.map.dir_dict[first_dir][1] + fight.map.dir_dict[first_dir + 1][1])
+        area_ids = [front, front_2, left, right]
         for id_ in area_ids:
             if fight.map.is_id_in_map(id_):
                 cell = fight.map.get_cell_from_id(id_)
@@ -134,14 +138,15 @@ class GlacialStorm(Aoe):
 
     def proc(self):
         if self.last_proc is None:
-            self.activated = True
             self.do_effect()
         elif self.fight.now - self.last_proc >= self.proc_interval:
             self.do_effect()
-        else:
-            pass
+        elif self.fight.now - self.created >= self.duration:
+            self.activated = True
 
     def do_effect(self):
+        self.last_proc = self.fight.now
+
         for enemy in self._all_enemies_in_area():
             for _ in range(self.as_slow_stacks):
                 enemy.status_effects.append(StatusEffect(self.fight.map, 0, "Glacial Storm", effects=["as_slow"]))
@@ -171,7 +176,7 @@ class EnchantedCrystalArrow(Aoe):
         super().__init__(fight, user, effected_area=effected_area, interval=interval)
         self.damage = damage
         self.stun_duration = stun_duration
-        self.area_index_counter = 0
+        self.area_index_counter = -1
         self.last_proc = self.fight.now
         self.name = "Enchanted Crystal Arrow"
 
@@ -180,14 +185,14 @@ class EnchantedCrystalArrow(Aoe):
             self.last_proc = self.fight.now
             self.area_index_counter += 1
             cell = self.effected_area[self.area_index_counter]
-            self.fight.events.append(DummyEvent(100, (0, 86, 110), [cell], type_="half_fade"))
 
-            for enemy in self.fight.enemy_champs_alive(self.user):
-                if cell is not None:
+            if cell is not None:
+                self.fight.events.append(DummyEvent(self.proc_interval, (0, 86, 110), [cell], type_="half_fade"))
+                for enemy in self.fight.enemy_champs_alive(self.user):
                     if enemy.pos == cell.id:
                         self.do_effect(enemy)
 
-            if self.area_index_counter == len(self.effected_area - 1):
+            if self.area_index_counter == len(self.effected_area) - 1:
                 self.activated = True
 
     def do_effect(self, enemy):
@@ -222,17 +227,18 @@ class VoiceofLight(Aoe):
     def proc(self):
         if self.user.alive:
             if self.fight.now - self.created >= self.delay:
-                self.proc()
+                self.do_effect()
                 self.activated = True
         else:
             self.activated = True
 
     def do_effect(self):
-        self.fight.events.append(DummyEvent(500, (66, 21, 92), [self.effected_area]))
+        self.fight.events.append(DummyEvent(1500, (66, 21, 92), self.effected_area))
         for cell in self.effected_area:
-            for enemy in self.fight.enemy_champs_alive(self.user):
-                if cell.id == enemy.pos:
-                    enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Voice of Light")
+            if cell:
+                for enemy in self.fight.enemy_champs_alive(self.user):
+                    if cell.id == enemy.pos:
+                        enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Voice of Light")
 
 
 class AurelionSol(DummyChamp):
@@ -304,7 +310,7 @@ class Blitzcrank(DummyChamp):
         area = fight.get_line_area(target, self, None)
         # grab -> status effect on self
         self.channel(fight, 2, "Rocket Grab", interruptable=False)
-        self.status_effects.append(StatusEffect(fight.map, 999999, "Rocket Grab aa", effects=["knockup_on_aa"]))
+        self.status_effects.append(StatusEffect(fight.map, 5, "Rocket Grab aa", effects=["knockup_on_aa"]))
         fight.aoe.append(RocketGrab(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration))
 
 
@@ -318,19 +324,22 @@ class Pyroclasm(Aoe):
         self.last_enemy = enemy
 
     def proc(self):
-        if self.fight.now - self.last_proc >= self.proc_interval and self.bounce_counter < self.bounces:
-            enemies_in_bounce_range = self.fight.get_n_closest_allies(self.last_enemy, 1)
-            if len(enemies_in_bounce_range) > 0:
-                self.bounce_counter += 1
-                random_bounce_enemy = random.choice(enemies_in_bounce_range)
-                self.do_effect(random_bounce_enemy)
-            else:
-                self.activated = True
+        if self.bounce_counter < self.bounces:
+            if self.fight.now - self.last_proc >= self.proc_interval:
+                self.last_proc = self.fight.now
+                self.do_effect()
+        else:
+            self.activated = True
 
-    def do_effect(self, enemy):
-        self.last_enemy = enemy
-        enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Pyroclasm")
-        self.fight.events.append(DummyEvent(0.5, (217, 40, 0), [enemy.my_cell], type_="half_fade"))
+    def do_effect(self):
+        self.last_enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Pyroclasm")
+        self.fight.events.append(DummyEvent(self.proc_interval, (0, 0, 0), [self.last_enemy.my_cell], type_="half_fade"))
+        enemies_in_bounce_range = [enemy for enemy in self.fight.get_n_closest_allies(self.last_enemy, 5) if enemy != self.last_enemy]
+        if len(enemies_in_bounce_range) > 0:
+            self.bounce_counter += 1
+            self.last_enemy = random.choice(enemies_in_bounce_range)
+        else:
+            self.activated = True
 
         if self.bounce_counter == self.bounces:
             self.activated = True
@@ -406,7 +415,7 @@ class Rupture(Aoe):
             self.activated = True
 
     def do_effect(self):
-        self.fight.events.append(DummyEvent(1.5, (53, 27, 64), [self.effected_area]))
+        self.fight.events.append(DummyEvent(self.delay, (53, 27, 64), self.effected_area))
         for enemy in self._all_enemies_in_area():
             enemy.stun(self.stun_duration, self.fight.map)
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Rupture")
@@ -424,7 +433,7 @@ class ChoGath(DummyChamp):
         # icon knocking up all enemies within, Stun icon
         # stunning them for 1.5 / 1.75 / 2 seconds.
         target = self.get_target(visible)
-        area = fight.map.get_all_cells_in_range(target.my_cell, 3)
+        area = fight.map.get_all_cells_in_range(target.my_cell, 2)
         fight.aoe.append(Rupture(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
@@ -445,7 +454,7 @@ class Decimate(Aoe):
     def do_effect(self):
         hitted_enemys = 0
         user_cell = self.fight.map.get_cell_from_id(self.user.pos)
-        self.fight.events.append(DummyEvent(0.5, (36, 36, 36), [self.effected_area]))
+        self.fight.events.append(DummyEvent(1000, (36, 36, 36), self.effected_area))
         for enemy in self._all_enemies_in_area():
             hitted_enemys += 1
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Decimate")
@@ -511,15 +520,19 @@ class Elise(DummyChamp):
             if len(free_positions) > 0:
                 random_cell = random.choice(free_positions)
                 spider = Spider(random_cell.id, fight)
+                random_cell.taken = True
+                summon_counter += 1
+                spider.team_synergies = self.team_synergies
                 if self in fight.team_bot:
                     fight.team_bot.append(spider)
-                    random_cell.taken = True
-                    summon_counter += 1
+                else:
+                    fight.team_top.append(spider)
             else:
                 range_counter += 1
 
         # transform
         self.status_effects.append(StatusEffect(fight.map, 60, "Spider Form", effects=["melee", "elise_lifesteal"]))
+        self.mana_lock(fight.map, 60)
 
         # Active: Summons 1 / 2 / 4 Spiderlings and transforms
         # to her Spider Form, becoming a Melee role melee attacker for 60 seconds.
@@ -540,7 +553,7 @@ class Spider(DummyChamp):
             "armor": 0,
             "mr": 0,
             "origin": "Demon",
-            "class": "",
+            "class": " ",
         }
         super().__init__(pos, ["Spider", spider_dict], 1, fight, items=[])
 
@@ -576,7 +589,7 @@ class LastCaress(Aoe):
                     enemy.get_damage("magic", self.low_health_damage, self.fight, origin="sa", originator=self.user, source="Last Caress")
                 else:
                     enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Last Caress")
-                self.fight.events.append(DummyEvent(0.5, (53, 27, 64), [enemy.my_cell]))
+                self.fight.events.append(DummyEvent(1000, (53, 27, 64), [enemy.my_cell]))
         self.user.move_to(self.new_cell, self.fight)
 
 
@@ -594,7 +607,9 @@ class Evelyn(DummyChamp):
         # the 3 closest enemies and blinks back 3 hexes.
         # Damage is increased to 600 / 1200 / 2000 against enemies below 50% health
         self.channel(fight, 0.35, "Last Caress", interruptable=False)
-        first_dir = fight.get_direction(self.pos, self.get_target(in_range).pos)
+        target = self.get_target(visible)
+        degree = fight.degree(self.pos, target.pos)
+        first_dir = fight.get_direction(self.pos, target.pos, degree)
         area_ids = [(self.pos[0] + fight.map.dir_dict[first_dir][0], self.pos[1] + fight.map.dir_dict[first_dir][1]),
                     (self.pos[0] + fight.map.dir_dict[first_dir + 1][0],
                      self.pos[1] + fight.map.dir_dict[first_dir + 1][1]),
@@ -616,8 +631,15 @@ class Evelyn(DummyChamp):
             if fight.map.get_cell_from_id(id_):
                 port_cell_id = id_
         new_cell = fight.map.get_cell_from_id(port_cell_id)
-
+        self.untargetable(0.35, fight)
         fight.aoe.append(LastCaress(fight, self, enemies, self.sa_damage[self.rank - 1], self.sa_damage_below_50[self.rank - 1], new_cell))
+
+    @property
+    def can_use_sa(self):
+        if len(self.fight.adjacent_enemies(self)) > 0:
+            return True
+        else:
+            return False
 
 
 class Riposte(Aoe):
@@ -681,8 +703,8 @@ class Gangplank(DummyChamp):
         # magic damage to enemies caught in the blast and
         # applying on-hit effects.
         for barrel in self.barrels:
-            cells = self.fight.map.get_all_cells_in_range(barrel, 2)
-            self.fight.events.append(DummyEvent(0.5, (82, 57, 0), cells))
+            cells = self.fight.map.get_all_cells_in_range(barrel, 1)
+            self.fight.events.append(DummyEvent(1000, (82, 57, 0), cells))
             for cell in cells:
                 for enemy in self.fight.enemy_champs_alive(self):
                     if cell.id == enemy.pos:
@@ -698,7 +720,7 @@ class Judgement(Aoe):
         self.damage = damage
 
     def proc(self):
-        if self.fight.now - self.last_proc >= self.proc_interval and self.user.alive:
+        if self.last_proc is None or self.fight.now - self.last_proc >= self.proc_interval and self.user.alive:
             self.last_proc = self.fight.now
             self.do_effect()
 
@@ -707,7 +729,7 @@ class Judgement(Aoe):
 
     def do_effect(self):
         area = self.user.my_cell.neighbors
-        self.fight.events.append(DummyEvent(0.5, (128, 128, 128), area))
+        self.fight.events.append(DummyEvent(self.proc_interval, (128, 128, 128), area))
         for enemy in self.fight.adjacent_enemies(self.user):
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Judgement")
 
@@ -726,6 +748,7 @@ class Garen(DummyChamp):
         self.channel(fight, 4, "Judgement", False)
         self.status_effects.append(StatusEffect(fight.map, 4, "Judgement", effects=["immune_magic", "disarm"]))
         fight.aoe.append(Judgement(fight, self, self.sa_damage[self.rank - 1], 0.5, 4))
+        self.mana_lock(fight.map, 4)
 
 
 class Gnar(DummyChamp):

@@ -76,6 +76,7 @@ class DummyChamp:
         self.bonus_aa_cc = 0
         self.ability_aa_cc = 0
         self.bonus_ad = 0
+        self.jump_cell = None
 
         self.fight = fight
 
@@ -115,10 +116,11 @@ class DummyChamp:
 
     @property
     def can_use_sa(self):
-        if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
-            return True
-        else:
-            return False
+        # if len(self.get_enemies_in_range(self.fight, self.range)) > 0:
+        #     return True
+        # else:
+        #     return False
+        return True
 
     @property
     def enough_mana_for_sa(self):
@@ -584,7 +586,7 @@ class DummyChamp:
         if self.has_effect("knockup_on_aa"):
             target.airborne(1, fight.map)
             status_effect = StatusEffect(fight.map, 99999999, "Blitzcrank Knockup", effects=["priority"])
-            target.status_effects.appen(status_effect)
+            target.status_effects.append(status_effect)
             self.remove_effects_with_name("Rocket Grab aa")
 
         # @champ: Kassadin
@@ -706,12 +708,13 @@ class DummyChamp:
 
             # @champ: Graves
             if self.name == "Graves":
-                bonus_ad_damage =[0.05, 0.1, 0.15]
-                area = [cell for cell in target.my_cell.neighbors if cell not in self.my_cell.neighbors]
+                bonus_ad_damage = [0.05, 0.1, 0.15]
+                area = [cell for cell in enemy.my_cell.neighbors if cell not in self.my_cell.neighbors] + [enemy.my_cell]
+                self.fight.events.append(DummyEvent(500, (128, 128, 128), area))
                 for g_enemy in fight.get_enemies_in_area(self, area):
                     hitted = g_enemy.get_damage("physical", damage * (1 + bonus_ad_damage[self.rank - 1]), fight, origin="aa", originator=self, source="Buckshot")
                     if hitted:
-                        self.do_onhit_damage(fight, enemy)
+                        self.do_onhit_damage(fight, g_enemy)
             else:
                 hitted = enemy.get_damage("physical", damage, fight, origin="aa", originator=self, source=None)
                 if hitted:
@@ -933,7 +936,7 @@ class DummyChamp:
                     damage_after_shield = self.current_health - 900
 
             self.current_health -= damage_after_shield
-            logger.debug(f"{self.name}: got damage {real_damage} from {origin} from user {originator.name}")
+            logger.debug(f"{self.name} [{self.pos}]: got damage {real_damage} from {origin} from user {originator.name}")
 
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
@@ -1225,7 +1228,7 @@ class DummyChamp:
                 if self.item_count(item_name) > 0 and self.sa_counter > 0:
                     amount += self.max_mana * 0.15 * self.item_count(item_name)
             elif origin == "damage":
-                amount = (damage / (damage + 10000)) * 50
+                amount = (damage / (damage + 1000)) * 50
 
                 # @todo: mana gain on damage
                 # # max 50 mana per damage source
