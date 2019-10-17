@@ -32,7 +32,8 @@ class Dot(StatusEffect):
         self.fight = fight
         self.user = user
         self.source = source
-        self.interval = int(1000 * interval)
+        if damage:
+            self.interval = int(1000 * interval)
         self.damage = damage
         self.dmg_type = dmg_type
 

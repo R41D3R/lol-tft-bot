@@ -372,7 +372,7 @@ class Fight:
         # show all champs with number
         for i, champ in enumerate(self.team_top + self.team_bot):
             if champ.alive:
-                champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}, aa_delay={int(champ.aa_cc)}", True, (0, 0, 0))
+                champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}, aa_delay={int(champ.aa_cc)}, ad={int(champ.ad)}", True, (0, 0, 0))
                 surface.blit(champ_text, (10, 600 + (i * 15)))
 
     @staticmethod
@@ -705,6 +705,7 @@ class Fight:
             if synergy_name in champ.class_ and not champ.has_effect("banish"):
                 furthest_enemy = self.furthest_enemy_away(champ)
                 new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
+                new_cell.taken = True
                 champ.jump_cell = new_cell
 
         for champ in self.team_top + self.team_bot:

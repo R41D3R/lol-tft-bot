@@ -895,7 +895,7 @@ class Kaisa(DummyChamp):
 
 class Requiem(Aoe):
     def __init__(self, fight, user, damage, n_enemies):
-        super().__init__(fight, user, delay=2.25, user_needed=True, interruptable=True)
+        super().__init__(fight, user, delay=2.25, user_needed=True, interruptable=False)
         self.damage = damage
         self.n_enemies = n_enemies
 
@@ -909,9 +909,10 @@ class Requiem(Aoe):
 
     def do_effect(self):
         enemies = self.fight.enemy_champs_alive(self.user)
+        print(f"lenght enemies = {len(enemies)}")
         rnd_n_enemies = random.choices(enemies, k=min(len(enemies), self.n_enemies))
         for enemy in rnd_n_enemies:
-            self.fight.events.append(DummyEvent(1, (64, 43, 69), [enemy.my_cell]))
+            self.fight.events.append(DummyEvent(1000, (64, 43, 69), [enemy.my_cell]))
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Requiem")
 
 
@@ -927,6 +928,7 @@ class Karthus(DummyChamp):
         # 350 / 600 / 850 magic damage to 5 / 7 / 9 random
         # enemies.
         self.channel(fight, 2.25, "Requiem", interruptable=True)
+        self.mana_lock(fight.map, 2.25)
         fight.aoe.append(Requiem(fight, self, self.sa_damage[self.rank - 1], self.sa_random_enemies[self.rank - 1]))
 
 
@@ -949,7 +951,7 @@ class Kassadin(DummyChamp):
 
 class DeathLotus(Aoe):
     def __init__(self, fight, user, damage, area):
-        super().__init__(fight, user, duration=2.5, effected_area=area, interval=(2.5 / 15), user_needed=True, interruptable=True)
+        super().__init__(fight, user, duration=2.5, effected_area=area, interval=(2.5 / 15), user_needed=True, interruptable=False)
         self.damage = damage
 
     def proc(self):
@@ -961,13 +963,13 @@ class DeathLotus(Aoe):
             self.activated = True
 
     def do_effect(self):
-        for enemy in self._all_enemies_in_area(self.user):
-            self.fight.events.append(DummyEvent((2.5 / 14), (64, 43, 69), [enemy.my_cell]))
+        for enemy in self._all_enemies_in_area():
+            self.fight.events.append(DummyEvent(self.proc_interval, (64, 43, 69), [enemy.my_cell]))
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Death-Lotus")
             enemy.gwounds(3, self.fight, "Death-Lotus", self.user)
 
 
-class Kataring(DummyChamp):
+class Katarina(DummyChamp):
     def __init__(self, pos, champ_item, rank, fight, items=None):
         super().__init__(pos, champ_item, rank, fight, items=items)
         self.sa_channel_duration = 2.5
@@ -1023,6 +1025,7 @@ class SlicingMaelstrom(Aoe):
 
     def do_effect(self):
         area = self.fight.map.get_all_cells_in_range(self.user.my_cell, 2)
+        self.fight.events.append(DummyEvent(self.proc_interval, (64, 43, 69), area))
         for enemy in self._all_enemies_in_area(area=area):
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Slicing Maelstrom")
             enemy.status_effects.append(StatusEffect(self.fight.map, 3, "Slicing Maelstrom", effects=["kennen_stack"]))
@@ -1119,15 +1122,13 @@ class SolarFlare(Aoe):
         if self.fight.now - self.created >= self.delay:
             self.do_effect()
             self.activated = True
-        else:
-            self.activated = True
 
     def do_effect(self):
-        self.fight.events.append(DummyEvent(500, (191, 121, 0), self.effected_area))
+        self.fight.events.append(DummyEvent(1000, (191, 121, 0), self.effected_area))
         for enemy in self._all_enemies_in_area():
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Solar Flare")
             if enemy.my_cell == self.center_cell:
-                self.fight.events.append(DummyEvent(500, (112, 71, 0), [self.center_cell]))
+                self.fight.events.append(DummyEvent(1500, (112, 71, 0), [self.center_cell]))
                 enemy.stun(self.stun_duration, self.fight.map)
 
 
@@ -1145,7 +1146,7 @@ class Leona(DummyChamp):
         # seconds.
         rnd_enemy = random.choice(fight.enemy_champs_alive(self))
         center_cell = rnd_enemy.my_cell
-        area = fight.map.get_all_cells_in_range(center_cell, 2)
+        area = fight.map.get_all_cells_in_range(center_cell, 1)
         fight.aoe.append(SolarFlare(fight, self, area, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1], center_cell))
 
 
@@ -1244,13 +1245,14 @@ class Lulu(DummyChamp):
 
 class BulletTime(Aoe):
     def __init__(self, fight, user, effected_area, damage):
-        super().__init__(fight, user, duration=3, effected_area=effected_area, interval=(3 / 14), user_needed=True, interruptable=True)
+        super().__init__(fight, user, duration=3, effected_area=effected_area, interval=(3 / 14), user_needed=True, interruptable=False)
         self.damage = damage
 
     def proc(self):
-        if self.last_proc is None or (self.fight.now - self.created <= self.duration and self.fight.now - self.last_proc >= self.proc_interval):
-            self.last_proc = self.fight.now
-            self.do_effect()
+        if self.user.alive and self.fight.now - self.created <= self.duration:
+            if self.last_proc is None or self.fight.now - self.last_proc >= self.proc_interval:
+                self.last_proc = self.fight.now
+                self.do_effect()
         else:
             self.activated = True
 
@@ -1270,7 +1272,8 @@ class MissFortune(DummyChamp):
     @property
     def bullet_area(self):
         target = self.fight.furthest_enemy_away(self)
-        direction = self.fight.get_direction(self.pos, target.pos)
+        degree = self.fight.degree(self.pos, target.pos)
+        direction = self.fight.get_direction(self.pos, target.pos, degree)
         ids = []
         current_middle_id = self.pos
         for i in range(4):
@@ -1378,9 +1381,12 @@ class PrimalSurge(Aoe):
         self.allie = None
 
     def proc(self):
-        if self.fight.now - self.created >= self.delay:
-            self.do_effect()
-        elif not self.user.alive:
+        if self.fight.now - self.created <= self.duration:
+            if self.fight.now - self.created >= self.delay:
+                self.do_effect()
+            elif not self.user.alive:
+                self.activated = True
+        else:
             self.activated = True
 
     def nida_transform(self):

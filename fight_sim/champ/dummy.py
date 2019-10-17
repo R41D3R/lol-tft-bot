@@ -219,7 +219,7 @@ class DummyChamp:
         if self.item_count(item_name) > 0:
             n_items = self.item_count(item_name)
             range_ *= 2**n_items
-        return self.base_range + len(self.get_all_effects_with("range_buff_+1"))
+        return range_ + len(self.get_all_effects_with("range_buff_+1"))
 
     @property
     def aa_cc(self):
@@ -1134,7 +1134,7 @@ class DummyChamp:
         self.move_progress = 0
 
     def move_to(self, new_cell, fight):
-        fight.map.get_cell_from_id(self.pos).taken = False
+        self.my_cell.taken = False
         self.start_pos = None
         self.target_pos = None
         self.move_progress = 0

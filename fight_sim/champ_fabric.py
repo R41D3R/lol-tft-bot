@@ -116,7 +116,7 @@ class ChampionFabric:
         if champ_item[0] == "Kassadin":
             return Kassadin(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Katarina":
-            return Kataring(pos, champ_item, rank, fight, items=items)
+            return Katarina(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kayle":
             return Kayle(pos, champ_item, rank, fight, items=items)
         if champ_item[0] == "Kennen":
