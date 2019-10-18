@@ -272,7 +272,7 @@ class DummyChamp:
         if synergy_name in self.team_synergies:
             if self.team_synergies[synergy_name] == 1:
                 ninja_bonus += 50
-            if self.team_synergies[synergy_name] == 4:
+            elif self.team_synergies[synergy_name] == 4:
                 ninja_bonus += 80
 
         return base_ad + self.bonus_ad + ad_buffs + (15 * self._item_sum_from("ad")) + ninja_bonus
@@ -451,17 +451,18 @@ class DummyChamp:
                 rnd_n = random.random()
                 card_damage = [150, 250, 350]
                 target.get_damage("magic", card_damage[self.rank - 1], fight, origin="sa", originator=self,
-                                  source="Pick a Card")
+                                  source="Pick a Card (base)")
                 if rnd_n <= 0.33:
                     # blue
                     blue_mana = [30, 50, 70]
                     for allie in [self] + fight.adjacent_allies(self):
-                        allie.get_mana("sa", blue_mana[self.rank - 1], source="Pick a Card")
-                if rnd_n <= 0.66:
+                        allie._get_mana("sa", blue_mana[self.rank - 1], source="Pick a Card (blue)")
+                elif rnd_n <= 0.66:
                     # red
                     for enemy in fight.adjacent_allies(target):
+                        self.fight.events.append(DummyEvent(1000, (44, 39, 51), [enemy.my_cell]))
                         enemy.get_damage("magic", card_damage[self.rank - 1], fight, origin="sa", originator=self,
-                                         source="Pick a Card")
+                                         source="Pick a Card (red)")
                 else:
                     # yellow
                     gold_stun_duration = [2, 3, 4]
@@ -578,7 +579,7 @@ class DummyChamp:
             else:
                 self.vayne_stacks = 1
             if self.vayne_stacks == 3:
-                target.get_damage("true", target.max_health + third_stack_damage[self.rank - 1], fight,
+                target.get_damage("true", target.max_health * third_stack_damage[self.rank - 1], fight,
                                   origin="sa", originator=self, source="Silver Bolts")
                 self.vayne_stacks = 0
 

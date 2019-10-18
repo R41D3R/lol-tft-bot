@@ -295,8 +295,9 @@ class Fight:
                 for id_ in self._get_line_area_ids(target, champ, hexrange=hexrange)][1:end]
 
     def _get_line_area_ids(self, target, champ, hexrange=None):
+        # @todo: set goal to im_target after target is reached
         start = champ.pos
-        if hexrange is not None:
+        if hexrange is not None and self.map.distance_id(start, target.pos) < hexrange:
             goal = self._im_target(target.pos, champ.pos)
         else:
             goal = target.pos

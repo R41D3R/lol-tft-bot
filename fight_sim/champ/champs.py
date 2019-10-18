@@ -1512,7 +1512,7 @@ class PhantomUndertow(Aoe):
         self.stun_duration = stun_duration
 
     def proc(self):
-        if self.fight.now - self.created <= self.delay and self.user.alive:
+        if self.fight.now - self.created >= self.delay and self.user.alive:
             self.do_effect()
             self.activated = True
         elif not self.user.alive:
@@ -1534,13 +1534,15 @@ class Pyke(DummyChamp):
 
     def get_jump_cell(self):
         enemy = self.fight.furthest_enemy_away(self)
-        direction = self.fight.get_direction(self.pos, enemy.pos)
-        behind = (direction + 3) % 6
+        degree = self.fight.degree(self.pos, enemy.pos)
+        direction = self.fight.get_direction(self.pos, enemy.pos, degree)
+        behind = direction
         cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind)
         if cell is None:
             cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind + 1)
             if cell is None:
                 cell = self.fight.map.get_cell_in_direction(enemy.my_cell, behind - 1)
+        print(cell.id)
         return cell, enemy
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -1617,7 +1619,7 @@ class Rengar(DummyChamp):
         return enemies
 
     @property
-    def jump_cell(self):
+    def get_jump_cell(self):
         for enemy in self.weakest_enemies:
             possible_jumps = enemy.my_cell.free_neighbors
             if len(possible_jumps) > 0:
@@ -1629,7 +1631,7 @@ class Rengar(DummyChamp):
         # on-hit effects to his target. After this leap, for the next
         # 6 seconds, gains 25% critical strike chance and increases his
         # total attack speed by 30 / 50 / 70%.
-        cell, enemy = self.jump_cell
+        cell, enemy = self.get_jump_cell
         self.move_to(cell, fight)
         self.fight.events.append(DummyEvent(500, (64, 43, 11), [enemy.my_cell]))
         enemy.get_damage("physical", self.ad * self.sa_percent_ad_damage[self.rank - 1], fight, origin="sa", originator=self, source="Savagery")
@@ -1637,11 +1639,10 @@ class Rengar(DummyChamp):
 
 
 class GlacialPrison(Aoe):
-    def __init__(self, fight, user, damage, stun_duration, enemy):
+    def __init__(self, fight, user, damage, stun_duration):
         super().__init__(fight, user, delay=2, user_needed=True)
         self.damage = damage
         self.stun_duration = stun_duration
-        self.enemy = enemy
 
     def proc(self):
         if self.fight.now - self.created >= self.delay and self.user.alive:
@@ -1651,8 +1652,10 @@ class GlacialPrison(Aoe):
             self.activated = True
 
     def do_effect(self):
-        for enemy in [self.enemy] + self.fight.adjacent_allies(self.enemy):
-            self.fight.events.append(DummyEvent(500, (14, 15, 46), [enemy.my_cell]))
+        enemy = random.choice(self.fight.enemy_champs_alive(self.user))
+        area = self.fight.map.get_all_cells_in_range(enemy.my_cell, 1)
+        self.fight.events.append(DummyEvent(1000, (14, 15, 46), area))
+        for enemy in self._all_enemies_in_area(area=area):
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Glacial Prison")
             enemy.stun(self.stun_duration, self.fight.map)
 
@@ -1669,10 +1672,7 @@ class Sejuani(DummyChamp):
         # Active: After a 2 second delay, creates a glacial prison
         # on an enemy, dealing 100 / 175 / 250 magic damage to all
         # nearby enemies and Stun icon stunning them for 2 / 3.5 / 5 seconds.
-        self.channel(fight, 2, "Glacial Prison")
-        fight.aoe.append(GlacialPrison(self, fight,
-                                       self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1],
-                                       random.choice(fight.enemy_team_visible(self))))
+        fight.aoe.append(GlacialPrison(fight, self, self.sa_damage[self.rank - 1], self.sa_stun_duration[self.rank - 1]))
 
 
 class SpiritsRefuge(Aoe):
@@ -1759,13 +1759,13 @@ class ExplosiveCharge(Aoe):
         return self.user.target_aa_counter[self.enemy] - self.start_counter
 
     def proc(self):
-        if self.fight.now - self.created >= self.delay or self.current_counter == 4 or not self.enemy.alive:
+        if self.fight.now - self.created >= self.delay or self.current_counter == 3 or not self.enemy.alive:
             self.do_effect()
             self.activated = True
 
     def do_effect(self):
-        damage = self.damage * 1.5**self.current_counter
-        area = self.fight.map.get_all_cells_in_range(self.enemy.my_cell, 2)
+        damage = self.damage + (0.5 * self.damage * self.current_counter)
+        area = self.fight.map.get_all_cells_in_range(self.enemy.my_cell, 1)
         self.fight.events.append(DummyEvent(700, (77, 47, 11), area))
         for enemy in self._all_enemies_in_area(area=area):
             enemy.get_damage("magic", damage, self.fight, origin="sa", originator=self.user, source="Explosive Charge")
@@ -1820,7 +1820,7 @@ class TwistedFate(DummyChamp):
 
 class PiercingArrow(Aoe):
     def __init__(self, fight, user, damage):
-        super().__init__(fight, user, delay=1.5, user_needed=True, interruptable=True)
+        super().__init__(fight, user, delay=1.5, user_needed=True, interruptable=False)
         self.damage = damage
 
     def proc(self):
@@ -1831,7 +1831,7 @@ class PiercingArrow(Aoe):
             self.activated = True
 
     def do_effect(self):
-        area = self.fight.get_line_area(self.fight.furthest_enemy_away(self.user), self.user, 8)
+        area = self.fight.get_line_area(self.user.get_target(self.fight.enemy_team_visible(self.user)), self.user, 8)
         self.fight.events.append(DummyEvent(500, (44, 39, 51), area))
         for enemy in self._all_enemies_in_area(area=area):
             enemy.get_damage("magic", self.damage, self.fight, origin="sa", originator=self.user, source="Piercing Arrow")
@@ -1848,6 +1848,7 @@ class Varus(DummyChamp):
         # arrow up to 8 hexes away, dealing 300 / 550 / 800 magic damage
         # to all enemies in its path.
         self.channel(fight, 1.5, "Piercing Arrow", interruptable=True)
+        self.mana_lock(fight.map, 1.5)
         fight.aoe.append(PiercingArrow(fight, self, self.sa_damage[self.rank - 1]))
 
 
