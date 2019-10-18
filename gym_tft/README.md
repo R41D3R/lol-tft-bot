@@ -31,10 +31,15 @@ Do I need to include Champ Stats, Synergies ... ?
 * [Unit Arrangement](https://arxiv.org/pdf/1706.04972.pdf)
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
+* [Key Papers for DRL](https://spinningup.openai.com/en/latest/spinningup/keypapers.html)
+
 
 * [Beginner Reinforcement Learning](https://medium.com/@jonathan_hui/rl-introduction-to-deep-reinforcement-learning-35c25e04c199)
 * [DRL Algos with pytorch](https://github.com/p-christ/Deep-Reinforcement-Learning-Algorithms-with-PyTorch)
 * [Intro book to DRL](https://arxiv.org/pdf/1811.12560.pdf)
+* [Deep Q-Learning](https://www.analyticsvidhya.com/blog/2019/04/introduction-deep-q-learning-python/)
+* [Uni Stuttgart DRL Course](https://ipvs.informatik.uni-stuttgart.de/mlr/teaching/deep-reinforcement-learning-ss-18/)
+
 
 ## Useful Reads for RL
 * [Deep Reinforcement Learning Doesn't Work Yet](https://www.alexirpan.com/2018/02/14/rl-hard.html)
