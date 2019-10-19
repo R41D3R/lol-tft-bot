@@ -83,6 +83,8 @@
 ## Agent
 > A hyrachical Architecture makes modular Training possible (also enables replacement), reduces the variational state space and can adapt to macro strategies better. In contrast there is a alternating update needed for sub policies and the controller to prevent unforeseeable effects. 
 
+* Get Round counter with health and remaining players -> time state -> replace controller for macro action
+
 **Resources**:
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
 
