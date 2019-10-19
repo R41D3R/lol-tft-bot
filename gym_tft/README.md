@@ -65,6 +65,8 @@
 ## League
 > Using an Evoulutional Algorithm as outer Optimization save computation while saving a diverse set of strategies. It can also adjusted to save older startegies and at the end a Nash distribution can be picked with the least exploitable strategies.
 
+* Combine Modules or Agents based on correlated metrics for winning (Macroperspective, Goldmanagement, Fight Positioning, ...)
+
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
 
