@@ -6,22 +6,11 @@
 ***
 ![image](https://drive.google.com/uc?export=view&id=1nc-A5zWH-M1DJtQDtXCaNKJhQ8obSlLo)
 ***
-- [x] Board with Cells (+ Neighbors)
-- [x] Place Champs on Board 
-- [x] Move to closest enemy
-- [x] Autoattack if in Range
-- [x] Defensive Stats
-- [x] Add ranges >1
-- [x] smooth moving
-- [x] Use Abilities if Mana is enough
-- [x] Show damage numbers
-- [x] Show Abilities
-- [x] ADD 10 sample champs with real stats
-- [x] Improve Damage Reduction (Mr and Armor)
-> Perfect Champ mechanic's til this
-- [x] ADD all Champs (Stats)
-- [ ] ADD all Abilities to Champs (47/57, not tested)
-- [x] ADD NPC like champ (spiders, golem, enemy quest npc's)
+
+Status:
+   * [Champs](https://docs.google.com/spreadsheets/d/1E1NKemeGDNwzDI1CuaoPNm-db9_oXlBa1VMZ5Orl0Fs/edit?usp=sharing)
+   * [Items](https://docs.google.com/spreadsheets/d/1GNQoPGUPBp7rLgqeHIUPvVbF_XBwn7CT_ya6jl1yDO4/edit?usp=sharing)
+   * [Synergies]()
 
 <table>
 <tr><td>
