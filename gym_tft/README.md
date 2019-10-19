@@ -1,32 +1,36 @@
 # Enviroment
-- [ ] Reroll Probabilities (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
-- [ ] *Karusel Probabilities*
-- [ ] Drops (Items, Gold, Champs)
-- [ ] *Which Players get matched?*
+### Research needed
+- [ ] Reroll Probabilities
+- [ ] Karusel Probabilities
+- [ ] Drops (Items, Gold, Champs) -> which item drops
 - [ ] How much dmg does the winner on the opponent? [Link](https://lolchess.gg/guide/damage)
-> same from in game actions
+- [ ] Number of champs in pool
+- [ ] Win / Loose Strak Reward
+
+### Actions
 - [ ] Reroll
-- [ ] Level Up
+- [ ] buy exp
 - [ ] Buy Champ
 - [ ] Sell Champ
-- [ ] *Select best Champ from Karussell (with Item)*
-- [ ] Place Champs (Bank and Board)
+- [ ] Arrange Champs
 - [ ] Ready for Fight
-> same from game info
-- [ ] Champs to buy
-- [ ] Champs on Board + Champs in Bank => All Champs *(include Items, Rank,)*
-- [ ] Karusel Champs with Items
-- [ ] Items in Bank
-- [ ] *Random View on enemies (Champs) each Round + Gold Pots, Level*
-- [ ] Gold
-- [ ] EXP
-- [ ] Level (Max Champs)
-- [ ] Health Bars from all Players
-- [ ] Round counter
-- [ ] Win Loose (from Health Bars or is there a option to get status with survived Champs)
-- [ ] Win/ Loose Streak Counter
-Do I need to include Champ Stats, Synergies ... ?
+- [ ] equip item
+
+### After Fight
+- [ ] do damage
+- [ ] give gold and (exp)
+- [ ] update streak
+- [ ] if hero dies -> release champs
+- [ ] drop items, gold or champs
+
+### Procedure
+1. round_counter -> carousel or fight
+2. recieve actions from agents
+3. Fight -> After Fight
+* on end return results
+
 ***
+
 # RL Part
 > This bot tries to combine Advanced and State of the Art Techniques used by AlphaStar, AlphaGoZero and other Game Changers in the RL Space.
 
@@ -54,6 +58,7 @@ Do I need to include Champ Stats, Synergies ... ?
 
 ## League
 > Using an Evoulutional Algorithm as outer Optimization save computation while saving a diverse set of strategies. It can also adjusted to save older startegies and at the end a Nash distribution can be picked with the least exploitable strategies.
+\
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
 
@@ -61,17 +66,20 @@ Do I need to include Champ Stats, Synergies ... ?
 ## Tournament
 > Agents do actions and recieve a custom reward based on how likely it is winning and other metrics. The Winner overrides the other agents.
 > Observation Space consist of not spatial data (can be partly represented as image) and the available action space.
+\
 **Resources**:
 
 
 ## Agent
 > A hyrachical Architecture makes modular Training possible (also enables replacement), reduces the variational state space and can adapt to macro strategies better. In contrast there is a alternating update needed for sub policies and the controller to prevent unforeseeable effects. 
+\
 **Resources**:
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
 
 
 ### Controller
-> Decides based on Global state which sub policy should perform the next action. Can decide in a set time interval or in this case lets the sub policy decide when to stop or gives steps based on the global state.
+> Decides based on Global state which sub policy should perform the next action. Can decide in a set time interval or in this case lets the sub policy decide when to stop or gives steps based on the global state. Maybe a cap for actions is needed because of the time limit.
+\
 **Resources**:
 
 
@@ -92,4 +100,5 @@ Do I need to include Champ Stats, Synergies ... ?
 
 ### Agent Training
 > Agents recieves a sample from the Replay Memory for Training. This enables that an Agent gives older memories more attention. The Memory gets erased after each episode / iteration. For more stable training a target network is used, to not change policy too quick. Evaluation and Improvent Network who alternate updating can also be discussed.
+\
 **Resources**:
