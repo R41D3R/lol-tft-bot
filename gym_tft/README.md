@@ -28,7 +28,7 @@
 Do I need to include Champ Stats, Synergies ... ?
 ***
 # RL Part
-> Description
+> This bot tries to combine Advanced and State of the Art Techniques used by AlphaStar, AlphaGoZero and other Game Changers in the RL Space.
 
 ## Intro Links
 * [Spinning up in DRL](https://spinningup.openai.com/en/latest/index.html)
@@ -53,27 +53,43 @@ Do I need to include Champ Stats, Synergies ... ?
 
 
 ## League
+> Using an Evoulutional Algorithm as outer Optimization save computation while saving a diverse set of strategies. It can also adjusted to save older startegies and at the end a Nash distribution can be picked with the least exploitable strategies.
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
 
 
 ## Tournament
+> Agents do actions and recieve a custom reward based on how likely it is winning and other metrics. The Winner overrides the other agents.
+> Observation Space consist of not spatial data (can be partly represented as image) and the available action space.
 **Resources**:
 
 
 ## Agent
+> A hyrachical Architecture makes modular Training possible (also enables replacement), reduces the variational state space and can adapt to macro strategies better. In contrast there is a alternating update needed for sub policies and the controller to prevent unforeseeable effects. 
 **Resources**:
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
 
 
 ### Controller
+> Decides based on Global state which sub policy should perform the next action. Can decide in a set time interval or in this case lets the sub policy decide when to stop or gives steps based on the global state.
 **Resources**:
-\\
+
 
 ### Sub Policy Networks
+> Each implements it's own action space with a special optimized network for this state. 
+1. Arrange Units (Sequence to Sequence LSTM)
+2. Get new buys
+3. Buy
+4. Sell Unit
+5. Buy Exp
+6. Order carousel units
+7. Give Unit Item
+8. Idle
+
 **Resources**:
 * [Unit Arrangement](https://arxiv.org/pdf/1706.04972.pdf)
 
 
 ### Agent Training
+> Agents recieves a sample from the Replay Memory for Training. This enables that an Agent gives older memories more attention. The Memory gets erased after each episode / iteration. For more stable training a target network is used, to not change policy too quick. Evaluation and Improvent Network who alternate updating can also be discussed.
 **Resources**:
