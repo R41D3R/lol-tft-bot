@@ -1,4 +1,4 @@
-### Game Mechanics (Gym)
+# Enviroment
 - [ ] Reroll Probabilities (Max Champs in Pool vs Enemies + Level) -> Do perfect Probs. but Agent uses only Approximations
 - [ ] *Karusel Probabilities*
 - [ ] Drops (Items, Gold, Champs)
@@ -41,7 +41,7 @@ Do I need to include Champ Stats, Synergies ... ?
 * [Intro book to DRL](https://arxiv.org/pdf/1811.12560.pdf)
 * [Deep Q-Learning](https://www.analyticsvidhya.com/blog/2019/04/introduction-deep-q-learning-python/)
 * [Uni Stuttgart DRL Course](https://ipvs.informatik.uni-stuttgart.de/mlr/teaching/deep-reinforcement-learning-ss-18/)
-\\
+
 **Useful Reads**
 * [Deep Reinforcement Learning Doesn't Work Yet](https://www.alexirpan.com/2018/02/14/rl-hard.html)
 * [Deep Learning and Reward Designfor Reinforcement Learning](https://deepblue.lib.umich.edu/bitstream/handle/2027.42/136931/guoxiao_1.pdf)
@@ -50,21 +50,21 @@ Do I need to include Champ Stats, Synergies ... ?
 
 ## Overview of the Architecture
 ![image](https://drive.google.com/uc?export=view&id=1vczvMH9eGrQYm8N89a16vMosimWHgQlX)
-\\
+
 
 ## League
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
-\\
+
 
 ## Tournament
 **Resources**:
-\\
+
 
 ## Agent
 **Resources**:
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
-\\
+
 
 ### Controller
 **Resources**:
@@ -73,10 +73,7 @@ Do I need to include Champ Stats, Synergies ... ?
 ### Sub Policy Networks
 **Resources**:
 * [Unit Arrangement](https://arxiv.org/pdf/1706.04972.pdf)
-\\
+
 
 ### Agent Training
 **Resources**:
-\\
-
-
