@@ -1,4 +1,5 @@
 # Enviroment
+> Tournament Enviroment. Recieves states and return simulated results.
 ### Research needed
 - [ ] Reroll Probabilities
 - [ ] Karusel Probabilities
@@ -58,7 +59,7 @@
 
 ## League
 > Using an Evoulutional Algorithm as outer Optimization save computation while saving a diverse set of strategies. It can also adjusted to save older startegies and at the end a Nash distribution can be picked with the least exploitable strategies.
-\
+
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
 
@@ -66,7 +67,7 @@
 ## Tournament
 > Agents do actions and recieve a custom reward based on how likely it is winning and other metrics. The Winner overrides the other agents.
 > Observation Space consist of not spatial data (can be partly represented as image) and the available action space.
-\
+
 **Resources**:
 
 
@@ -79,7 +80,9 @@
 
 ### Controller
 > Decides based on Global state which sub policy should perform the next action. Can decide in a set time interval or in this case lets the sub policy decide when to stop or gives steps based on the global state. Maybe a cap for actions is needed because of the time limit.
-\
+
+* choose acitons (sub policies) or idle
+
 **Resources**:
 
 
@@ -92,7 +95,6 @@
 5. Buy Exp
 6. Order carousel units
 7. Give Unit Item
-8. Idle
 
 **Resources**:
 * [Unit Arrangement](https://arxiv.org/pdf/1706.04972.pdf)
@@ -100,5 +102,5 @@
 
 ### Agent Training
 > Agents recieves a sample from the Replay Memory for Training. This enables that an Agent gives older memories more attention. The Memory gets erased after each episode / iteration. For more stable training a target network is used, to not change policy too quick. Evaluation and Improvent Network who alternate updating can also be discussed.
-\
+
 **Resources**:
