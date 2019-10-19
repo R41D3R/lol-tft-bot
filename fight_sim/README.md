@@ -8,10 +8,9 @@
 ***
 
 Status:
-
-    * [Champs](https://docs.google.com/spreadsheets/d/1E1NKemeGDNwzDI1CuaoPNm-db9_oXlBa1VMZ5Orl0Fs/edit?usp=sharing)
-    * [Items](https://docs.google.com/spreadsheets/d/1GNQoPGUPBp7rLgqeHIUPvVbF_XBwn7CT_ya6jl1yDO4/edit?usp=sharing)
-    * [Synergies]()
+   * [Champs](https://docs.google.com/spreadsheets/d/1E1NKemeGDNwzDI1CuaoPNm-db9_oXlBa1VMZ5Orl0Fs/edit?usp=sharing)
+   * [Items](https://docs.google.com/spreadsheets/d/1GNQoPGUPBp7rLgqeHIUPvVbF_XBwn7CT_ya6jl1yDO4/edit?usp=sharing)
+   * [Synergies]()
 
 <table>
 <tr><td>
