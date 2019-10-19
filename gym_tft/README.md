@@ -27,6 +27,9 @@
 - [ ] Win/ Loose Streak Counter
 Do I need to include Champ Stats, Synergies ... ?
 
+![image](https://drive.google.com/uc?export=view&id=1vczvMH9eGrQYm8N89a16vMosimWHgQlX)
+
+
 ## Papers and Resources
 * [Unit Arrangement](https://arxiv.org/pdf/1706.04972.pdf)
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
