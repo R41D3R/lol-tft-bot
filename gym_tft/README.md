@@ -43,6 +43,8 @@
     1. [Key Concepts in RL](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
     2. [Kinds of Algorithms](https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html)
     3. [Policy Optimization](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html)
+    4. [Learning Curriculum](https://spinningup.openai.com/en/latest/spinningup/spinningup.html)
+* [DRL Bootcamp](https://sites.google.com/view/deep-rl-bootcamp/lectures)
 * [Key Papers for DRL](https://spinningup.openai.com/en/latest/spinningup/keypapers.html)
 * [Beginner Reinforcement Learning](https://medium.com/@jonathan_hui/rl-introduction-to-deep-reinforcement-learning-35c25e04c199)
 * [DRL Algos with pytorch](https://github.com/p-christ/Deep-Reinforcement-Learning-Algorithms-with-PyTorch)
@@ -96,10 +98,10 @@
 ### Sub Policy Networks
 > Each implements it's own action space with a special optimized network for this state. 
 1. Arrange Units (Sequence to Sequence LSTM)
-2. Get new buys
+2. Get new buys -> direct action
 3. Buy
 4. Sell Unit
-5. Buy Exp
+5. Buy Exp -> direct action
 6. Order carousel units
 7. Give Unit Item
 
