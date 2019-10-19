@@ -35,11 +35,6 @@
 * [Champion Stats](https://rankedboost.com/league-of-legends/teamfight-tactics/akali/)
 * [Patchnotes](https://leagueoflegends.fandom.com/wiki/Teamfight_Tactics:V9.18)
 
-**GYM**
-* [Multi Agent Gym](https://github.com/openai/multiagent-particle-envs/tree/master/multiagent)
-* [automated game theory](https://github.com/LY0708/Automated-Game-Theory)
-* streamlit for interface
-
 > old
 * [lolchess.gg - champs, items, meta, synergies](https://lolchess.gg/champions/blitzcrank) -> nicht aktuell
 * [drop rates and other useful guides](https://www.rockpapershotgun.com/2019/08/02/teamfight-tactics-champions-hextech-new-tft-champions/#hextech)

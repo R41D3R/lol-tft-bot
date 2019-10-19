@@ -91,6 +91,7 @@ class DummyChamp:
                     if item.last_proc is None or self.fight.now - item.last_proc >= 3:
                         activated = True
                         item.last_proc = self.fight.now
+                        self.status_effects.append(StatusEffect(self.fight.map, 3, "Quicksilver", effects=["quicksilver_refresh"]))
         return activated
 
     @property
@@ -214,8 +215,8 @@ class DummyChamp:
             range_ = 1
         else:
             range_ = self.base_range
-        # @item: Rapid Firecannon
-        item_name = "Rapid Firecannon"
+        # @item: Rapidfire Cannon
+        item_name = "Rapidfire Cannon"
         if self.item_count(item_name) > 0:
             n_items = self.item_count(item_name)
             range_ *= 2**n_items
@@ -230,12 +231,14 @@ class DummyChamp:
 
         frozen_heart_debuff = 1
         # @item: Frozen Heart
-        if self.has_effect("frozen_heart_1"):
-            frozen_heart_debuff = 1 - 0.35
-        elif self.has_effect("frozen_heart_2"):
-            frozen_heart_debuff = 1 - 0.5775
-        elif self.has_effect("frozen_heart_3"):
-            frozen_heart_debuff = 1 - 0.725375
+        if self.has_effect("frozen_heart"):
+            count = len(self.get_all_effects_with("frozen_heart"))
+            if count == 1:
+                frozen_heart_debuff = 1 - 0.35
+            elif count == 2:
+                frozen_heart_debuff = 1 - 0.5775
+            elif count >= 3:
+                frozen_heart_debuff = 1 - 0.725375
 
         wild_bonus = 0
         # @synergy: Wild
@@ -336,7 +339,7 @@ class DummyChamp:
     def ability_power_multiplier(self):
         # (ap_items + ninja bonus + sorcerer bonus) * (1 + (#of_rabadons * 0.5))
         bonus = 0
-        item_bonus = (0.2 * len([item for item in self.items if item.attribute == "ap"]))
+        item_bonus = 0.2 * self._item_sum_from("ap")
         ninja_bonus = 0
         sorcerer_bonus = 0
         rabadon_bonus = 1
@@ -389,7 +392,7 @@ class DummyChamp:
         item_name = "Infinity Edge"
         if self.item_count(item_name) > 0:
             n_items = self.item_count(item_name)
-            item_bonus += 1.5 * n_items
+            item_bonus += 1.25 * n_items
 
         assassin_bonus = 0
         # @synergy: Assassin
@@ -436,9 +439,10 @@ class DummyChamp:
     def aa_damage(self):
         return self.ad
 
-    def check_shields(self, time):
-        for shield in self.shields:
-            shield.is_active(time)
+    def check_shields(self):
+        for shield in self.shields.copy():
+            if not shield.is_active():
+                self.shields.remove(shield)
 
     def do_special_onhit_damage(self, target):
         pass
@@ -456,7 +460,7 @@ class DummyChamp:
                     # blue
                     blue_mana = [30, 50, 70]
                     for allie in [self] + fight.adjacent_allies(self):
-                        allie._get_mana("sa", blue_mana[self.rank - 1], source="Pick a Card (blue)")
+                        allie.get_mana("sa", blue_mana[self.rank - 1], source="Pick a Card (blue)")
                 elif rnd_n <= 0.66:
                     # red
                     for enemy in fight.adjacent_allies(target):
@@ -536,7 +540,7 @@ class DummyChamp:
             else:
                 for effect in target.status_effects:
                     if effect.name == "Morellonomicon":
-                        effect.duration = 10
+                        effect.created = self.fight.now
 
     def pseudo_autoattack(self, fight, enemies_in_range):
         pass
@@ -552,7 +556,7 @@ class DummyChamp:
         self.aa_counter += 1
         self.aa_last = self.fight.now
 
-        self._get_mana("aa")
+        self.get_mana("aa")
 
         # @item: Guinsoo's Rageblade
         item_name = "Guinsoo's Rageblade"
@@ -604,31 +608,26 @@ class DummyChamp:
                                   source="Get Excited")
 
         # @item: Statikk Shiv
-        item_name = "Statik Shiv"
+        item_name = "Statikk Shiv"
         if self.item_count(item_name) > 0 and self.aa_counter != 0 and self.aa_counter % 3 == 0:
             n_items = self.item_count(item_name)
-            target.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
+            target.get_damage("magic", n_items * 100, fight, origin="on_hit_no_dodge", originator=self, source="Statikk Shiv")
+            self.fight.events.append(DummyEvent(1000, (128, 128, 128), [target.my_cell]))
+
             for enemy in fight.get_n_closest_allies(target, 2):
-                enemy.get_damage("magic", n_items * 100, fight.map, origin="on_hit_no_dodge", originator=self)
+                enemy.get_damage("magic", n_items * 100, fight, origin="on_hit_no_dodge", originator=self, source="Statikk Shiv")
+                self.fight.events.append(DummyEvent(1000, (128, 128, 128), [enemy.my_cell]))
 
         # @item: Titanic Hydra
         item_name = "Titanic Hydra"
         if self.item_count(item_name) > 0:
             n_items = self.item_count(item_name)
             # all target neighbors cell that are not in attackers.neighbors
-            cleave_area_id = []
-            attacker_neighbors = fight.map.get_cell_from_id(self.pos).neighbors
-            target_neighbors = fight.map.get_cell_from_id(target.pos).neighbors
-            for cell in target_neighbors:
-                if cell not in attacker_neighbors:
-                    cleave_area_id.append(cell.id)
-            cleaved_enemies = []
-            for enemy in fight.champs_enemy_team(self):
-                if enemy.pos in cleave_area_id:
-                    cleaved_enemies.append(enemy)
-            for enemy in cleaved_enemies:
+            area = self.fight.get_cleave_area_behind_target(target, self)
+            self.fight.events.append(DummyEvent(1000, (128, 128, 128), area))
+            for enemy in self.fight.get_enemies_in_area(self, area):
                 enemy.get_damage("physical", 0.03 * n_items * enemy.max_health, fight, origin="on_hit_no_dodge",
-                                 originator=self)
+                                 originator=self, source="Titanic Hydra")
 
         # @synery: Blademaster
         synergy_name = "Blademaster"
@@ -657,7 +656,7 @@ class DummyChamp:
             target.mana -= 20
             if target.mana < 0:
                 target.mana = 0
-            self._get_mana("Demon", 15 * combo)
+            self.get_mana("Demon", 15 * combo)
 
         # @synergy: Gunslinger
         synergy_name = "Gunslinger"
@@ -723,7 +722,7 @@ class DummyChamp:
 
                     # @synergy: Noble
                     synergy_name = "Noble"
-                    if synergy_name in self.origin:
+                    if self.noble_buff:
                         self.heal(30, fight.map)
 
     def heal(self, amount, map_):
@@ -757,6 +756,8 @@ class DummyChamp:
             "magic": self.mr,
             "true": 0,
         }
+        if not self.alive:
+            return False
 
         # @item: Jeweled Gauntlet
         if origin == "aa" or (origin == "sa" and originator.item_count("Jeweled Gauntlet") > 0):
@@ -808,11 +809,11 @@ class DummyChamp:
             if self.item_count(item_name) > 0 and type_ == "magic":
                 n_items = self.item_count(item_name)
                 if n_items == 1:
-                    real_damage = incoming_damage * (1 - 0.75)
+                    real_damage *= 1 - 0.75
                 elif n_items == 2:
-                    real_damage = incoming_damage * (1 - 0.9375)
+                    real_damage *= 1 - 0.9375
                 elif n_items == 3:
-                    real_damage = incoming_damage * (1 - 0.984375)
+                    real_damage *= 1 - 0.984375
 
             # @synergy: Dragon
             synergy_name = "Dragon"
@@ -834,15 +835,15 @@ class DummyChamp:
                         originator.target_aa_counter[self] = 1
 
                     # @item: Thornmail
-                    item_name = "Thornmail"
+                    item_name = "Thormail"
                     if self.item_count(item_name) > 0 and type_ == "physical":
                         n_items = self.item_count(item_name)
                         originator.get_damage("magic", incoming_damage * n_items, fight, origin="item",
-                                              originator=self)
+                                              originator=self, source="Thormail")
                         real_damage = 0
 
                     # @item: Bloodthirster
-                    item_name = "Bloothirster"
+                    item_name = "Bloodthirster"
                     if originator.item_count(item_name) > 0:
                         heal = real_damage * 0.4 * originator.item_count(item_name)
                         originator.heal(heal, map_)
@@ -877,7 +878,7 @@ class DummyChamp:
                         else:
                             for effect in self.status_effects:
                                 if effect.name == item_name:
-                                    effect.duration = 10
+                                    effect.created = self.fight.now
 
                     # @item: Luden's Echo
                     item_name = "Luden's Echo"
@@ -914,7 +915,7 @@ class DummyChamp:
                     real_damage = 0
 
             # shield
-            damage_after_shield = self._shield_damage(real_damage, map_.time)
+            damage_after_shield = self._shield_damage(real_damage)
 
             # @champ: Kindred
             if self.has_effect("kindred_300"):
@@ -942,7 +943,7 @@ class DummyChamp:
             if originator not in self.got_damage_from:
                 self.got_damage_from.append(originator)
             self.damage_events.append(DummyDamage(real_damage, self.position(map_), type_))
-            self._get_mana("damage", source=source, damage=incoming_damage)
+            self.get_mana("damage", source=source, damage=incoming_damage)
             self._check_alive()
             return True
         else:
@@ -1195,14 +1196,14 @@ class DummyChamp:
         # print(best_path)
         return best_path[1]
 
-    def _shield_damage(self, damage, time):
+    def _shield_damage(self, damage):
         rest_damage = damage
         if len(self.shields) > 0:
-            sorted_durations = sorted(self.shields, key=lambda shield_: shield_.get_duration(time))
+            sorted_durations = sorted(self.shields, key=lambda shield_: shield_.get_duration())
             sorted_durations.reverse()
             for shield in sorted_durations:
                 if rest_damage > 0:
-                    if shield.is_active(time):
+                    if shield.is_active():
                         new_damage = shield.damage(rest_damage)
                         if new_damage >= 0:
                             rest_damage = 0
@@ -1218,7 +1219,7 @@ class DummyChamp:
         if self.mana < 0:
             self.mana = 0
 
-    def _get_mana(self, origin, amount_=0, source=None, damage=0):
+    def get_mana(self, origin, amount_=0, source=None, damage=0):
         amount = amount_
         if not self.has_effect("mana-lock"):
             if origin == "aa":
@@ -1262,6 +1263,7 @@ class DummyChamp:
 
     def _kill(self):
         map_ = self.fight.map
+
         # @item: Guradian Angel
         item_name = "Guardian Angel"
         if self.item_count(item_name) > 0 and self._item_proc(item_name) is None:
@@ -1272,16 +1274,20 @@ class DummyChamp:
             self.status_effects.append(StatusEffect(map_, 2, "Guardian Angel", effects=["revive"]))
             return False
 
+        logger.debug(f"Champ died on {self.pos}")
+        self.alive = False
+
         # @item: Repeating Crossbow
         item_name = "Repeating Crossbow"
-        if self.item_count(item_name) > 0:
-            for item in self.items:
-                if item.name == item_name:
-                    item.attribute.extend(["crit_chance", "crit_chance", "attack_speed"])
-                    # npc champs included
-                    possible_allies = [allie for allie in self.fight.champs_allie_team(self) if len(allie.items) < 3]
+        for item in self.items.copy():
+            if item.name == item_name:
+                item.attribute += ["crit_chance", "crit_chance", "attack_speed"]
+                # npc champs included
+                possible_allies = [allie for allie in self.fight.champs_allie_team(self) if len(allie.items) < 3 and allie.alive]
+                if possible_allies:
                     random_allie = random.choice(possible_allies)
                     random_allie.items.append(item)
+                    self.items.remove(item)
 
         for enemy in self.got_damage_from:
             if enemy:
@@ -1293,8 +1299,6 @@ class DummyChamp:
                 if enemy.item_count(item_name) > 0:
                     enemy.bonus_ad += 15
 
-        logger.debug(f"Champ died on {self.pos}")
-        self.alive = False
         if self.pos is not None:
             map_.get_cell_from_id(self.pos).taken = False
         # if self.next_pos is not None:
@@ -1377,11 +1381,22 @@ class DummyChamp:
         # effects
         effect_font = pygame.font.SysFont("Comic Sans Ms", 15)
         effect_counter = 0
+        effect_dict = {}
+        duration = lambda status_effect_: (status_effect_.duration - (self.fight.now - status_effect_.created)) / 1000
         for status_effect in self.status_effects:
             for effect in status_effect.effects:
-                effect_counter += 1
-                effect_text = effect_font.render(effect, True, (0, 0, 0))
-                surface.blit(effect_text, (player_pos[0] - 30, cb_y + effect_counter * 8))
+                if effect not in effect_dict:
+                    effect_dict[effect] = {"count": 1, "duration": duration(status_effect)}
+                else:
+                    effect_dict[effect]["count"] += 1
+                    if duration(status_effect) > effect_dict[effect]["duration"]:
+                        effect_dict[effect]["duration"] = duration(status_effect)
+        for name in effect_dict.keys():
+            effect_counter += 1
+            counter = effect_dict[name]["count"]
+            dura = effect_dict[name]["duration"]
+            effect_text = effect_font.render(f"{counter} X " + name + f" {dura:.1f}", True, (0, 0, 0))
+            surface.blit(effect_text, (player_pos[0] - 30, cb_y + effect_counter * 8))
 
         # ----- name ------
         text = font.render(f"{self.name} [{self.rank}]", True, (0, 0, 0))

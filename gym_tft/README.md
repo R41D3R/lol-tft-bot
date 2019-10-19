@@ -30,6 +30,9 @@
 3. Fight -> After Fight
 * on end return results
 
+**Resources**:
+* [Multi Agent Gym](https://github.com/openai/multiagent-particle-envs/tree/master/multiagent)
+
 ***
 
 # RL Part
@@ -46,6 +49,8 @@
 * [Intro book to DRL](https://arxiv.org/pdf/1811.12560.pdf)
 * [Deep Q-Learning](https://www.analyticsvidhya.com/blog/2019/04/introduction-deep-q-learning-python/)
 * [Uni Stuttgart DRL Course](https://ipvs.informatik.uni-stuttgart.de/mlr/teaching/deep-reinforcement-learning-ss-18/)
+* [automated game theory](https://github.com/LY0708/Automated-Game-Theory)
+* streamlit for interface
 
 **Useful Reads**
 * [Deep Reinforcement Learning Doesn't Work Yet](https://www.alexirpan.com/2018/02/14/rl-hard.html)

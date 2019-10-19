@@ -2,7 +2,8 @@ import pygame
 
 
 class StatusEffect:
-    def __init__(self, map_, duration, name, effects=None):
+    def __init__(self, map_, duration, name, effects=None, user=None):
+        self.user = user
         if effects is None:
             self.effects = []
         else:
@@ -42,7 +43,7 @@ class Dot(StatusEffect):
     def proc(self):
         if self.damage:
             if self.last_proc is None or self.fight.now - self.last_proc >= self.interval:
-                self.target.get_damage(self.dmg_type, self.target.max_health * 0.02, self.fight, origin="spell", originator=self.user, source=self.source)
+                self.target.get_damage(self.dmg_type, self.target.max_health * 0.02, self.fight, origin="item", originator=self.user, source=self.source)
                 self.last_proc = self.fight.now
 
 

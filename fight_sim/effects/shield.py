@@ -9,19 +9,18 @@ class Shield:
         self.amount = amount
         self.champ = champ
 
-    def get_duration(self, time):
+    def get_duration(self):
         if self.duration is None:
             return 99999999999
         else:
-            return time - self.created
+            return self.fight.now - self.created
 
-    def is_active(self, time):
+    def is_active(self):
         if self.duration is None:
             if self.amount > 0:
                 return True
-        elif self.created - time <= self.duration and self.amount > 0:
+        elif self.fight.now - self.created <= self.duration and self.amount > 0:
             return True
-        self.champ.shields.remove(self)
         return False
 
     def damage(self, damage):

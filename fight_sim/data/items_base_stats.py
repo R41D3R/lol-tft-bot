@@ -37,7 +37,7 @@ all_items = {
     },
     9: {
         "name": "Deathblade",
-        "attribute": ["ad", "attack_speed"],
+        "attribute": ["ad", "ad", "ad"],
     },
     10: {
         "name": "Giant Slayer",
@@ -100,7 +100,7 @@ all_items = {
         "attribute": ["crit_chance", "crit_chance", "attack_speed"],
     },
     25: {
-        "name": "Blade of the Ruined Kind",
+        "name": "Blade of the Ruined King",
         "attribute": ["attack_speed", "attack_speed"],
     },
     26: {
@@ -176,7 +176,7 @@ all_items = {
         "attribute": ["armor", "armor"],
     },
     44: {
-        "name": "Dragons Claw",
+        "name": "Dragon's Claw",
         "attribute": ["mr", "mr"],
     },
     45: {

@@ -32,7 +32,6 @@ class ChampionFabric:
             items = [self._get_item_from_id(i) for i in champ[3]]
             champ_item = self._get_champ_item_from_name(champ[0])
             champs.append(self._get_champ(champ[1], champ_item, champ[2], None, items=items))
-        print([champ.pos for champ in champs])
         return champs
 
     def _get_team(self, special_champ_name=None, special_item_id=None):
@@ -51,7 +50,7 @@ class ChampionFabric:
 
     @staticmethod
     def _get_item_from_id(id_):
-        return [Item(all_items[id_]["attribute"], all_items[id_]["name"])]
+        return Item(all_items[id_]["attribute"], all_items[id_]["name"])
 
     @staticmethod
     def _get_items():

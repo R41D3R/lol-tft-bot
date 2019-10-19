@@ -131,8 +131,6 @@ class Fight:
                 enemy_team = self.enemy_team_visible(champ)  # rework visible
                 enemies_in_range = champ.get_enemies_in_range(self)
 
-                # @todo: rework channeling abilites
-                # @body: make them interuptable if needed and add can_cast
                 if champ.enough_mana_for_sa and champ.can_use_sa:
                     logger.debug(f"{champ.name} uses sa")
                     champ.stop_moving(self)
@@ -193,7 +191,7 @@ class Fight:
             if self.game_over:
                 return
             self._activate_aura(champ)
-            champ.check_shields(self.now)
+            champ.check_shields()
             champ.check_status_effects(self.now)
             self._dot_damage(champ)
 
@@ -276,6 +274,13 @@ class Fight:
 
     def knockback(self, enemy, k_distance, user):
         pass
+
+    def get_cleave_area_behind_target(self, target, user):
+        degree = self.degree(user.pos, target.pos)
+        direction = (self.get_direction(user.pos, target.pos, degree) + 3) % 6
+        cell_before_target = self.map.get_cell_in_direction(target.my_cell, direction)
+        area = [cell for cell in target.my_cell.neighbors if cell not in cell_before_target.neighbors and cell != cell_before_target]
+        return area + [target.my_cell]
 
     def get_enemies_in_area(self, user, area):
         enemies = []
@@ -373,7 +378,7 @@ class Fight:
         # show all champs with number
         for i, champ in enumerate(self.team_top + self.team_bot):
             if champ.alive:
-                champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}, aa_delay={int(champ.aa_cc)}, ad={int(champ.ad)}", True, (0, 0, 0))
+                champ_text = font.render(f"{champ.name} [{champ.rank}]: hp={int(champ.current_health)}, mana={int(champ.mana)}, ap={champ.ability_power_multiplier}, aa_delay={int(champ.aa_cc)}, ad={int(champ.ad)}, items={[item.name for item in champ.items]}", True, (0, 0, 0))
                 surface.blit(champ_text, (10, 600 + (i * 15)))
 
     @staticmethod
@@ -470,9 +475,9 @@ class Fight:
                         item.name = "Hand of Justice heal"
 
             possible_positions = [(champ.pos[0] + 2, champ.pos[1]),
-                                  (champ.pos[0] - 4, champ.pos[1]),
-                                  (champ.pos[0] + 4, champ.pos[1]),
                                   (champ.pos[0] - 2, champ.pos[1]),
+                                  (champ.pos[0] + 4, champ.pos[1]),
+                                  (champ.pos[0] - 4, champ.pos[1]),
                                   champ.pos]
             as_bonus = 0  # zekes
             shield_bonus = 0  # solari
@@ -733,13 +738,15 @@ class Fight:
         item_name = "Frozen Heart"
         if champ.item_count(item_name) > 0:
             n_items = champ.item_count(item_name)
+            had_effect = False
             for enemy in self.adjacent_enemies(champ):
-                if enemy.has_effect_with_name(item_name):
-                    for effect in enemy.status_effects:
-                        if effect.name == item_name:
-                            enemy.status_effects.remove(effect)
-                enemy.status_effects.append(
-                    StatusEffect(self.map, 4, item_name, effects=["frozen_heart_" + str(n_items)]))
+                for effect in enemy.status_effects:
+                    if effect.user == champ and effect.name == item_name:
+                        effect.created = self.now
+                        had_effect = True
+                if not had_effect:
+                    enemy.status_effects.append(
+                        StatusEffect(self.map, 1, item_name, effects=["frozen_heart"]*n_items, user=champ))
 
     def _get_next_cell_id(self, current_cell_id, target_id, root):
         direction = self.get_direction(current_cell_id, target_id, root)
