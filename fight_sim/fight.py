@@ -1,5 +1,6 @@
 import random
 import math
+import copy
 
 import pygame
 
@@ -10,17 +11,25 @@ from fight_sim.config import logger
 from fight_sim.champ.champs import Golem
 
 
-class Fight:
-    def __init__(self, champ_fabric):
-        self.champ_fabric = champ_fabric
+class EmptyTeamError(Exception):
+    pass
 
+
+class Fight:
+    def __init__(self, team_bot=None, team_top=None):
+        if team_bot and team_top:
+            pass
+        else:
+            raise EmptyTeamError("No Bot and/or Top Team passed as arguments.")
         # init
-        self.team_bot = None
-        self.team_top = None
+        self.team_top = copy.deepcopy(team_top)
+        self.team_bot = copy.deepcopy(team_bot)
+
         self.map = self.board
         self.events = []
         self.aoe = []
         self.now = None
+        self.start_tick = None
         self.start_of_combat = True
         self.bot_synergy = {}
         self.top_synergy = {}
@@ -28,6 +37,12 @@ class Fight:
         self.ranger_tick = None
         self.hextech_disabled_champs = []
         self.selected_champs = []
+        self.assasin_jump_done = False
+
+        self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_bot)
+        self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_top)
+
+        self._place_champs()
 
     @property
     def board(self):
@@ -47,34 +62,12 @@ class Fight:
     def champions_alive(self):
         return [champ for champ in self.team_top + self.team_bot if champ.alive]
 
-    def new_fight(self, reset=False, champs_top=None, champs_bot=None):
-        if champs_bot and champs_top:
-            self.team_top = self.champ_fabric.get_real_team(champs_top)
-            self.team_bot = self.champ_fabric.get_real_team(champs_bot)
-        else:
-            self.team_top, self.team_bot = self.champ_fabric.get_teams(reset=reset)
-        self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_bot)
-        self._check_valid_pos(self.map.n_cols, self.map.n_rows, self.team_top)
-
-        self.map = self.board
-        self.events = []
-        self.aoe = []
-        self.now = None
-        self.start_of_combat = True
-        self.bot_synergy = {}
-        self.top_synergy = {}
-        self.hextech_tick = None
-        self.ranger_tick = None
-        self.hextech_disabled_champs = []
-        self.selected_champs = []
-
-        self._place_champs()
-
     def make_fight_step(self):
         now = pygame.time.get_ticks()
         self.now = now
         self.map.time = now
         if self.start_of_combat:
+            self.start_tick = self.now
             self.start_of_combat = False
             self._set_team_synergies()
 
@@ -90,6 +83,10 @@ class Fight:
                 self.hextech_tick = None
                 for champ in self.hextech_disabled_champs:
                     champ.items += champ.disabled_items
+
+        if not self.assasin_jump_done and self.now - self.start_tick >= 500:
+            self.assasin_jump_done = True
+            self._make_assasin_jump()
 
         # @synergy: Ranger
         synergy_name = "Ranger"
@@ -255,10 +252,11 @@ class Fight:
         furthest_enemy = None
         furthest_enemy_dist = 0
         for enemy in self.champs_enemy_team(champ):
-            goal_cell = self.map.get_cell_from_id(enemy.pos)
-            dist_to_enemy = self.map.distance(start_cell, goal_cell)
-            if furthest_enemy_dist < dist_to_enemy:
-                furthest_enemy = enemy
+            if enemy.visible:
+                goal_cell = self.map.get_cell_from_id(enemy.pos)
+                dist_to_enemy = self.map.distance(start_cell, goal_cell)
+                if furthest_enemy_dist < dist_to_enemy:
+                    furthest_enemy = enemy
         return furthest_enemy
 
     def get_n_closest_allies(self, champ, n):
@@ -298,6 +296,24 @@ class Fight:
             end = None
         return [self.map.get_cell_from_id(id_)
                 for id_ in self._get_line_area_ids(target, champ, hexrange=hexrange)][1:end]
+
+    def area_line_from_cell_ids(self, start, goal, hexrange=None):
+        if hexrange is not None and self.map.distance_id(start, goal) < hexrange:
+            goal = self._im_target(goal, start)
+
+        # convert coordinates
+        start_cube = self.map.doublewidth_to_cube(start)
+        goal_cube = self.map.doublewidth_to_cube(goal)
+
+        cube_line = self.map.cube_line(start_cube, goal_cube)
+        dbwidth_line = [self.map.cube_to_doublewidth(cube) for cube in cube_line]
+
+        if hexrange:
+            end = hexrange + 1
+        else:
+            end = None
+
+        return [self.map.get_cell_from_id(id_) for id_ in dbwidth_line][1:end]
 
     def _get_line_area_ids(self, target, champ, hexrange=None):
         # @todo: set goal to im_target after target is reached
@@ -709,16 +725,24 @@ class Fight:
         synergy_name = "Assassin"
         for champ in self.team_top + self.team_bot:
             if synergy_name in champ.class_ and not champ.has_effect("banish"):
-                furthest_enemy = self.furthest_enemy_away(champ)
-                new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
-                new_cell.taken = True
-                champ.jump_cell = new_cell
+                champ.stealth(self.map, 1)
+                champ.untargetable(0.5, self)
 
+        for champ in self.team_top + self.team_bot:
+            if synergy_name in champ.class_ and not champ.has_effect("banish"):
+                furthest_enemy = self.furthest_enemy_away(champ)
+                if furthest_enemy:
+                    new_cell = random.choice(self.map.get_cell_from_id(furthest_enemy.pos).free_neighbors)
+                    new_cell.taken = True
+                    champ.jump_cell = new_cell
+
+    def _make_assasin_jump(self):
+        # @synergy: Assassin
+        synergy_name = "Assassin"
         for champ in self.team_top + self.team_bot:
             if synergy_name in champ.class_ and not champ.has_effect("banish"):
                 if champ.jump_cell:
                     champ.move_to(champ.jump_cell, self)
-                    champ.untargetable(1, self)
 
     def _activate_aura(self, champ):
         # @item: Warmog's Armor

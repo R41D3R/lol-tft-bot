@@ -1270,18 +1270,18 @@ class MissFortune(DummyChamp):
         self.sa_tick_interval = 3 / 14
 
     @property
-    def bullet_area(self):
+    def bullet_cone(self):
         target = self.fight.furthest_enemy_away(self)
-        degree = self.fight.degree(self.pos, target.pos)
-        direction = self.fight.get_direction(self.pos, target.pos, degree)
-        ids = []
-        current_middle_id = self.pos
-        for i in range(4):
-            current_middle_id = (current_middle_id[0] + self.fight.map.dir_dict[direction][0], current_middle_id[1] + self.fight.map.dir_dict[direction][1])
-            ids.append(current_middle_id)
-            ids.append((current_middle_id[0] + self.fight.map.dir_dict[direction + 1][0], current_middle_id[1] + self.fight.map.dir_dict[direction + 1][1]))
-            ids.append((current_middle_id[0] + self.fight.map.dir_dict[direction - 1][0], current_middle_id[1] + self.fight.map.dir_dict[direction - 1][1]))
-        area = [self.fight.map.get_cell_from_id(id_) for id_ in ids]
+        line_self_target = list(filter(None, self.fight.get_line_area(target, self, 6)))
+        end_cell = line_self_target[-1]
+        neighbors_by_dist = sorted(end_cell.neighbors, key=lambda cell_: self.fight.map.distance(self.my_cell, cell_))
+        neighbors_by_dist.reverse()
+        end_cells = [end_cell] + neighbors_by_dist[:min(2, len(neighbors_by_dist) - 1)]
+        area = []
+        for cell in end_cells:
+            for a_cell in self.fight.area_line_from_cell_ids(self.my_cell.id, cell.id):
+                if cell not in area:
+                    area.append(a_cell)
         return area
 
     def special_ability(self, fight, in_range, visible, alive, time):
@@ -1291,7 +1291,8 @@ class MissFortune(DummyChamp):
         # 1300 / 2000 / 2700 magic damage to all enemies
         # within over the duration.
         self.channel(fight, 3, "Bullet Time", interruptable=True)
-        fight.aoe.append(BulletTime(fight, self, self.bullet_area, self.sa_tick_damage[self.rank - 1]))
+        self.mana_lock(fight.map, 3)
+        fight.aoe.append(BulletTime(fight, self, self.bullet_cone, self.sa_tick_damage[self.rank - 1]))
 
 
 class Mordekaiser(DummyChamp):

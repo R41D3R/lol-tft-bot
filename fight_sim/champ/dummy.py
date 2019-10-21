@@ -61,7 +61,7 @@ class DummyChamp:
         self.sa_counter = 0
         self.aa_counter = 0
         self.shields = []
-        self.team_synergies = None
+        self.team_synergies = {}
         self.disabled_items = None
         self.imperial_buff = False
         self.noble_buff = False
@@ -79,6 +79,9 @@ class DummyChamp:
         self.jump_cell = None
 
         self.fight = fight
+
+    def __repr__(self):
+        return f"{self.name, self.pos, self.rank}"
 
     @property
     def _quicksilver(self):
@@ -553,6 +556,7 @@ class DummyChamp:
             if not target.alive:
                 return
 
+        self.remove_effects_with_attribute("stealth")
         self.aa_counter += 1
         self.aa_last = self.fight.now
 
@@ -973,6 +977,11 @@ class DummyChamp:
                 self.stun(status_effect.duration, fight.map)
             # immune visualization
 
+    def remove_effects_with_attribute(self, name):
+        for effect in self.status_effects.copy():
+            if name in effect.effects:
+                self.status_effects.remove(effect)
+
     def remove_effects_with_name(self, name):
         for effect in self.status_effects:
             if effect.name == name:
@@ -1038,8 +1047,8 @@ class DummyChamp:
         else:
             self.status_effects.append(Dot(self, fight, duration, name, originator, ["gwound"]))
 
-    def stealth(self, map_):
-        self.status_effects.append(StatusEffect(map_, 10**10, "Stealth", effects=["stealth"]))
+    def stealth(self, map_, duration):
+        self.status_effects.append(StatusEffect(map_, duration, "Stealth", effects=["stealth"]))
 
     def stun(self, duration, map_):
         if not self._quicksilver:

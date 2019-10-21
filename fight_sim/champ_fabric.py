@@ -22,8 +22,8 @@ class ChampionFabric:
     def get_teams(self, reset=False):
         if self.base_bot is None and self.base_top is None:
             if not reset:
-                self.base_top = self._get_team()
-                self.base_bot = self._get_team()
+                self.base_top = self.get_team()
+                self.base_bot = self.get_team()
         return copy.deepcopy(self.base_bot), copy.deepcopy(self.base_top)
 
     def get_real_team(self, champion_list_info):
@@ -34,7 +34,7 @@ class ChampionFabric:
             champs.append(self._get_champ(champ[1], champ_item, champ[2], None, items=items))
         return champs
 
-    def _get_team(self, special_champ_name=None, special_item_id=None):
+    def get_team(self):
         logger.info("Team gets initialized.")
         k = 3
         k_picks = random.sample(list(self.champ_dict.items()), k)
