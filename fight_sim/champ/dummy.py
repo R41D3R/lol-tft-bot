@@ -1048,6 +1048,8 @@ class DummyChamp:
             self.status_effects.append(Dot(self, fight, duration, name, originator, ["gwound"]))
 
     def stealth(self, map_, duration):
+        # @todo: How does Stealth interact with autoattacks and abilities or items
+        # @body: Does the stealth champ get revealed when he does damage or get damage?
         self.status_effects.append(StatusEffect(map_, duration, "Stealth", effects=["stealth"]))
 
     def stun(self, duration, map_):
