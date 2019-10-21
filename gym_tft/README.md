@@ -43,6 +43,8 @@
     1. [Key Concepts in RL](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
     2. [Kinds of Algorithms](https://spinningup.openai.com/en/latest/spinningup/rl_intro2.html)
     3. [Policy Optimization](https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html)
+    4. [Learning Curriculum](https://spinningup.openai.com/en/latest/spinningup/spinningup.html)
+* [DRL Bootcamp](https://sites.google.com/view/deep-rl-bootcamp/lectures)
 * [Key Papers for DRL](https://spinningup.openai.com/en/latest/spinningup/keypapers.html)
 * [Beginner Reinforcement Learning](https://medium.com/@jonathan_hui/rl-introduction-to-deep-reinforcement-learning-35c25e04c199)
 * [DRL Algos with pytorch](https://github.com/p-christ/Deep-Reinforcement-Learning-Algorithms-with-PyTorch)
@@ -65,6 +67,8 @@
 ## League
 > Using an Evoulutional Algorithm as outer Optimization save computation while saving a diverse set of strategies. It can also adjusted to save older startegies and at the end a Nash distribution can be picked with the least exploitable strategies.
 
+* Combine Modules or Agents based on correlated metrics for winning (Macroperspective, Goldmanagement, Fight Positioning, ...)
+
 **Resources**:
 * [Alphastar](https://arxiv.org/pdf/1902.01724.pdf)
 
@@ -78,6 +82,8 @@
 
 ## Agent
 > A hyrachical Architecture makes modular Training possible (also enables replacement), reduces the variational state space and can adapt to macro strategies better. In contrast there is a alternating update needed for sub policies and the controller to prevent unforeseeable effects. 
+
+* Get Round counter with health and remaining players -> time state -> replace controller for macro action
 
 **Resources**:
 * [Reinforcement Learning Starcraft](https://arxiv.org/pdf/1809.09095.pdf#Hfootnote.1)
@@ -94,10 +100,10 @@
 ### Sub Policy Networks
 > Each implements it's own action space with a special optimized network for this state. 
 1. Arrange Units (Sequence to Sequence LSTM)
-2. Get new buys
+2. Get new buys -> direct action
 3. Buy
 4. Sell Unit
-5. Buy Exp
+5. Buy Exp -> direct action
 6. Order carousel units
 7. Give Unit Item
 
